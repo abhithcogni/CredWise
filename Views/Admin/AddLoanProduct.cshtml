@@ -1,0 +1,103 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "~/Views/Shared/AdminUtility.cshtml";
+
+}
+<style>
+    .btn-outline-primary {
+        color: #001f4c;
+        border-color: #001f4c;
+    }
+
+        .btn-outline-primary:hover {
+            background-color: #001f4c !important;
+        }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 0.20rem rgba(62, 146, 204, 0.4);
+    }
+
+    .stylish-card {
+        border: none; /* Remove default border */
+        border-radius: 0.85rem; /* Slightly more rounded */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, .07); /* Softer, more diffused shadow */
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        background-color: #ffffff;
+        overflow: hidden; /* Ensures border-radius applies to header */
+    }
+
+    .form-label .fas {
+        font-size: 0.9em; /* Slightly smaller icon next to label text */
+        opacity: 0.8;
+        color: #3E92CC;
+    }
+
+    .input-group-text {
+        background-color: #e9ecef;
+        border: 1px solid #ced4da;
+        border-left: none;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    /* Responsive adjustments */
+    
+
+   
+</style>
+<div class="container-fluid p-lg-5">
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+            <div class="card custom-card stylish-card">
+                <div class="card-body p-4 p-lg-5">
+                    <h2 style="color: #0A2463;" class="text-center">Add Loan Product</h2>
+                    <form id="loanProductForm">
+                        <div class="mb-4">
+                            <label for="productName" class="form-label"><i class="fas fa-tag me-2"></i>Product Name</label>
+                            <input type="text" class="form-control form-control-lg" id="productName" name="productName" required placeholder="e.g., Home Loan,Personal Finance">
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label for="interestRate" class="form-label"><i class="fas fa-percentage me-2"></i>Interest Rate</label>
+                                <div class="input-group input-group-lg">
+                                    <input type="number" class="form-control" id="interestRate" name="interestRate" step="0.01" required placeholder="e.g., 5.75">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tenure" class="form-label"><i class="fas fa-calendar-alt me-2"></i>Maximum Tenure</label>
+                                <div class="input-group input-group-lg">
+                                    <input type="number" class="form-control" id="tenure" name="tenure" required placeholder="e.g., 120">
+                                    <span class="input-group-text">months</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label for="minAmount" class="form-label"><i class="fas fa-dollar-sign me-2"></i>Minimum Loan Amount</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="minAmount" name="minAmount" step="100" required placeholder="e.g., 1000">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="maxAmount" class="form-label"><i class="fas fa-coins me-2"></i>Maximum Loan Amount</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="maxAmount" name="maxAmount" step="1000" required placeholder="e.g., 500000">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-outline-primary btn-lg px-4 "><i class="fas fa-save me-2"></i>Save Product</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

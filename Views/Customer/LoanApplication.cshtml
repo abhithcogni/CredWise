@@ -113,5 +113,51 @@
             </form>
         </div>
     </div>
+    <script>
+                document.addEventListener("DOMContentLoaded", function () {
+            const loanProductName = document.getElementById("loanProductName");
+            const interestRate = document.getElementById("interestRate");
+            const loanAmount = document.getElementById("loanAmount");
+            const tenure = document.getElementById("tenure");
+            const totalAmount = document.getElementById("totalAmount");
+
+            // Interest rates for different loan products
+            const interestRates = {
+                "Personal Loan": 12,
+                "Housing Loan": 8,
+                "Gold Loan": 10,
+                "Vehicle Loan": 9,
+            };
+
+            // Update interest rate when loan product is selected
+            loanProductName.addEventListener("change", function () {
+                const selectedProduct = loanProductName.value;
+                if (interestRates[selectedProduct]) {
+                    interestRate.value = interestRates[selectedProduct];
+                } else {
+                    interestRate.value = "";
+                }
+                calculateTotalAmount();
+            });
+
+            // Calculate total amount when loan amount or tenure changes
+            [loanAmount, tenure].forEach((input) => {
+                input.addEventListener("input", calculateTotalAmount);
+            });
+
+            function calculateTotalAmount() {
+                const principal = parseFloat(loanAmount.value) || 0;
+                const rate = parseFloat(interestRate.value) || 0;
+                const time = parseFloat(tenure.value) / 12 || 0; // Convert months to years
+
+                if (principal > 0 && rate > 0 && time > 0) {
+                    const total = principal + (principal * rate * time) / 100;
+                    totalAmount.value = total.toFixed(2);
+                } else {
+                    totalAmount.value = "";
+                }
+            }
+        });
+    </script>
 </body>
 </html>

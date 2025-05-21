@@ -96,7 +96,7 @@
                 <i class="fas fa-sign-in-alt"></i>Login to Your Account
             </div>
             <div class="card-body">
-                <form id="loginForm">
+                <form id="loginForm" action="@Url.Action("AdminDashboard","Admin")">
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
                         <label for="email"><i class="fas fa-envelope me-2"></i>Email address</label>
@@ -130,14 +130,7 @@
 
     @section Scripts {
         <script>
-            // Add any login-specific JavaScript here (e.g., form submission)
-            // This script handles the form submission event.
-            document.getElementById('loginForm').addEventListener('submit', function(event) {
-                event.preventDefault(); // Prevents the default form submission, which would reload the page.
-                alert('Login form submitted!'); // Shows a simple alert message for demonstration purposes.
-                // In a real application, you would replace this alert with AJAX logic
-                // to send the form data to a server-side endpoint for user authentication.
-            });
+     
         </script>
     }
 </body>
