@@ -1,0 +1,444 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Our Bank Loan Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* New Color Palette:
+                   Primary (Main Brand): #001f4c (Dark Navy Blue)
+                   Accent (Icons, Highlights): #6bb9f0 (Sky Blue - Professional and calming)
+                   Secondary Text/Subheadings: #495057 (Dark Grey)
+                   Backgrounds: #f8f9fa (Light Grey) / #fff (White)
+                   Footer: #343a40 (Dark Grey)
+                */
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa; /* Light grey background */
+            color: #495057; /* Dark grey text */
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            background-color: #fff !important; /* White navbar */
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: #001f4c !important; /* Dark Navy Blue */
+        }
+
+        .hero-section {
+            background: linear-gradient(rgba(0, 31, 76, 0.85), rgba(0, 31, 76, 0.85)), url('https://images.unsplash.com/photo-1579621970795-87facc2f976d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80') no-repeat center center;
+            background-size: cover;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+
+            .hero-section h1 {
+                font-size: 3.5rem;
+                font-weight: 700;
+                margin-bottom: 20px;
+            }
+
+            .hero-section p {
+                font-size: 1.25rem;
+                margin-bottom: 30px;
+            }
+            /* The button in the hero section */
+            .hero-section .btn-light {
+                color: #001f4c !important; /* Dark Navy Blue for the button text */
+            }
+
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-weight: 600;
+            color: #001f4c; /* Dark Navy Blue */
+        }
+
+        .feature-card, .loan-product-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.1);
+            transition: transform .3s ease, box-shadow .3s ease;
+            height: 100%;
+        }
+
+            .feature-card:hover, .loan-product-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 8px 25px rgba(0,0,0,.15);
+            }
+
+            .feature-card .card-body, .loan-product-card .card-body {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+        /* Updated icon color for features and simple steps */
+        .card-icon {
+            font-size: 3rem;
+            color: #6bb9f0; /* Sky Blue accent */
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: #001f4c; /* Dark Navy Blue */
+        }
+
+        .cta-section {
+            background-color: #001f4c; /* Dark Navy Blue */
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+            .cta-section h2 {
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+            }
+
+        .footer {
+            background-color: #343a40; /* Darker grey for footer */
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .btn-custom-primary {
+            background-color: #001f4c; /* Dark Navy Blue */
+            border-color: #001f4c;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+
+            .btn-custom-primary:hover {
+                background-color: #003366; /* Slightly lighter navy for hover */
+                border-color: #003366;
+            }
+
+        .btn-custom-secondary {
+            background-color: #6c757d; /* Bootstrap default secondary grey */
+            border-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+
+            .btn-custom-secondary:hover {
+                background-color: #545b62;
+                border-color: #545b62;
+            }
+
+        .btn-nav {
+            margin-left: 10px;
+        }
+
+        /* Navbar specific button styles (Login/Register) */
+        .navbar .btn-outline-primary {
+            color: #001f4c; /* Dark Navy Blue */
+            border-color: #001f4c;
+        }
+
+            .navbar .btn-outline-primary:hover {
+                background-color: #001f4c;
+                color: white;
+            }
+
+        .navbar .btn-primary {
+            background-color: #001f4c; /* Dark Navy Blue */
+            border-color: #001f4c;
+            color: white;
+        }
+
+            .navbar .btn-primary:hover {
+                background-color: #003366;
+                border-color: #003366;
+            }
+
+        /* Modal styling */
+        .modal-header {
+            background-color: #f8f9fa; /* Light grey */
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .modal-title {
+            color: #001f4c; /* Dark Navy Blue */
+        }
+
+        .modal-footer button.btn-primary {
+            background-color: #001f4c; /* Dark Navy Blue */
+            border-color: #001f4c;
+            color: white;
+        }
+
+            .modal-footer button.btn-primary:hover {
+                background-color: #003366;
+                border-color: #003366;
+            }
+
+        .navbar-brand .brand-highlight {
+            color: #3E92CC; /* A complementary lighter blue */
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">Cred<span class="brand-highlight">Wise</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="@Url.Action("Login","Account")" class="btn btn-outline-primary btn-nav">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="@Url.Action("Register","Account")"  class="btn btn-primary btn-nav">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="container">
+            <h1>Unlock Your Financial Goals with Ease</h1>
+            <p class="lead">Experience a streamlined, secure, and user-friendly platform for all your loan needs. From application to repayment, we've got you covered.</p>
+            <a href="#features" class="btn btn-lg btn-light text-primary fw-bold">Discover Our Features</a>
+        </div>
+    </section>
+
+    <section id="features" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Why Choose Our Loan Management System?</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="card-icon"><i class="fas fa-cogs"></i></div>
+                            <h5 class="card-title">Streamlined Process</h5>
+                            <p class="card-text">Enjoy a hassle-free experience with our efficient loan application, approval, and disbursement process.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="card-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                            <h5 class="card-title">Diverse Loan Products</h5>
+                            <p class="card-text">Access various loan types including personal, home, and vehicle loans, tailored to your needs.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+                            <h5 class="card-title">Transparent Tracking</h5>
+                            <p class="card-text">Easily track your application status, repayment schedules, and outstanding balances in real-time.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
+                            <h5 class="card-title">Secure & Reliable</h5>
+                            <p class="card-text">Your data is protected with robust security and KYC verification, ensuring a safe banking experience.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="loan-products" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">Explore Our Loan Offerings</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card loan-product-card">
+                        <img src="https://images.unsplash.com/photo-1520333789090-1afc82db536a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" class="card-img-top" alt="Personal Loan" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Personal Loans</h5>
+                            <p class="card-text">Flexible personal loans to meet your individual needs, from education to travel or emergencies.</p>
+                            <a href="@Url.Action("Register","Account")"  class="btn btn-sm btn-outline-primary">Apply Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card loan-product-card">
+                        <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" class="card-img-top" alt="Home Loan" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Home Loans</h5>
+                            <p class="card-text">Achieve your dream of homeownership with our competitive home loan rates and terms.</p>
+                            <a href="@Url.Action("Register","Account")" class="btn btn-sm btn-outline-primary">Apply Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card loan-product-card">
+                        <img src="https://images.unsplash.com/photo-1550355291-bbee04a92027?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60" class="card-img-top" alt="Vehicle Loan" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h5 class="card-title">Vehicle Loans</h5>
+                            <p class="card-text">Get behind the wheel of your new car or bike with our easy and affordable vehicle loan options.</p>
+                            <a href="@Url.Action("Register","Account")" class="btn btn-sm btn-outline-primary">Apply Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="p-3">
+        @RenderBody()
+    </div>
+    <section id="how-it-works" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Simple Steps to Your Loan</h2>
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="p-3">
+                        <div class="card-icon"><i class="fas fa-user-plus"></i></div>
+                        <h5>1. Register & Verify</h5>
+                        <p>Create your account and complete KYC verification quickly.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3">
+                        <div class="card-icon"><i class="fas fa-file-alt"></i></div>
+                        <h5>2. Apply Online</h5>
+                        <p>Choose your loan product and submit your application digitally.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3">
+                        <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+                        <h5>3. Get Approved</h5>
+                        <p>Our team reviews your application for quick approval.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3">
+                        <div class="card-icon"><i class="fas fa-money-bill-wave"></i></div>
+                        <h5>4. Funds Disbursed</h5>
+                        <p>Receive your loan amount directly into your account.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Take Control of Your Finances?</h2>
+            <p class="lead">Join thousands of satisfied customers. Register today for a seamless loan experience.</p>
+            <a href="@Url.Action("Register","Account")" class="btn btn-lg btn-light text-primary fw-bold me-2">Register Now</a>
+            <a href="@Url.Action("Login","Account")" class="btn btn-lg btn-outline-light fw-bold">Login</a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <span>&copy; <script>document.write(new Date().getFullYear())</script> CredWisse Banking. All Rights Reserved.</span> |
+            <a href="#">Privacy Policy</a> |
+            <a href="#">Terms of Service</a>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="loginEmail" aria-describedby="emailHelp">
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">Register</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="registerName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="registerName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="registerEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerPhone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="registerPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="registerPassword">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Optional: Add smooth scrolling to anchor links if you have long pages
+        document.querySelectorAll('a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                if (this.getAttribute('href').startsWith('#') && this.getAttribute('href').length > 1 && !this.hasAttribute('data-bs-toggle')) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

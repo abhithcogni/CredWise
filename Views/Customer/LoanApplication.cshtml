@@ -1,0 +1,118 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application - MyBank</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        
+
+        .card-form-container {
+            border: 1px solid #e9ecef;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .04);
+            background-color: #ffffff;
+            max-width: 700px;
+            width: 100%;
+            margin: auto;
+        }
+
+            .card-form-container .card-header {
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #e9ecef;
+                font-weight: 600;
+                color: #343a40;
+                font-size: 1.25rem;
+                padding: 1rem 1.5rem;
+            }
+
+            .card-form-container .card-body {
+                padding: 1.5rem;
+            }
+
+        .btn-primary {
+            background-color: white;
+            border-color: #0A2463;
+            padding: 0.5rem 1.5rem;
+            color: #0A2463;
+            font-weight: 500;
+        }
+
+            .btn-primary:hover {
+                background-color: #0A2463;
+            }
+    </style>
+</head>
+<body>
+    <div class="card-form-container shadow">
+        <center>
+            <div class="card-header">
+                <i class="fas fa-file-alt"></i> Apply for a Loan
+            </div>
+        </center>
+        <div class="card-body">
+            <form id="loanApplicationForm" action="@Url.Action("LApplicationStatus", "Customer")">
+                
+
+                <div class="mb-3">
+                    <label for="loanProductName" class="form-label"><i class="fas fa-piggy-bank me-2 text-secondary"></i>Loan Product Name:</label>
+                    <select class="form-select" id="loanProductName" name="loanProductName" required>
+                        <option value="" disabled selected>Select a loan product</option>
+                        <option value="Personal Loan">Personal Loan</option>
+                        <option value="Housing Loan">Housing Loan</option>
+                        <option value="Gold Loan">Gold Loan</option>
+                        <option value="Vehicle Loan">Vehicle Loan</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="interestRate" class="form-label"><i class="fas fa-percentage me-2 text-secondary"></i>Interest Rate (%):</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-percent"></i></span>
+                        <input type="number" class="form-control no-left-border" id="interestRate" name="interestRate" readonly>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="loanAmount" class="form-label"><i class="fas fa-dollar-sign me-2 text-secondary"></i>Loan Amount:</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                        <input type="number" class="form-control no-left-border" id="loanAmount" name="loanAmount" required placeholder="Enter desired loan amount">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="tenure" class="form-label"><i class="far fa-calendar-alt me-2 text-secondary"></i>Tenure (months):</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-hourglass-half"></i></span>
+                        <input type="number" class="form-control no-left-border" id="tenure" name="tenure" required placeholder="Enter tenure in months">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="totalAmount" class="form-label"><i class="fas fa-calculator me-2 text-secondary"></i>Total Amount (Approx.):</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-equals"></i></span>
+                        <input type="number" class="form-control no-left-border" id="totalAmount" name="totalAmount" readonly>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane pe-2"></i>Submit Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

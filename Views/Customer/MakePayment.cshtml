@@ -1,0 +1,526 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Payment - Customer Portal</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: #343a40;
+            line-height: 1.6;
+        }
+
+        /* Navbar */
+        .navbar-brand {
+            letter-spacing: 0.5px;
+        }
+
+        .navbar .fa-user-circle {
+            color: #0d6efd;
+            /* Primary color */
+        }
+
+        /* Page Header */
+        .h2.fw-bold {
+            color: #2c3e50;
+        }
+
+        /* Cards */
+        .payment-summary-card,
+        .make-payment-card {
+            border: none;
+            border-radius: 0.85rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .07);
+            background-color: #ffffff;
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+            .payment-summary-card:hover,
+            .make-payment-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 30px rgba(0, 0, 0, .09);
+            }
+
+        .card-header {
+            background-color: #0d6efd;
+            color: #ffffff;
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            /* Slightly smaller than admin header */
+            padding: 0.9rem 1.25rem;
+            letter-spacing: 0.3px;
+        }
+
+            .card-header .fas {
+                margin-right: 0.6rem;
+            }
+
+        .summary-label {
+            color: #6c757d;
+            /* Muted text for labels */
+            font-size: 0.9rem;
+        }
+
+        .summary-value {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        /* Form Elements */
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 0.375rem;
+            border: 1px solid #ced4da;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.9rem;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .15);
+            }
+
+        .input-group-text {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            font-size: 0.9rem;
+        }
+
+        /* Buttons */
+        .stylish-button {
+            padding: 0.65rem 1.5rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease-in-out;
+        }
+
+            .stylish-button .fas {
+                margin-right: 0.5rem;
+                transition: transform 0.2s ease-in-out;
+            }
+
+            .stylish-button:hover .fas {
+                transform: scale(1.1);
+            }
+
+        .btn-primary.stylish-button:hover {
+            box-shadow: 0 4px 10px rgba(13, 110, 253, .25);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #ffffff;
+            padding: 1.5rem 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Payment status icons */
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .text-success .status-icon {
+            color: #198754;
+        }
+
+        .text-danger .status-icon {
+            color: #dc3545;
+        }
+
+       
+    </style>
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <div id="page-content-wrapper" class="w-100">
+
+
+            <div class="container-fluid p-4 p-md-5">
+                <div class="mb-4">
+                    <h1 class="h2 fw-bold">Make a Payment</h1>
+                    <p class="text-muted" id="paymentPageSubtitle">Securely pay your outstanding loan amount.</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-7 col-xl-6 mb-4 mb-lg-0">
+                        <div class="card payment-summary-card">
+                            <div class="card-header">
+                                <i class="fas fa-file-invoice-dollar me-2"></i>Payment Due Summary
+                            </div>
+                            <div class="card-body p-4">
+                                <h5 class="card-title" id="loanProductName">Home Loan (HL05682)</h5>
+                                <p class="card-text text-muted" id="loanShortDescription">
+                                    Your monthly installment for
+                                    your property at 123 Main St.
+                                </p>
+                                <hr>
+                                <div class="row mb-2">
+                                    <div class="col-6 summary-label">Amount Due:</div>
+                                    <div class="col-6 summary-value fw-bold fs-5 text-danger" id="amountDue">
+                                        $1,250.00
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-6 summary-label">Due Date:</div>
+                                    <div class="col-6 summary-value" id="dueDate">June 1, 2025</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 summary-label">Outstanding Balance:</div>
+                                    <div class="col-6 summary-value" id="outstandingBalance">$185,750.20</div>
+                                </div>
+                                <div id="paymentSuccessMessage" class="alert alert-success mt-3 d-none" role="alert">
+                                    <i class="fas fa-check-circle me-2"></i>Payment successful! Your next payment
+                                    details will be updated shortly.
+                                </div>
+                                <div id="noPaymentDueMessage" class="alert alert-info mt-3 d-none" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>No payment is currently due for this loan.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5 col-xl-6">
+                        <div class="card make-payment-card">
+                            <div class="card-header">
+                                <i class="fas fa-credit-card me-2"></i>Payment Details
+                            </div>
+                            <div class="card-body p-4">
+                                <form id="paymentForm">
+                                    <div class="mb-3">
+                                        <label for="paymentAmount" class="form-label">Payment Amount</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="paymentAmount"
+                                                   name="paymentAmount" step="0.01" required>
+                                        </div>
+                                        <div class="form-text">
+                                            You can pay the full amount or a partial amount (if
+                                            allowed).
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="paymentMethod" class="form-label">Payment Method</label>
+                                        <select class="form-select" id="paymentMethod" name="paymentMethod" required>
+                                            <option value="" selected disabled>Select a payment method...</option>
+                                            <option value="saved_bank_****1234">Saved Bank Account (****1234)</option>
+                                            <option value="saved_card_****5678">Saved Credit Card (****5678)</option>
+                                            <option value="new_bank">New Bank Account</option>
+                                            <option value="new_card">New Credit/Debit Card</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="newPaymentMethodFields" class="d-none mt-3 border p-3 rounded">
+                                        <p class="fw-medium small">Enter New Payment Details:</p>
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control form-control-sm"
+                                                   placeholder="Card Number / Account Number">
+                                        </div>
+                                        <div class="row gx-2">
+                                            <div class="col-6">
+                                                <input type="text" class="form-control form-control-sm"
+                                                       placeholder="MM/YY / Routing">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="text" class="form-control form-control-sm"
+                                                       placeholder="CVC">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check mt-3 mb-3">
+                                        <input class="form-check-input" type="checkbox" value="" id="termsAndConditions"
+                                               required>
+                                        <label class="form-check-label small" for="termsAndConditions">
+                                            I agree to the <a href="#">terms and conditions</a> of this payment.
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary w-100 stylish-button"
+                                            id="proceedToPayButton">
+                                        <i class="fas fa-arrow-circle-right me-2"></i>Proceed to Pay
+                                    </button>
+                                    <button type="button" class="btn btn-success w-100 stylish-button mt-2 d-none"
+                                            id="paymentCompletedButton" disabled>
+                                        <i class="fas fa-check-circle me-2"></i>Payment Completed
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="paymentConfirmationModal" tabindex="-1"
+                 aria-labelledby="paymentConfirmationModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="paymentConfirmationModalLabel">
+                                <i class="fas fa-question-circle me-2 text-primary"></i>Confirm Payment
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Please review your payment details:</p>
+                            <ul class="list-unstyled">
+                                <li><strong>Loan:</strong> <span id="confirmLoanName"></span></li>
+                                <li>
+                                    <strong>Payment Amount:</strong> <span id="confirmPaymentAmount"
+                                                                           class="fw-bold"></span>
+                                </li>
+                                <li><strong>Payment Method:</strong> <span id="confirmPaymentMethod"></span></li>
+                            </ul>
+                            <p class="text-muted small mt-3">
+                                By clicking "Confirm & Pay", you authorize this payment.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn btn-primary" id="confirmPayButton">
+                                <i class="fas fa-shield-alt me-2"></i>Confirm & Pay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="paymentStatusModal" tabindex="-1" aria-labelledby="paymentStatusModalLabel"
+                 aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header" id="paymentStatusModalHeader">
+                            <h5 class="modal-title" id="paymentStatusModalLabel">Processing Payment...</h5>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <div id="paymentProcessingSpinner" class="mb-3">
+                                <div class="spinner-border text-primary" role="status"
+                                     style="width: 3rem; height: 3rem;">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Please wait, we are securely processing your payment.</p>
+                            </div>
+                            <div id="paymentStatusResult" class="d-none">
+                            </div>
+                        </div>
+                        <div class="modal-footer d-none" id="paymentStatusModalFooter">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                    id="paymentStatusCloseButton">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            // --- Initial Loan Data (Simulation) ---
+            let loanData = {
+                productName: "Home Loan (HL05682)",
+                shortDescription: "Your monthly installment for your property at 123 Main St.",
+                amountDue: 1250.00,
+                dueDate: "June 1, 2025", // Keep this date or make it dynamic
+                outstandingBalance: 185750.20,
+                minPayment: 50.00, // Example minimum payment
+                isPaymentDue: true
+            };
+
+            const confirmationModal = new bootstrap.Modal(document.getElementById('paymentConfirmationModal'));
+            const statusModal = new bootstrap.Modal(document.getElementById('paymentStatusModal'));
+
+            // --- Populate Initial Data ---
+            function populateLoanDetails() {
+                if (loanData.isPaymentDue) {
+                    $('#loanProductName').text(loanData.productName);
+                    $('#loanShortDescription').text(loanData.shortDescription);
+                    $('#amountDue').text('$' + loanData.amountDue.toFixed(2));
+                    $('#dueDate').text(loanData.dueDate);
+                    $('#outstandingBalance').text('$' + loanData.outstandingBalance.toFixed(2));
+                    $('#paymentAmount').val(loanData.amountDue.toFixed(2));
+
+                    $('#paymentForm').show();
+                    $('#proceedToPayButton').removeClass('d-none');
+                    $('#paymentCompletedButton').addClass('d-none');
+                    $('#noPaymentDueMessage').addClass('d-none');
+                    $('#paymentSuccessMessage').addClass('d-none');
+                    $('#paymentPageSubtitle').text('Securely pay your outstanding loan amount.');
+                } else {
+                    $('#loanProductName').text(loanData.productName);
+                    $('#loanShortDescription').text(loanData.shortDescription);
+                    $('#amountDue').text('$0.00').removeClass('text-danger').addClass('text-success');
+                    $('#dueDate').text('N/A'); // Or next due date if available
+                    $('#outstandingBalance').text('$' + loanData.outstandingBalance.toFixed(2));
+
+                    $('#paymentForm').hide();
+                    $('#noPaymentDueMessage').removeClass('d-none');
+                    $('#proceedToPayButton').addClass('d-none');
+                    $('#paymentCompletedButton').addClass('d-none'); // Ensure this is also hidden
+                    $('#paymentPageSubtitle').text('View your loan summary.');
+
+                }
+            }
+
+            populateLoanDetails();
+
+            // --- Handle Payment Method Change ---
+            $('#paymentMethod').on('change', function () {
+                if ($(this).val() === 'new_bank' || $(this).val() === 'new_card') {
+                    $('#newPaymentMethodFields').removeClass('d-none');
+                } else {
+                    $('#newPaymentMethodFields').addClass('d-none');
+                }
+            });
+
+            // --- Handle Form Submission (Proceed to Pay) ---
+            $('#paymentForm').on('submit', function (e) {
+                e.preventDefault();
+                if (!this.checkValidity()) {
+                    e.stopPropagation();
+                    $(this).addClass('was-validated');
+                    return;
+                }
+                $(this).removeClass('was-validated');
+
+
+                const paymentAmount = parseFloat($('#paymentAmount').val());
+                const paymentMethodText = $('#paymentMethod option:selected').text();
+
+                if (paymentAmount < loanData.minPayment && loanData.isPaymentDue) {
+                    alert(`Minimum payment amount is $${loanData.minPayment.toFixed(2)}.`);
+                    $('#paymentAmount').addClass('is-invalid');
+                    return;
+                }
+                if (paymentAmount > loanData.outstandingBalance && loanData.isPaymentDue) {
+                    alert(`Payment amount cannot exceed the outstanding balance of $${loanData.outstandingBalance.toFixed(2)}.`);
+                    $('#paymentAmount').addClass('is-invalid');
+                    return;
+                }
+                $('#paymentAmount').removeClass('is-invalid');
+
+
+                $('#confirmLoanName').text(loanData.productName);
+                $('#confirmPaymentAmount').text('$' + paymentAmount.toFixed(2));
+                $('#confirmPaymentMethod').text(paymentMethodText);
+
+                confirmationModal.show();
+            });
+
+            // --- Handle Actual Payment Confirmation ---
+            $('#confirmPayButton').on('click', function () {
+                confirmationModal.hide();
+
+                // Show processing modal
+                $('#paymentStatusModalLabel').text('Processing Payment...');
+                $('#paymentStatusModalHeader').removeClass('bg-success bg-danger text-white').addClass('bg-primary text-white');
+                $('#paymentProcessingSpinner').removeClass('d-none');
+                $('#paymentStatusResult').addClass('d-none');
+                $('#paymentStatusModalFooter').addClass('d-none');
+                statusModal.show();
+
+                // Simulate API call
+                setTimeout(function () {
+                    const paymentAmount = parseFloat($('#paymentAmount').val()); // Re-fetch amount from input
+                    const success = Math.random() < 0.85; // 85% success rate for simulation
+
+                    $('#paymentProcessingSpinner').addClass('d-none');
+                    $('#paymentStatusResult').removeClass('d-none');
+                    $('#paymentStatusModalFooter').removeClass('d-none');
+
+
+                    if (success) {
+                        $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-success text-white');
+                        $('#paymentStatusModalLabel').text('Payment Successful!');
+                        $('#paymentStatusResult').html(`
+                    <div class="text-success"><i class="fas fa-check-circle status-icon"></i></div>
+                    <p class="fs-5">Your payment of <strong>$${paymentAmount.toFixed(2)}</strong> has been processed successfully.</p>
+                    <p>Transaction ID: MOCKTRX${Date.now()}</p>
+                `);
+                        $('#paymentStatusCloseButton').removeClass('btn-danger').addClass('btn-primary');
+
+
+                        // Update loan data
+                        loanData.outstandingBalance -= paymentAmount;
+                        loanData.amountDue = 0; // Assuming full payment of due amount clears it
+                        loanData.isPaymentDue = false;
+                        // Could also calculate next due date here:
+                        // let currentDate = new Date();
+                        // currentDate.setMonth(currentDate.getMonth() + 1);
+                        // loanData.dueDate = currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+
+                        populateLoanDetails(); // Refresh the summary card
+                        $('#paymentForm').hide(); // Hide form as payment is done
+                        $('#paymentSuccessMessage').removeClass('d-none'); // Show success on main page
+                        $('#proceedToPayButton').addClass('d-none');
+                        $('#paymentCompletedButton').removeClass('d-none').text('Payment Successful').prop('disabled', true);
+
+
+                    } else {
+                        $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-danger text-white');
+                        $('#paymentStatusModalLabel').text('Payment Failed');
+                        $('#paymentStatusResult').html(`
+                    <div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
+                    <p class="fs-5">Your payment of <strong>$${paymentAmount.toFixed(2)}</strong> could not be processed.</p>
+                    <p>Reason: Insufficient funds (Simulated).</p>
+                    <p>Please try again with a different payment method or contact support.</p>
+                `);
+                        $('#paymentStatusCloseButton').removeClass('btn-primary').addClass('btn-danger');
+                    }
+                }, 2500); // Simulate 2.5 seconds delay
+            });
+
+            // Clear validation on input
+            $('#paymentAmount').on('input', function () {
+                $(this).removeClass('is-invalid');
+            });
+            $('#paymentForm select, #paymentForm input[type="checkbox"]').on('change', function () {
+                $(this).removeClass('is-invalid');
+                $('#paymentForm').removeClass('was-validated'); // Reset overall form validation state on interaction
+            });
+
+
+        });
+    </script>
+</body>
+
+</html>
