@@ -34,20 +34,6 @@
             margin:auto;
         }
 
-        /* Bank Logo Styling */
-        .bank-logo {
-            font-size: 2.25rem; /* Slightly larger logo */
-            font-weight: 700; /* Bolder logo */
-            color: #0d6efd; /* Primary bank color */
-            text-decoration: none;
-            margin-bottom: 2rem; /* Space between logo and card */
-            display: flex; /* Align icon and text */
-            align-items: center;
-        }
-        .bank-logo i {
-            margin-right: 0.75rem; /* Space next to the university icon */
-        }
-
         /* Card styling for the form */
         .form-card {
             width: 100%;
@@ -69,7 +55,7 @@
         }
         .form-card .card-header i {
             margin-right: 0.75rem; /* Space next to header icon */
-            color: #0d6efd; /* Icon color matching primary */
+            color: #0A2463; /* Icon color matching primary */
         }
 
         /* Card Body Styling */
@@ -99,8 +85,8 @@
 
         /* Submit Button Styling */
         .btn-submit-custom { /* Custom class for the submit button */
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #3E92CC;
+            border-color: white;
             padding: 0.75rem 1.5rem; /* Comfortable padding */
             font-size: 1rem;
             font-weight: 500;
@@ -108,8 +94,8 @@
             transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
         }
         .btn-submit-custom:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #0A2463;
+            border-color: white;
         }
         .btn-submit-custom i {
             margin-right: 0.5rem;
@@ -122,12 +108,13 @@
             font-size: 0.9rem;
         }
         .form-footer-links a {
-            color: #0d6efd;
+                color: #3E92CC;
             text-decoration: none;
             font-weight: 500;
         }
         .form-footer-links a:hover {
-            text-decoration: underline;
+                    color: #0A2463;
+                    text-decoration: underline;
         }
 
         /* Copyright text styling */
@@ -173,7 +160,7 @@
                 </form>
 
                 <div class="form-footer-links">
-                    <a href="#"><i class="fas fa-arrow-left me-1"></i>Back to Customer Page</a> </div>
+                    <a href="@Url.Action("CustomerDetails","Customer")"><i class="fas fa-arrow-left me-1"></i>Back to Customer Information</a> </div>
             </div>
         </div>
 

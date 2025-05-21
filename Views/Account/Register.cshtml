@@ -30,7 +30,7 @@
         }
 
             .form-card .card-header i {
-                color: #0d6efd; /* Primary color for icon in header */
+                color: #0A2463; /* Primary color for icon in header */
                 margin-right: 0.5rem;
             }
 
@@ -41,19 +41,18 @@
     .form-floating > .form-control:focus ~ label,
     .form-floating > .form-control:not(:placeholder-shown) ~ label,
     .form-floating > .form-select ~ label {
-        color: #0d6efd; /* Highlight color for floating labels */
+        color: #0A2463; /* Highlight color for floating labels */
     }
 
     .btn-primary {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
+        background-color: #3E92CC;
         padding: 0.75rem 1rem; /* Larger buttons */
         font-weight: 500;
     }
 
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #0A2463;
+            border-color: white;
         }
 
     .form-footer-links {
@@ -62,11 +61,12 @@
     }
 
         .form-footer-links a {
-            color: #0d6efd;
+            color: #3E92CC;
             text-decoration: none;
         }
 
             .form-footer-links a:hover {
+                color: #0A2463;
                 text-decoration: underline;
             }
 
@@ -105,6 +105,16 @@
         background-color: #e9f5ff;
         color: #055160;
         border: 1px solid #b6e0fe;
+    }
+
+    .form-check-label a {
+        color: #3E92CC;
+        text-decoration: none;
+    }
+
+    .form-check-label a:hover {
+        text-decoration: underline;
+        color: #0A2463;
     }
 </style>
 
@@ -147,7 +157,7 @@
                 </button>
             </form>
             <div class="form-footer-links">
-                <span>Already have an account? <a href="login.html">Login here</a></span>
+                <span>Already have an account? <a href="@Url.Action("Login","Account")">Login here</a></span>
             </div>
         </div>
     </div>

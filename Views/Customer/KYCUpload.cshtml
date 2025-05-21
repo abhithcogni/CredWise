@@ -13,14 +13,35 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="form-styles.css">
+    <style>
+        .kyc-form-container-wrapper {
+            max-width: 700px; /* Slightly wider for KYC form */
+            width: 100%;
+            margin: auto;
+        }
+
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label,
+        .form-floating > .form-select ~ label {
+            color: #0A2463; /* Highlight color for floating labels */
+        }
+
+        .btn-primary {
+            background-color: #3E92CC;
+            padding: 0.75rem 1rem; /* Larger buttons */
+            font-weight: 500;
+        }
+
+            .btn-primary:hover {
+                background-color: #0A2463 !important;
+                border-color: white;
+            }
+
+        .form-check-input{
+            accent-color: #0A2463;
+        }
+    </style>
 </head>
-<style>
-    .kyc-form-container-wrapper {
-        max-width: 700px; /* Slightly wider for KYC form */
-        width: 100%;
-        margin:auto;
-    }
-</style>
 <body>
     <div class="kyc-form-container-wrapper mt-3">
         <div class="card form-card">

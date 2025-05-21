@@ -5,118 +5,140 @@
     // if you don't set it globally in _ViewImports.cshtml
 }
 
-<style>
-    /* Styles specific to the form and its elements */
-    .form-container-wrapper {
-        max-width: 500px;
-        width: 100%;
-        margin: auto; /* Ensure it centers itself within the flex parent if needed */
-    }
-
-    .form-card {
-        border: 1px solid #e9ecef;
-        border-radius: 0.75rem;
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .04);
-        background-color: #ffffff;
-    }
-
-    .card-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-        font-weight: 600;
-        color: #343a40;
-        font-size: 1.5rem;
-        text-align: center;
-        padding: 1.5rem 1rem;
-    }
-
-        .card-header i {
-            color: #0d6efd;
-            margin-right: 0.5rem;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login to Your Account</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Styles specific to the form and its elements */
+        .form-container-wrapper {
+            max-width: 500px; /* Sets a maximum width for the form container */
+            width: 100%; /* Ensures the container takes full width up to max-width */
+            margin: auto; /* Centers the container horizontally */
+            /* The 'shadow' class from Bootstrap adds a subtle shadow effect */
         }
 
-    .card-body {
-        padding: 2rem;
-    }
-
-    .form-floating > .form-control:focus ~ label,
-    .form-floating > .form-control:not(:placeholder-shown) ~ label,
-    .form-floating > .form-select ~ label {
-        color: #0d6efd;
-    }
-
-    .btn-primary {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-        padding: 0.75rem 1rem;
-        font-weight: 500;
-    }
-
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+        .form-card {
+            border: 1px solid #e9ecef; /* Light gray border for the card */
+            border-radius: 0.75rem; /* Slightly rounded corners for the card */
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .04); /* Soft shadow effect */
+            background-color: #ffffff; /* White background for the card */
         }
 
-    .form-footer-links {
-        text-align: center;
-        margin-top: 1.5rem;
-    }
-
-        .form-footer-links a {
-            color: #0d6efd;
-            text-decoration: none;
+        .card-header {
+            background-color: #f8f9fa; /* Light gray background for the header */
+            border-bottom: 1px solid #e9ecef; /* Separator line at the bottom of the header */
+            font-weight: 600; /* Bold font for the header text */
+            color: #343a40; /* Dark gray text color */
+            font-size: 1.5rem; /* Larger font size for the header */
+            text-align: center; /* Centers the text within the header */
+            padding: 1.5rem 1rem; /* Padding around the header content */
         }
 
-            .form-footer-links a:hover {
-                text-decoration: underline;
+            .card-header i {
+                color: #0A2463; /* Sets the icon color to the primary dark blue */
+                margin-right: 0.5rem; /* Adds some space between the icon and text */
             }
-</style>
 
-<div class="form-container-wrapper shadow ">
-    <div class="card form-card">
-        <div class="card-header">
-            <i class="fas fa-sign-in-alt"></i>Login to Your Account
-        </div>
-        <div class="card-body">
-            <form id="loginForm">
-                <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
-                    <label for="email"><i class="fas fa-envelope me-2"></i>Email address</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input type="password" class="form-control" id="password" placeholder="Password" required>
-                    <label for="password"><i class="fas fa-lock me-2"></i>Password</label>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="rememberMe">
-                        <label class="form-check-label" for="rememberMe">
-                            Remember me
-                        </label>
+        .card-body {
+            padding: 2rem; /* Generous padding inside the card body */
+        }
+
+        /* Styles for form-floating labels when input is focused or has content */
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label,
+        .form-floating > .form-select ~ label {
+            color: #0A2463; /* Keeps the label color blue, consistent with original design */
+        }
+
+        /* Custom styles for the primary button (Login button) */
+        .btn-primary {
+            background-color: #3E92CC; /* Sets the button background to the primary dark blue */
+            padding: 0.75rem 1rem; /* Vertical and horizontal padding for the button */
+            font-weight: 500; /* Medium font weight for button text */
+            color: white; /* Ensures the text color on the button is white for contrast */
+        }
+
+            .btn-primary i{
+                color: white; /* Keeps the icon inside the button white, matching the text */
+            }
+
+            .btn-primary:hover {
+                background-color: #0A2463; /* Darker shade of primary blue on hover */
+                border-color: white; /* Darker shade of primary blue for border on hover */
+            }
+
+        .form-footer-links {
+            text-align: center; /* Centers the footer links text */
+            margin-top: 1.5rem; /* Space above the footer links */
+        }
+
+            /* Custom styles for the footer link (Register here) */
+            .form-footer-links a {
+                color: #3E92CC; /* Sets the link color to the secondary lighter blue */
+                text-decoration: none; /* Removes the default underline from the link */
+            }
+
+                .form-footer-links a:hover {
+                    text-decoration: underline; /* Adds an underline on hover for better user feedback */
+                    color: #0A2463; /* Changes the link color to the primary dark blue on hover */
+                }
+    </style>
+</head>
+<body>
+    <div class="form-container-wrapper shadow ">
+        <div class="card form-card">
+            <div class="card-header">
+                <i class="fas fa-sign-in-alt"></i>Login to Your Account
+            </div>
+            <div class="card-body">
+                <form id="loginForm">
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                        <label for="email"><i class="fas fa-envelope me-2"></i>Email address</label>
                     </div>
-                    <a href="#" class="form-text">Forgot password?</a>
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                        <label for="password"><i class="fas fa-lock me-2"></i>Password</label>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Remember me
+                            </label>
+                        </div>
+                        <a href="#" class="form-text">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </button>
+                </form>
+                <div class="form-footer-links">
+                    <span>Don't have an account? <a href="@Url.Action("Register","Account")">Register here</a></span>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-sign-in-alt me-2"></i>Login
-                </button>
-            </form>
-            <div class="form-footer-links">
-                <span>Don't have an account? <a href="@Url.Action("Register","Account")">Register here</a></span>
             </div>
         </div>
-        <div class="text-center mt-3">
-            <small class="text-muted">&copy; 2025 MyBank. All rights reserved.</small>
-        </div>
     </div>
-</div>
 
-@section Scripts {
-    <script>
-        // Add any login-specific JavaScript here (e.g., form submission)
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent actual submission for demo
-            alert('Login form submitted!');
-            // Add your AJAX login logic here
-        });
-    </script>
-}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    @section Scripts {
+        <script>
+            // Add any login-specific JavaScript here (e.g., form submission)
+            // This script handles the form submission event.
+            document.getElementById('loginForm').addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevents the default form submission, which would reload the page.
+                alert('Login form submitted!'); // Shows a simple alert message for demonstration purposes.
+                // In a real application, you would replace this alert with AJAX logic
+                // to send the form data to a server-side endpoint for user authentication.
+            });
+        </script>
+    }
+</body>
+</html>
