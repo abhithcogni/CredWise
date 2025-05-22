@@ -22,25 +22,12 @@
             background-color: #f0f2f5; /* Consistent background */
         }
 
-
-
-
-
-
-
-
-
-
         #page-content-wrapper {
             width: 100%;
             display: flex;
             flex-direction: column;
             flex-grow: 1;
         }
-
-
-
-
         /* Card Styles for the table container */
         .card-table-container {
             border: 1px solid #e9ecef;
@@ -136,6 +123,24 @@
                 margin-bottom: 0; /* Align label with select */
             }
 
+        .btn-primary {
+            background-color: #3E92CC;
+            border-color: white;
+        }
+
+            .btn-primary:hover {
+                background-color: #0A2463;
+                border-color: white;
+            }
+
+            #email-to {
+                color: #3E92CC;
+                text-decoration: none;
+            }
+            #email-to:hover {
+                color: #0A2463;
+                text-decoration: underline;
+            }
     </style>
 </head>
 <body>
@@ -211,13 +216,12 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="confirmationModalLabel"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirm Action</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Are you sure you want to <strong id="actionType" class="text-lowercase"></strong> this KYC application?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" id="cancelActionBtn" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirm</button>
                 </div>
             </div>
@@ -239,6 +243,7 @@
 
         let selectedRow = null; // To track the table row (<tr> element) being updated
         let currentKycUserId = null; // To track the user ID of the KYC record being acted upon
+        let originalStatus = null; // To store the original status of the selected KYC record
 
         // Function to populate the KYC table
         function populateKycTable(data) {
@@ -265,12 +270,11 @@
                     <tr data-user-id="${kyc.userId}">
                         <td>${kyc.userId}</td>
                         <td>${kyc.name}</td>
-                        <td>${kyc.email}</td>
-                        <td>
+                        <td><a href="mailto:${kyc.email}" id="email-to">${kyc.email}</a></td> <td>
                             <button class="btn btn-outline-primary btn-sm view-doc-btn"
-                                    data-doc-url="${kyc.documentUrl}"
-                                    data-doc-type="${kyc.documentType || 'pdf'}"
-                                    title="View ${kyc.name}'s document">
+                                        data-doc-url="${kyc.documentUrl}"
+                                        data-doc-type="${kyc.documentType || 'pdf'}"
+                                        title="View ${kyc.name}'s document">
                                 <i class="fas fa-eye me-1"></i>View
                             </button>
                         </td>
@@ -316,7 +320,7 @@
                 if (documentType === 'pdf') {
                     $documentViewer.attr("src", documentUrl).show();
                 } else if (documentType === 'image' || documentUrl.match(/\.(jpeg|jpg|gif|png)$/i) ) {
-                     // Basic image type check by extension if docType is 'image' or extension matches
+                    // Basic image type check by extension if docType is 'image' or extension matches
                     $imageViewer.attr("src", documentUrl).show();
                 } else {
                     // For unsupported types, show a message and rely on download
@@ -335,6 +339,7 @@
             $(document).on("change", ".status-dropdown", function () {
                 selectedRow = $(this).closest("tr");
                 currentKycUserId = selectedRow.data("user-id"); // Get userId from data attribute
+                originalStatus = selectedRow.find(".status-dropdown").val(); // Store the original status
                 const newStatus = $(this).val();
 
                 $("#actionType").text(newStatus.toLowerCase());
@@ -368,9 +373,6 @@
                 }
                 $statusBadge.attr("class", `badge rounded-pill ${newBadgeClass}`);
 
-                // Visually update the dropdown to reflect the change if it was out of sync
-                selectedRow.find(".status-dropdown").val(newStatus);
-
                 // Close the confirmation modal
                 const confirmationModal = bootstrap.Modal.getInstance($("#confirmationModal")[0]);
                 confirmationModal.hide();
@@ -378,11 +380,25 @@
                 // Reset selections
                 selectedRow = null;
                 currentKycUserId = null;
+                originalStatus = null; // Clear original status
                 $(this).removeData("new-status");
 
                 // Optional: Re-filter or re-populate if needed, or just visually update
                 // populateKycTable(kycData.filter(kyc => $("#filterStatus").val() === "All" || kyc.status === $("#filterStatus").val()));
                 console.log(`KYC for User ID ${currentKycUserId} updated to ${newStatus}`);
+            });
+
+            // Handle Cancel Action Button click
+            $("#cancelActionBtn").on("click", function() {
+                if (selectedRow && originalStatus !== null) { // Check for null explicitly as originalStatus could be "Pending" (a valid string)
+                    // Revert the dropdown to its original status
+                    selectedRow.find(".status-dropdown").val(originalStatus);
+                }
+                // Reset selections
+                selectedRow = null;
+                currentKycUserId = null;
+                originalStatus = null; // Clear original status
+                $("#confirmActionBtn").removeData("new-status"); // Clear any stored new status
             });
 
             // Handle Filter Dropdown Change

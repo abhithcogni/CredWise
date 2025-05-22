@@ -176,10 +176,15 @@
             right: 0px;
         }
 
-        /* Footer */
-        
+        #email-to {
+            color: #3E92CC;
+            text-decoration: none;
+        }
 
-        /* Responsive adjustments */
+            #email-to:hover {
+                color: #0A2463;
+                text-decoration: underline;
+            }
         
     </style>
 </head>
@@ -309,7 +314,7 @@
                     <tr data-id="${loan.loanId}">
                         <td>${loan.loanId}</td>
                         <td>${loan.name}</td>
-                        <td><a href="mailto:${loan.email}" title="Email ${loan.name}">${loan.email}</a></td>
+                        <td><a href="mailto:${loan.email}" title="Email ${loan.name}" id="email-to">${loan.email}</a></td>
                         <td>₹${loan.amount.toLocaleString()}</td>
                         <td>${loan.type}</td>
                         <td>
