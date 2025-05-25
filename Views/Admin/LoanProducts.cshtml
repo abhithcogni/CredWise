@@ -111,6 +111,17 @@
             border-radius: 0.375rem;
         }
 
+        .edit-btn {
+            background-color: white;
+            border-color: #3E92CC;
+            color: #3E92CC;
+        }
+
+            .edit-btn:hover {
+                background-color: #0A2463 !important;
+                border-color: white;
+            }
+
 
 
         /* Responsive adjustments */
@@ -264,7 +275,7 @@
                             <td>₹${product.maxAmount.toLocaleString()}</td>
                             <td>${product.tenure} months</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary edit-button" data-product-name="${product.name}" title="Edit ${product.name}">
+                                <button class="btn btn-sm btn-outline-primary edit-button edit-btn" data-product-name="${product.name}" title="Edit ${product.name}">
                                     <i class="fas fa-edit me-1"></i>Edit
                                 </button>
                                 <button class="btn btn-sm btn-outline-danger delete-button" data-product-name="${product.name}" title="Delete ${product.name}">

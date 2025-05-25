@@ -133,6 +133,17 @@
                 border-color: white;
             }
 
+        .view-btn {
+            background-color: white;
+            border-color: #3E92CC;
+            color: #3E92CC;
+        }
+
+            .view-btn:hover { 
+                background-color: #0A2463 !important ; 
+                border-color: white;
+            }
+
             #email-to {
                 color: #3E92CC;
                 text-decoration: none;
@@ -271,7 +282,7 @@
                         <td>${kyc.userId}</td>
                         <td>${kyc.name}</td>
                         <td><a href="mailto:${kyc.email}" id="email-to">${kyc.email}</a></td> <td>
-                            <button class="btn btn-outline-primary btn-sm view-doc-btn"
+                            <button class="btn btn-outline-primary btn-sm view-doc-btn view-btn"
                                         data-doc-url="${kyc.documentUrl}"
                                         data-doc-type="${kyc.documentType || 'pdf'}"
                                         title="View ${kyc.name}'s document">
