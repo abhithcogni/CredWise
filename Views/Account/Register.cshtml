@@ -1,18 +1,17 @@
-﻿@model CredWise_Trail.Models.ViewModels.RegistrationViewModel @* IMPORTANT: Add this line! *@
+﻿@model CredWise_Trail.Models.ViewModels.RegistrationViewModel
 
 @{
     Layout = "~/Views/Shared/RegisterNav.cshtml";
-    ViewData["Title"] = "Create Your Account"; // Set title for the page
+    ViewData["Title"] = "Create Your Account";
 }
 
 <style>
-    /* Your existing CSS styles go here */
     body {
         background-color: #f8f9fa;
     }
 
     .form-container-wrapper {
-        max-width: 500px; /* Max width for login/register forms */
+        max-width: 500px;
         width: 100%;
         margin: auto;
     }
@@ -21,7 +20,7 @@
         border: 1px solid #e9ecef;
         border-radius: 0.75rem;
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .04);
-        background-color: #ffffff; /* White card background */
+        background-color: #ffffff;
     }
 
         .form-card .card-header {
@@ -29,13 +28,13 @@
             border-bottom: 1px solid #e9ecef;
             font-weight: 600;
             color: #343a40;
-            font-size: 1.5rem; /* Larger header text */
+            font-size: 1.5rem;
             text-align: center;
             padding: 1.5rem 1rem;
         }
 
             .form-card .card-header i {
-                color: #0A2463; /* Primary color for icon in header */
+                color: #0A2463;
                 margin-right: 0.5rem;
             }
 
@@ -46,12 +45,12 @@
     .form-floating > .form-control:focus ~ label,
     .form-floating > .form-control:not(:placeholder-shown) ~ label,
     .form-floating > .form-select ~ label {
-        color: #0A2463; /* Highlight color for floating labels */
+        color: #0A2463;
     }
 
     .btn-primary {
         background-color: #3E92CC;
-        padding: 0.75rem 1rem; /* Larger buttons */
+        padding: 0.75rem 1rem;
         font-weight: 500;
     }
 
@@ -89,7 +88,6 @@
             margin-right: 0.5rem;
         }
 
-    /* Specific to KYC page for file input */
     .file-upload-label {
         display: block;
         font-weight: 500;
@@ -124,55 +122,62 @@
 </style>
 
 <div class="form-container-wrapper shadow">
-
     <div class="card form-card">
         <div class="card-header">
             <i class="fas fa-user-plus"></i>Create Your Account
         </div>
         <div class="card-body">
             <form asp-action="Register" asp-controller="Account" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div> @* Displays all model-level validation errors *@
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <div class="form-floating mb-3">
-                    <input asp-for="Name" type="text" class="form-control" placeholder="John Doe" /> @* Use asp-for *@
-                    <label asp-for="Name"><i class="fas fa-user me-2"></i>Full Name</label> @* Use asp-for *@
-                    <span asp-validation-for="Name" class="text-danger"></span> @* Displays validation errors for 'Name' *@
+                    <input asp-for="Name" type="text" class="form-control" placeholder="John Doe" />
+                    <label asp-for="Name"><i class="fas fa-user me-2"></i>Full Name</label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
+
                 <div class="form-floating mb-3">
-                    <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" /> @* Use asp-for *@
-                    <label asp-for="Email"><i class="fas fa-envelope me-2"></i>Email address</label> @* Use asp-for *@
-                    <span asp-validation-for="Email" class="text-danger"></span> @* Displays validation errors for 'Email' *@
+                    <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" />
+                    <label asp-for="Email"><i class="fas fa-envelope me-2"></i>Email address</label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
+
                 <div class="form-floating mb-3">
-                    <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Your Phone Number" /> @* Use asp-for *@
-                    <label asp-for="PhoneNumber"><i class="fas fa-phone me-2"></i>Phone Number</label> @* Use asp-for *@
-                    <span asp-validation-for="PhoneNumber" class="text-danger"></span> @* Displays validation errors for 'PhoneNumber' *@
+                    <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Your Phone Number" />
+                    <label asp-for="PhoneNumber"><i class="fas fa-phone me-2"></i>Phone Number</label>
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                 </div>
-                 <div class="form-floating mb-3">
-                    <input asp-for="Address" type="text" class="form-control" placeholder="Your Address" /> @* Add Address field *@
-                    <label asp-for="Address"><i class="fas fa-map-marker-alt me-2"></i>Address</label> @* Use asp-for *@
-                    <span asp-validation-for="Address" class="text-danger"></span> @* Displays validation errors for 'Address' *@
-                </div>
+
                 <div class="form-floating mb-3">
-                    <input asp-for="Password" type="password" class="form-control" placeholder="Create Password" /> @* Use asp-for *@
-                    <label asp-for="Password"><i class="fas fa-lock me-2"></i>Create Password</label> @* Use asp-for *@
-                    <span asp-validation-for="Password" class="text-danger"></span> @* Displays validation errors for 'Password' *@
+                    <input asp-for="Address" type="text" class="form-control" placeholder="Your Address" />
+                    <label asp-for="Address"><i class="fas fa-map-marker-alt me-2"></i>Address</label>
+                    <span asp-validation-for="Address" class="text-danger"></span>
                 </div>
+
                 <div class="form-floating mb-3">
-                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" /> @* Use asp-for *@
-                    <label asp-for="ConfirmPassword"><i class="fas fa-check-circle me-2"></i>Confirm Password</label> @* Use asp-for *@
-                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span> @* Displays validation errors for 'ConfirmPassword' *@
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Create Password" />
+                    <label asp-for="Password"><i class="fas fa-lock me-2"></i>Create Password</label>
+                    <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" />
+                    <label asp-for="ConfirmPassword"><i class="fas fa-check-circle me-2"></i>Confirm Password</label>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
                 <div class="form-check mb-4">
                     <input class="form-check-input" type="checkbox" value="" id="agreeTerms" required>
                     <label class="form-check-label" for="agreeTerms">
                         I agree to the <a href="#">Terms and Conditions</a>
                     </label>
                 </div>
+
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="fas fa-user-plus me-2"></i>Register
                 </button>
             </form>
+
             <div class="form-footer-links">
                 <span>Already have an account? <a href="@Url.Action("Login","Account")">Login here</a></span>
             </div>
@@ -182,7 +187,6 @@
 
 @section Scripts {
     @{
-        // IMPORTANT: Include client-side validation scripts
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }

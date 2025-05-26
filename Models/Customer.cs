@@ -14,10 +14,11 @@ namespace CredWise_Trail.Models
         public string Name { get; set; }
 
         [StringLength(100)]
-        public string Email {  get; set; }
+        public string Email { get; set; }
 
         [Required]
-        [StringLength(50)]
+        // CORRECTED: Increase StringLength to at least 60, but 255 is safer for future-proofing.
+        [StringLength(255)] // Changed from 50 (or whatever it was)
         public string PasswordHash { get; set; }
 
         [StringLength(15)]

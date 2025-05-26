@@ -4,32 +4,32 @@ using CredWise_Trail.Models.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BCrypt.Net; // Make sure this is imported
+using BCrypt.Net; // Ensure this is imported
 
 namespace CredWise_Trail.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly BankLoanManagementDbContext _context; // Verify this DbContext name
+        private readonly BankLoanManagementDbContext _context;
 
         public AccountController(BankLoanManagementDbContext context)
         {
             _context = context;
         }
 
-        // GET: /Account/Login
+        [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
-        // GET: /Account/Register
-        public IActionResult Register() // Corresponds to your Register.cshtml
+        [HttpGet]
+        public IActionResult Register()
         {
             return View();
         }
 
-        // GET: /Account/Landing (assuming this is a public landing page)
+        [HttpGet]
         public IActionResult Landing()
         {
             return View();
@@ -37,15 +37,16 @@ namespace CredWise_Trail.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegistrationViewModel model) // Action for POST /Account/Register
+        public async Task<IActionResult> Register(RegistrationViewModel model)
         {
             if (ModelState.IsValid)
             {
-                var existingCustomer = await _context.Customers.AnyAsync(c => c.Email == model.Email);
+                // Check for existing customer email (case-insensitive comparison)
+                var existingCustomer = await _context.Customers.AnyAsync(c => c.Email.ToLower() == model.Email.ToLower());
                 if (existingCustomer)
                 {
                     ModelState.AddModelError("Email", "An account with this email already exists.");
-                    return View(model); // Return the view with the error so user can fix
+                    return View(model);
                 }
 
                 var customer = new Customer
@@ -54,18 +55,17 @@ namespace CredWise_Trail.Controllers
                     Email = model.Email,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                     PhoneNumber = model.PhoneNumber,
-                    Address = model.Address // Make sure Address is mapped
+                    Address = model.Address
                 };
 
                 _context.Customers.Add(customer);
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Registration successful! Please log in.";
-                return RedirectToAction("Login", "Account"); // Redirect to Login page
+                return RedirectToAction("Login", "Account");
             }
 
-            // If ModelState is NOT valid, return the view with the model to display errors.
-            return View(model); // IMPORTANT: This was changed from RedirectToAction("Landing","Account")
+            return View(model);
         }
 
         [HttpPost]
@@ -74,17 +74,18 @@ namespace CredWise_Trail.Controllers
         {
             if (ModelState.IsValid)
             {
-                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Email == model.Email);
+                // Attempt to find a customer by email (case-insensitive comparison)
+                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Email.ToLower() == model.Email.ToLower());
 
                 if (customer != null && BCrypt.Net.BCrypt.Verify(model.Password, customer.PasswordHash))
                 {
                     var claims = new List<Claim>
-                        {
-                            new Claim(ClaimTypes.NameIdentifier, customer.CustomerId.ToString()),
-                            new Claim(ClaimTypes.Email, customer.Email),
-                            new Claim(ClaimTypes.Role, "Customer"),
-                            new Claim("CustomerId", customer.CustomerId.ToString())
-                        };
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, customer.CustomerId.ToString()),
+                        new Claim(ClaimTypes.Email, customer.Email),
+                        new Claim(ClaimTypes.Role, "Customer"),
+                        new Claim("CustomerId", customer.CustomerId.ToString())
+                    };
 
                     var claimsIdentity = new ClaimsIdentity(
                         claims, Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
@@ -96,17 +97,18 @@ namespace CredWise_Trail.Controllers
                     return RedirectToAction("CustomerDashboard", "Customer");
                 }
 
-                var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == model.Email);
+                // If not a customer, attempt to find an admin by email (case-insensitive comparison)
+                var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == model.Email.ToLower());
 
                 if (admin != null && BCrypt.Net.BCrypt.Verify(model.Password, admin.PasswordHash))
                 {
                     var claims = new List<Claim>
-                        {
-                            new Claim(ClaimTypes.NameIdentifier, admin.AdminId.ToString()),
-                            new Claim(ClaimTypes.Email, admin.Email),
-                            new Claim(ClaimTypes.Role, "Admin"),
-                            new Claim("AdminId", admin.AdminId.ToString())
-                        };
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, admin.AdminId.ToString()),
+                        new Claim(ClaimTypes.Email, admin.Email),
+                        new Claim(ClaimTypes.Role, "Admin"),
+                        new Claim("AdminId", admin.AdminId.ToString())
+                    };
 
                     var claimsIdentity = new ClaimsIdentity(
                         claims, Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
@@ -118,11 +120,11 @@ namespace CredWise_Trail.Controllers
                     return RedirectToAction("AdminDashboard", "Admin");
                 }
 
+                // If neither customer nor admin login succeeded
                 ModelState.AddModelError(string.Empty, "Invalid login attempt. Please check your email and password.");
             }
 
-            // If ModelState is NOT valid or login failed, return the view with the model to display errors.
-            // This was changed from RedirectToAction("Landing","Account")
+            // If ModelState is invalid or login failed, return the view with the model
             return View(model);
         }
 
@@ -132,7 +134,7 @@ namespace CredWise_Trail.Controllers
             await HttpContext.SignOutAsync(
                 Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
 
-            return RedirectToAction("Landing", "Account"); // Redirect to the landing page after logout
+            return RedirectToAction("Landing", "Account");
         }
     }
 }
