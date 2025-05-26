@@ -23,6 +23,11 @@ namespace CredWise_Trail.Controllers
         {
             return View();
         }
+        [HttpGet]
+        public IActionResult LoginAdmin()
+        {
+            return View();
+        }
 
         [HttpGet]
         public IActionResult Register()
@@ -113,10 +118,26 @@ namespace CredWise_Trail.Controllers
                     return RedirectToAction("CustomerDashboard", "Customer");
                 }
 
+                
+                // If neither customer nor admin login succeeded, set an error message in TempData
+                TempData["ErrorMessage"] = "Invalid email or password.";
+            }
+
+            // If ModelState is invalid or login failed, return the view with the model
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginAdmin(LoginAdminViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                
+
                 // If not a customer, attempt to find an admin by email (case-insensitive comparison)
                 var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == model.Email.ToLower());
 
-                if (admin != null && BCrypt.Net.BCrypt.Verify(model.Password, admin.PasswordHash))
+                if (admin != null && model.PasswordHash==admin.PasswordHash)
                 {
                     var claims = new List<Claim>
                     {
@@ -143,7 +164,6 @@ namespace CredWise_Trail.Controllers
             // If ModelState is invalid or login failed, return the view with the model
             return View(model);
         }
-
         [HttpGet]
         public async Task<IActionResult> Logout()
         {

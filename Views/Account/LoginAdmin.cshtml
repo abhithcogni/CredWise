@@ -1,0 +1,178 @@
+﻿@model CredWise_Trail.Models.ViewModels.LoginAdminViewModel
+@{
+    Layout = "~/Views/Shared/RegisterNav.cshtml"; // Or your preferred layout for admin pages
+    ViewData["Title"] = "Admin Portal Login";
+}
+
+<style>
+    body {
+        background-color: #f8f9fa; /* Light Grey background */
+        
+       /* Adjust as needed, considering navbar height */
+    }
+
+    .form-container-wrapper {
+        max-width: 600px; /* Slightly wider if needed */
+        width: 100%;
+        margin:auto; /* Space from navbar if sticky */
+        margin-bottom: 20px;
+    }
+
+    .form-card {
+        border: none; /* Remove border for a cleaner look */
+        border-radius: 0.75rem; /* 12px */
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 31, 76, 0.1); /* Softer, branded shadow */
+        background-color: #ffffff;
+    }
+
+        .form-card .card-header {
+            background-color: #001f4c; /* Primary Brand: Dark Navy Blue */
+            color: #ffffff; /* White text for contrast */
+            border-bottom: none; /* Remove border */
+            font-weight: 600;
+            font-size: 1.6rem; /* Slightly larger title */
+            text-align: center;
+            padding: 1rem 1rem; /* More padding */
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+
+            .form-card .card-header i {
+                margin-right: 0.75rem; /* 12px */
+                font-size: 1.5rem; /* Larger icon */
+            }
+
+        .form-card .card-body {
+            padding: 3.5rem; /* More padding */
+        }
+
+    .form-floating > .form-control:-webkit-autofill,
+    .form-floating > .form-control:-webkit-autofill:hover,
+    .form-floating > .form-control:-webkit-autofill:focus,
+    .form-floating > .form-control:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px white inset !important;
+        -webkit-text-fill-color: #495057 !important; /* Ensure text color is visible on autofill */
+    }
+
+
+    .form-floating > .form-control {
+        background-color: #f8f9fa; /* Light background for inputs */
+        border: 1px solid #dee2e6;
+    }
+
+        .form-floating > .form-control:focus {
+            background-color: #fff;
+            border-color: #6bb9f0; /* Sky Blue accent for focused input border */
+            box-shadow: 0 0 0 0.25rem rgba(107, 185, 240, 0.25);
+        }
+
+    .form-floating > label {
+        color: #495057; /* Dark Grey for label text */
+    }
+
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        color: #001f4c; /* Dark Navy Blue for active/filled label */
+    }
+
+    .btn-admin-login {
+        background-color: #001f4c; /* Dark Navy Blue */
+        border-color: #001f4c;
+        padding: 0.85rem 1.25rem; /* Larger button */
+        font-weight: 600; /* Bolder text */
+        color: white;
+        font-size: 1.1rem;
+        transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    }
+
+        .btn-admin-login i {
+            color: white;
+            margin-right: 0.5rem;
+        }
+
+        .btn-admin-login:hover {
+            background-color: #003366; /* Slightly lighter navy for hover */
+            border-color: #003366;
+            color: white;
+        }
+
+    .alert-success {
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+        color: #0f5132;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c2c7;
+        color: #842029;
+    }
+
+    .text-danger {
+        font-size: 0.875em;
+    }
+</style>
+
+<div class="form-container-wrapper">
+    <div class="card form-card">
+        <div class="card-header">
+            <i class="fas fa-user-shield"></i> @ViewData["Title"]
+        </div>
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="LoginAdmin" asp-controller="Account" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Email" type="email" class="form-control" id="adminEmail" placeholder="admin@example.com" required />
+                    <label asp-for="Email"><i class="fas fa-envelope me-2"></i>Email address</label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-4">
+                    <input asp-for="PasswordHash" type="password" class="form-control" id="adminPassword" placeholder="Password" required />
+                    <label asp-for="PasswordHash"><i class="fas fa-lock me-2"></i>Password</label>
+                    <span asp-validation-for="PasswordHash" class="text-danger"></span>
+                </div>
+
+                @* "Remember me" and "Forgot password" are usually not needed for admin panels.
+                   If you need them, you can uncomment and style.
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="rememberMeAdmin" asp-for="RememberMe">
+                        <label class="form-check-label" for="rememberMeAdmin">
+                            Remember me
+                        </label>
+                    </div>
+                    <a href="#" class="form-text" style="color: #001f4c;">Forgot password?</a>
+                </div>
+                *@
+
+                <button type="submit" class="btn btn-admin-login w-100 mt-3">
+                    <i class="fas fa-sign-in-alt"></i>Login
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

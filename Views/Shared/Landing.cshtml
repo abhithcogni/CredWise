@@ -119,7 +119,7 @@
         }
 
         .btn-custom-primary {
-            background-color: #001f4c; /* Dark Navy Blue */
+            background-color: #001f4c;  /* Dark Navy Blue */
             border-color: #001f4c;
             color: white;
             padding: 10px 20px;
@@ -127,7 +127,7 @@
         }
 
             .btn-custom-primary:hover {
-                background-color: #003366; /* Slightly lighter navy for hover */
+                background-color: #003366 ; /* Slightly lighter navy for hover */
                 border-color: #003366;
             }
 
@@ -155,7 +155,7 @@
         }
 
             .navbar .btn-outline-primary:hover {
-                background-color: #001f4c;
+                background-color: #001f4c ;
                 color: white;
             }
 
@@ -194,6 +194,40 @@
         .navbar-brand .brand-highlight {
             color: #3E92CC; /* A complementary lighter blue */
         }
+
+        /* Dropdown specific styles */
+        .dropdown-menu {
+            border-radius: 0.5rem; /* Match card border-radius */
+            box-shadow: 0 4px 15px rgba(0,0,0,.1); /* Match card shadow */
+            background-color: #fff; /* White background */
+            border: none; /* Remove default border */
+            padding: 0.5rem 0; /* Adjust padding */
+        }
+
+        .dropdown-item {
+            color: #001f4c; /* Dark Navy Blue for text */
+            padding: 0.75rem 1.5rem; /* Adjust padding for better clickable area */
+            font-weight: 500; /* Slightly bolder text */
+        }
+
+            .dropdown-item:hover,
+            .dropdown-item:focus {
+                background-color: #e9ecef; /* Light grey on hover/focus */
+                color: #001f4c; /* Keep text color Dark Navy Blue */
+            }
+
+            .dropdown-item.active {
+                background-color: #001f4c; /* Dark Navy Blue when active */
+                color: white; /* White text when active */
+            }
+
+          
+        .navbar .dropdown-toggle[aria-expanded="true"],
+        .navbar .dropdown-toggle.show {
+            background-color: transparent !important; /* Force transparent background */
+            color: #001f4c !important; /* Force dark navy text */
+            border-color: #003366 !important; /* Force slightly darker navy border */
+        }
     </style>
 </head>
 <body>
@@ -206,11 +240,17 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a href="@Url.Action("Login","Account")" class="btn btn-outline-primary btn-nav">Login</a>
+                    <li class="nav-item dropdown">
+                        <a class="btn btn-outline-primary btn-nav dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Login
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item " href="@Url.Action("Login","Account")">Customer Login</a></li>
+                            <li><a class="dropdown-item " href="@Url.Action("LoginAdmin","Account")">Admin Login</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="@Url.Action("Register","Account")"  class="btn btn-primary btn-nav">Register</a>
+                        <a href="@Url.Action("Register","Account")" class="btn btn-primary btn-nav">Register</a>
                     </li>
                 </ul>
             </div>
