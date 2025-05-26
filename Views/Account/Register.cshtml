@@ -1,10 +1,12 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model CredWise_Trail.Models.ViewModels.RegistrationViewModel @* IMPORTANT: Add this line! *@
+
 @{
     Layout = "~/Views/Shared/RegisterNav.cshtml";
+    ViewData["Title"] = "Create Your Account"; // Set title for the page
 }
+
 <style>
+    /* Your existing CSS styles go here */
     body {
         background-color: #f8f9fa;
     }
@@ -37,9 +39,9 @@
                 margin-right: 0.5rem;
             }
 
-        .form-card .card-body {
-            padding: 2rem;
-        }
+    .form-card .card-body {
+        padding: 2rem;
+    }
 
     .form-floating > .form-control:focus ~ label,
     .form-floating > .form-control:not(:placeholder-shown) ~ label,
@@ -128,26 +130,38 @@
             <i class="fas fa-user-plus"></i>Create Your Account
         </div>
         <div class="card-body">
-            <form id="registrationForm" action="@Url.Action("CustomerDashboard","Customer")">
+            <form asp-action="Register" asp-controller="Account" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div> @* Displays all model-level validation errors *@
+
                 <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="fullName" placeholder="John Doe" required>
-                    <label for="fullName"><i class="fas fa-user me-2"></i>Full Name</label>
+                    <input asp-for="Name" type="text" class="form-control" placeholder="John Doe" /> @* Use asp-for *@
+                    <label asp-for="Name"><i class="fas fa-user me-2"></i>Full Name</label> @* Use asp-for *@
+                    <span asp-validation-for="Name" class="text-danger"></span> @* Displays validation errors for 'Name' *@
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
-                    <label for="email"><i class="fas fa-envelope me-2"></i>Email address</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" /> @* Use asp-for *@
+                    <label asp-for="Email"><i class="fas fa-envelope me-2"></i>Email address</label> @* Use asp-for *@
+                    <span asp-validation-for="Email" class="text-danger"></span> @* Displays validation errors for 'Email' *@
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="tel" class="form-control" id="phone" placeholder="Your Phone Number" required>
-                    <label for="phone"><i class="fas fa-phone me-2"></i>Phone Number</label>
+                    <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Your Phone Number" /> @* Use asp-for *@
+                    <label asp-for="PhoneNumber"><i class="fas fa-phone me-2"></i>Phone Number</label> @* Use asp-for *@
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span> @* Displays validation errors for 'PhoneNumber' *@
+                </div>
+                 <div class="form-floating mb-3">
+                    <input asp-for="Address" type="text" class="form-control" placeholder="Your Address" /> @* Add Address field *@
+                    <label asp-for="Address"><i class="fas fa-map-marker-alt me-2"></i>Address</label> @* Use asp-for *@
+                    <span asp-validation-for="Address" class="text-danger"></span> @* Displays validation errors for 'Address' *@
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="password" class="form-control" id="password" placeholder="Create Password" required>
-                    <label for="password"><i class="fas fa-lock me-2"></i>Create Password</label>
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Create Password" /> @* Use asp-for *@
+                    <label asp-for="Password"><i class="fas fa-lock me-2"></i>Create Password</label> @* Use asp-for *@
+                    <span asp-validation-for="Password" class="text-danger"></span> @* Displays validation errors for 'Password' *@
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
-                    <label for="confirmPassword"><i class="fas fa-check-circle me-2"></i>Confirm Password</label>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" /> @* Use asp-for *@
+                    <label asp-for="ConfirmPassword"><i class="fas fa-check-circle me-2"></i>Confirm Password</label> @* Use asp-for *@
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span> @* Displays validation errors for 'ConfirmPassword' *@
                 </div>
                 <div class="form-check mb-4">
                     <input class="form-check-input" type="checkbox" value="" id="agreeTerms" required>
@@ -164,5 +178,11 @@
             </div>
         </div>
     </div>
-
 </div>
+
+@section Scripts {
+    @{
+        // IMPORTANT: Include client-side validation scripts
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

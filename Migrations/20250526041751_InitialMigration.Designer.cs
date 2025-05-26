@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CredWise_Trail.Migrations
 {
     [DbContext(typeof(BankLoanManagementDbContext))]
-    [Migration("20250523120104_InitialMigration")]
+    [Migration("20250526041751_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -79,6 +79,11 @@ namespace CredWise_Trail.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()

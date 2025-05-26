@@ -246,3 +246,5 @@ C:\CredWise\CredWise\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.En
 C:\CredWise\CredWise\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 C:\CredWise\CredWise\obj\Debug\net8.0\CredWise-Trail.csproj.AssemblyReference.cache
 C:\CredWise\CredWise\obj\Debug\net8.0\CredWise.505598CF.Up2Date
+C:\CredWise\CredWise\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.InMemory.dll
+C:\CredWise\CredWise\bin\Debug\net8.0\BCrypt.Net-Next.dll

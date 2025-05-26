@@ -27,6 +27,9 @@ namespace CredWise_Trail.Models
             {
                 entity.ToTable(tb => tb.HasCheckConstraint("CK_Repayment_PaymentStatus", "paymentStatus IN ('PENDING', 'COMPLETED')"));
             });
+
+            modelBuilder.Entity<Customer>().HasIndex(c => c.Email).IsUnique();
+            modelBuilder.Entity<Admin>().HasIndex(a => a.Email).IsUnique();
         }
     }
 }
