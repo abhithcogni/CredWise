@@ -1,149 +1,165 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿    @model CredWise_Trail.Models.Customer
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Details - MyBank</title>
+    @{
+        ViewData["Title"] = "Customer Details - MyBank";
+    }
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Customer Details - MyBank</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; /* Consistent background */
-            min-height: 100vh;
-        }
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-        #wrapper {
-            display: flex;
-            flex-grow: 1;
-        }
-        #page-content-wrapper {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-        /* Card Styles for the details container */
-        .card-details-container {
-            border: 1px solid #e9ecef;
-            border-radius: 0.75rem;
-            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .04);
-            background-color: #ffffff;
-        }
-            .card-details-container .card-header {
-                background-color: #0A2463; /* Primary color for header */
-                color: #ffffff; /* White text for header */
-                border-bottom: 1px solid white;
-                font-weight: 600;
-                font-size: 1.25rem;
-                padding: 1rem 1.5rem;
+        <style>
+            /* ... (your existing CSS styles) ... */
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: #f0f2f5; /* Consistent background */
+                min-height: 100vh;
+            }
+
+            #wrapper {
                 display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-                .card-details-container .card-header i.title-icon {
-                    margin-right: 0.75rem;
-                }
-            .card-details-container .list-group-item {
-                padding: 1rem 1.5rem; /* Consistent padding */
-                border-bottom: 1px solid #f0f2f5; /* Lighter border for list items */
+                flex-grow: 1;
             }
 
-                .card-details-container .list-group-item:last-child {
-                    border-bottom: none;
-                }
-
-                .card-details-container .list-group-item strong {
-                    color: #343a40; /* Darker color for labels */
-                    min-width: 150px; /* Ensure alignment of values */
-                    display: inline-block;
-                }
-
-                .card-details-container .list-group-item i.item-icon {
-                    margin-right: 0.75rem;
-                    color: #0A2463; /* Primary color for item icons */
-                    width: 20px; /* Fixed width for icon alignment */
-                    text-align: center;
-                }
-
-        .btn-edit-profile {
-            font-size: 0.9rem;
-        }
-
-            .btn-edit-profile i {
-                margin-right: 0.3rem;
+            #page-content-wrapper {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
             }
-    </style>
-</head>
-<body>
-    <div class="d-flex" id="wrapper">
+            /* Card Styles for the details container */
+            .card-details-container {
+                border: 1px solid #e9ecef;
+                border-radius: 0.75rem;
+                box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .04);
+                background-color: #ffffff;
+            }
 
-        <div id="page-content-wrapper">
+                .card-details-container .card-header {
+                    background-color: #0A2463; /* Primary color for header */
+                    color: #ffffff; /* White text for header */
+                    border-bottom: 1px solid white;
+                    font-weight: 600;
+                    font-size: 1.25rem;
+                    padding: 1rem 1.5rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
 
+                    .card-details-container .card-header i.title-icon {
+                        margin-right: 0.75rem;
+                    }
 
-            <main class="container-fluid p-4 flex-grow-1">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8 col-md-10">
-                        <div class="card-details-container">
-                            <div class="card-header">
-                                <div><i class="fas fa-address-card title-icon"></i>Customer Information</div>
-                                <a href="@Url.Action("CustomerUpdate", "Customer")" class="btn btn-light btn-sm btn-edit-profile">
-                                    <i class="fas fa-pencil-alt"></i> Edit Profile
-                                </a>
+                .card-details-container .list-group-item {
+                    padding: 1rem 1.5rem; /* Consistent padding */
+                    border-bottom: 1px solid #f0f2f5; /* Lighter border for list items */
+                }
+
+                    .card-details-container .list-group-item:last-child {
+                        border-bottom: none;
+                    }
+
+                    .card-details-container .list-group-item strong {
+                        color: #343a40; /* Darker color for labels */
+                        min-width: 150px; /* Ensure alignment of values */
+                        display: inline-block;
+                    }
+
+                    .card-details-container .list-group-item i.item-icon {
+                        margin-right: 0.75rem;
+                        color: #0A2463; /* Primary color for item icons */
+                        width: 20px; /* Fixed width for icon alignment */
+                        text-align: center;
+                    }
+
+            .btn-edit-profile {
+                font-size: 0.9rem;
+            }
+
+                .btn-edit-profile i {
+                    margin-right: 0.3rem;
+                }
+        </style>
+    </head>
+    <body>
+        <div class="d-flex" id="wrapper">
+
+            <div id="page-content-wrapper">
+                <main class="container-fluid p-4 flex-grow-1">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8 col-md-10">
+                        @* Display Success Message here *@
+                        @if (ViewBag.SuccessMessage != null)
+                        {
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                @ViewBag.SuccessMessage
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><i class="fas fa-user item-icon"></i><strong>Name:</strong> <span id="customerName">John Doe</span></li>
-                                <li class="list-group-item"><i class="fas fa-id-badge item-icon"></i><strong>Customer ID:</strong> <span id="customerId">CUST12345</span></li>
-                                <li class="list-group-item"><i class="fas fa-envelope item-icon"></i><strong>Email:</strong> <span id="customerEmail">john.doe@example.com</span></li>
-                                <li class="list-group-item"><i class="fas fa-phone item-icon"></i><strong>Phone:</strong> <span id="customerPhone">+91 9876543210</span></li>
-                                <li class="list-group-item"><i class="fas fa-map-marker-alt item-icon"></i><strong>Address:</strong> <span id="customerAddress">123 Main Street, Anytown, India</span></li>
-                                <li class="list-group-item"><i class="fas fa-piggy-bank item-icon"></i><strong>Account Number:</strong> <span id="customerAccountNo">XXXX-YYYY-ZZZZ-AAAA</span></li>
-                                <li class="list-group-item"><i class="fas fa-calendar-check item-icon"></i><strong>Member Since:</strong> <span id="customerMemberSince">Jan 15, 2020</span></li>
-                            </ul>
+                        }
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                @TempData["ErrorMessage"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
+                            <div class="card-details-container">
+                                <div class="card-header">
+                                    <div><i class="fas fa-address-card title-icon"></i>Customer Information</div>
+                                    @if (Model != null)
+                                    {
+                                        <a href="@Url.Action("CustomerUpdate", "Customer")" class="btn btn-light btn-sm btn-edit-profile">
+                                            <i class="fas fa-pencil-alt"></i> Edit Profile
+                                        </a>
+                                    }
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    @if (Model != null)
+                                    {
+                                        <li class="list-group-item"><i class="fas fa-user item-icon"></i><strong>Name:</strong> <span id="customerName">@Model.Name</span></li>
+                                        <li class="list-group-item"><i class="fas fa-id-badge item-icon"></i><strong>Customer ID:</strong> <span id="customerId">@Model.CustomerId</span></li>
+                                        <li class="list-group-item"><i class="fas fa-envelope item-icon"></i><strong>Email:</strong> <span id="customerEmail">@Model.Email</span></li>
+                                        <li class="list-group-item"><i class="fas fa-phone item-icon"></i><strong>Phone:</strong> <span id="customerPhone">@Model.PhoneNumber</span></li>
+                                        <li class="list-group-item"><i class="fas fa-map-marker-alt item-icon"></i><strong>Address:</strong> <span id="customerAddress">@Model.Address</span></li>
+                                        <li class="list-group-item"><i class="fas fa-piggy-bank item-icon"></i><strong>Account Number:</strong> <span id="customerAccountNo">@Model.AccountNumber</span></li>
+                                        <li class="list-group-item"><i class="fas fa-calendar-check item-icon"></i><strong>Member Since:</strong> <span id="customerMemberSince">@Model.CreatedDate.ToString("MMMM dd, yyyy")</span></li> @* Display Formatted CreatedDate *@
+                                    }
+                                    else
+                                    {
+                                        <li class="list-group-item text-danger">No customer data available. Please log in.</li>
+                                    }
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-    <script>
-        $(document).ready(function() {
-            // Sidebar Toggle
-            $("#menu-toggle").click(function(e) {
-                e.preventDefault();
-                $("#wrapper").toggleClass("toggled");
+        <script>
+            $(document).ready(function() {
+                // Sidebar Toggle
+                $("#menu-toggle").click(function(e) {
+                    e.preventDefault();
+                    $("#wrapper").toggleClass("toggled");
+                });
+
+                // Initialize Bootstrap tooltips if any are used
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                });
             });
-
-            // Placeholder: Load customer data (e.g., from localStorage or an API call if not using MVC model binding)
-            // For this example, data is hardcoded in HTML, but you could update these spans dynamically.
-            // Example:
-            // const customerData = JSON.parse(localStorage.getItem('customerProfile'));
-            // if (customerData) {
-            //     $('#customerName').text(customerData.name || 'N/A');
-            //     $('#customerId').text(customerData.id || 'N/A');
-            //     $('#customerEmail').text(customerData.email || 'N/A');
-            //     // ... and so on for other fields
-            // }
-
-
-            // Initialize Bootstrap tooltips if any are used
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            });
-        });
-    </script>
-</body>
-</html>
+        </script>
+    </body>
+    </html>

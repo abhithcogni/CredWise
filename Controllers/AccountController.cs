@@ -4,7 +4,8 @@ using CredWise_Trail.Models.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BCrypt.Net; // Ensure this is imported
+using BCrypt.Net;
+using System; // Required for Guid
 
 namespace CredWise_Trail.Controllers
 {
@@ -49,13 +50,19 @@ namespace CredWise_Trail.Controllers
                     return View(model);
                 }
 
+                // Generate a simple unique account number
+                // For production, consider a more structured and robust generation.
+                string newAccountNumber = GenerateUniqueAccountNumber();
+
                 var customer = new Customer
                 {
                     Name = model.Name,
                     Email = model.Email,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                     PhoneNumber = model.PhoneNumber,
-                    Address = model.Address
+                    Address = model.Address,
+                    AccountNumber = newAccountNumber, // Assign the generated account number
+                    CreatedDate = DateTime.UtcNow // Set the registration date
                 };
 
                 _context.Customers.Add(customer);
@@ -67,6 +74,15 @@ namespace CredWise_Trail.Controllers
 
             return View(model);
         }
+
+        // Helper method to generate a unique account number
+        private string GenerateUniqueAccountNumber()
+        {
+            // A simple implementation using Guid.
+            // You might want to format it, add a prefix, or ensure it's numeric for real banking.
+            return "ACC-" + Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper(); // Example: ACC-F2A4B8C1D0
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -120,8 +136,8 @@ namespace CredWise_Trail.Controllers
                     return RedirectToAction("AdminDashboard", "Admin");
                 }
 
-                // If neither customer nor admin login succeeded
-                ModelState.AddModelError(string.Empty, "Invalid login attempt. Please check your email and password.");
+                // If neither customer nor admin login succeeded, set an error message in TempData
+                TempData["ErrorMessage"] = "Invalid email or password.";
             }
 
             // If ModelState is invalid or login failed, return the view with the model
