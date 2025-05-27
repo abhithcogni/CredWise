@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <Folder Include="wwwroot\kyc_documents\" />
   </ItemGroup>
 
 </Project>

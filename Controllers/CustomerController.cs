@@ -11,10 +11,10 @@ namespace CredWise_Trail.Controllers
     public class CustomerController : Controller
     {
         private readonly BankLoanManagementDbContext _context;
-        private readonly IWebHostEnvironment _hostEnvironment;
-
+        
         public CustomerController(BankLoanManagementDbContext context)
         {
+          
             _context = context;
         }
 
@@ -85,8 +85,9 @@ namespace CredWise_Trail.Controllers
 
             if (ModelState.IsValid)
             {
+                string contentRootPath = Directory.GetCurrentDirectory();
                 // Define the upload directory
-                string uploadFolder = Path.Combine(_hostEnvironment.WebRootPath, "kyc_documents");
+                string uploadFolder = Path.Combine(contentRootPath, "kyc_documents");
                 if (!Directory.Exists(uploadFolder))
                 {
                     Directory.CreateDirectory(uploadFolder);
