@@ -8,7 +8,7 @@ namespace CredWise_Trail.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int KycApprovalId { get; set; }
+        public int KycID { get; set; } // Changed from KycApprovalId to KycID
 
         public int CustomerId { get; set; }
 
@@ -16,13 +16,9 @@ namespace CredWise_Trail.Models
 
         [Required]
         [StringLength(20)]
-        public string Status { get; set; }
+        public string Status { get; set; } = "Pending"; // Default Status to "Pending"
 
-        public string Comments { get; set; }
-
-        public int? ApprovedByAdminId { get; set; }
-
-        public DateTime? ApprovalDate { get; set; }
+        public DateTime? ApprovalDate { get; set; } 
 
         [StringLength(255)] // Corresponds to VARCHAR(255)
         public string DocumentPath { get; set; }
@@ -30,7 +26,7 @@ namespace CredWise_Trail.Models
         [ForeignKey("CustomerId")]
         public Customer Customer { get; set; }
 
-        [ForeignKey("ApprovedByAdminId")]
-        public Admin ApprovedByAdmin { get; set; }
+        // Removed ApprovedByAdmin ForeignKey
+        // Removed ApprovedByAdmin navigation property
     }
 }

@@ -1,8 +1,7 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model CredWise_Trail.ViewModels.KycUploadViewModel
+
 @{
-    Layout = "~/Views/Shared/AdminUtility.cshtml";
+    ViewData["Title"] = "KYC Verification - MyBank";
 }
 
 <!DOCTYPE html>
@@ -10,421 +9,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KYC Approval - MyBank Admin</title>
-
+    <title>@ViewData["Title"]</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; /* Consistent background */
-        }
-
-        #page-content-wrapper {
+        .kyc-form-container-wrapper {
+            max-width: 700px;
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-        /* Card Styles for the table container */
-        .card-table-container {
-            border: 1px solid #e9ecef;
-            border-radius: 0.75rem;
-            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .04);
-            background-color: #ffffff;
+            margin: auto;
         }
 
-            .card-table-container .card-header {
-                background-color: #f8f9fa;
-                border-bottom: 1px solid #e9ecef;
-                font-weight: 600;
-                color: #343a40;
-                font-size: 1.25rem;
-                padding: 1rem 1.5rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-                .card-table-container .card-header i.title-icon {
-                    margin-right: 0.5rem;
-                }
-
-            .card-table-container .card-body {
-                padding: 1.5rem;
-            }
-
-        /* Table styles */
-        .table th {
-            font-weight: 600;
-            color: #495057;
-            background-color: #f8f9fa;
-            white-space: nowrap;
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label,
+        .form-floating > .form-select ~ label,
+        .form-floating > .form-control.is-valid ~ label,
+        .form-floating > .form-control.is-invalid ~ label {
+            color: #0A2463;
         }
-
-        .table td, .table th {
-            vertical-align: middle;
-            padding: 0.9rem 1rem;
-            text-align: center; /* Center align table content */
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: #eef2f7; /* Lighter blue hover for admin */
-        }
-
-        .table td .badge {
-            font-size: 0.85em;
-            padding: 0.5em 0.8em; /* Slightly larger padding for badges */
-            font-weight: 500;
-        }
-
-        .table .btn-sm {
-            padding: 0.25rem 0.6rem;
-            font-size: 0.8rem;
-        }
-
-        .table .form-select-sm {
-            font-size: 0.875rem;
-            min-width: 130px; /* Ensure dropdown is not too small */
-        }
-
-        /* Status Badges (Bootstrap 5 soft style) */
-        .badge.bg-warning-soft {
-            background-color: #fff3cd;
-            color: #664d03;
-        }
-
-        .badge.bg-success-soft {
-            background-color: #d1e7dd;
-            color: #0f5132;
-        }
-
-        .badge.bg-danger-soft {
-            background-color: #f8d7da;
-            color: #58151c;
-        }
-
-        .badge.bg-info-soft {
-            background-color: #cff4fc;
-            color: #055160;
-        }
-
-        /* Filter section */
-        .filter-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-            .filter-section .form-label {
-                margin-bottom: 0; /* Align label with select */
-            }
 
         .btn-primary {
             background-color: #3E92CC;
-            border-color: white;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
         }
 
             .btn-primary:hover {
-                background-color: #0A2463;
+                background-color: #0A2463 !important;
                 border-color: white;
             }
 
-        .view-btn {
-            background-color: white;
-            border-color: #3E92CC;
-            color: #3E92CC;
+        .form-check-input {
+            accent-color: #0A2463;
         }
-
-            .view-btn:hover { 
-                background-color: #0A2463 !important ; 
-                border-color: white;
-            }
-
-            #email-to {
-                color: #3E92CC;
-                text-decoration: none;
-            }
-            #email-to:hover {
-                color: #0A2463;
-                text-decoration: underline;
-            }
     </style>
 </head>
 <body>
-    <div class="d-flex" id="wrapper">
-        <div id="page-content-wrapper">
-
-            <main class="container-fluid p-4 flex-grow-1">
-                <div class="card-table-container">
-                    <div class="card-header">
-                        <div><i class="fas fa-tasks title-icon"></i>Pending KYC Verifications</div>
-                    </div>
-                    <div class="card-body">
-                        <div class="filter-section">
-                            <h4 class="mb-0 h5">KYC Applications</h4>
-                            <div class="d-flex align-items-center">
-                                <label for="filterStatus" class="form-label me-2 fw-normal">Filter by Status:</label>
-                                <select id="filterStatus" class="form-select form-select-sm" style="width: 180px;">
-                                    <option value="All" selected>All Applications</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Rejected">Rejected</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th><i class="fas fa-id-badge me-1 text-secondary"></i>User ID</th>
-                                        <th><i class="fas fa-user me-1 text-secondary"></i>Name</th>
-                                        <th><i class="fas fa-envelope me-1 text-secondary"></i>Email</th>
-                                        <th><i class="fas fa-file-alt me-1 text-secondary"></i>Document</th>
-                                        <th><i class="fas fa-edit me-1 text-secondary"></i>Action</th>
-                                        <th><i class="fas fa-info-circle me-1 text-secondary"></i>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="kycTableBody">
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="noKycMessage" class="alert alert-info mt-3" style="display: none;">
-                            <i class="fas fa-info-circle me-2"></i>No KYC applications match the current filter.
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-        </div>
-    </div>
-    <div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title" id="documentModalLabel"><i class="fas fa-file-pdf me-2"></i>View Document</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="documentViewer" src="" style="width: 100%; height: 60vh;" frameborder="0"></iframe>
-                    <img id="imageViewer" src="" class="img-fluid" alt="KYC Document" style="display:none; max-height: 70vh; margin: auto;" />
-                    <p id="unsupportedDocMessage" style="display:none;" class="text-center p-3">Cannot display this document type directly. Please download to view.</p>
-                </div>
-                <div class="modal-footer">
-                    <a id="downloadDocLink" href="#" class="btn btn-secondary" download><i class="fas fa-download me-2"></i>Download</a>
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+    <div class="kyc-form-container-wrapper mt-3">
+        <div class="card form-card">
+            <div class="card-header">
+                <i class="fas fa-shield-alt"></i>KYC Document Upload
             </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmationModalLabel"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirm Action</h5>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to <strong id="actionType" class="text-lowercase"></strong> this KYC application?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancelActionBtn" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirm</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-
-    <script>
-        // Sample KYC data (replace with actual data source)
-        const kycData = [
-            { userId: 'MYBK001', name: "Alice Wonderland", email: "alice.wonder@example.com", documentUrl: "sample-doc.pdf", documentType: "pdf", status: "Pending" },
-            { userId: 'MYBK002', name: "Robert \"Bob\" Builder", email: "bob.builder@example.com", documentUrl: "https://placehold.co/800x1100/E9ECEF/6C757D?text=KYC_Document_Bob.jpg", documentType: "image", status: "Approved" },
-            { userId: 'MYBK003', name: "Charles Xavier", email: "charles.x@example.com", documentUrl: "sample-doc.pdf", documentType: "pdf", status: "Rejected" },
-            { userId: 'MYBK004', name: "Diana Prince", email: "diana.p@example.com", documentUrl: "https://placehold.co/800x1100/E9ECEF/6C757D?text=KYC_Document_Diana.png", documentType: "image", status: "Pending" },
-            { userId: 'MYBK005', name: "Edward Nygma", email: "e.nygma@example.com", documentUrl: "unsupported.docx", documentType: "docx", status: "Pending" },
-        ];
-
-        let selectedRow = null; // To track the table row (<tr> element) being updated
-        let currentKycUserId = null; // To track the user ID of the KYC record being acted upon
-        let originalStatus = null; // To store the original status of the selected KYC record
-
-        // Function to populate the KYC table
-        function populateKycTable(data) {
-            const $kycTableBody = $("#kycTableBody");
-            const $noKycMessage = $("#noKycMessage");
-            $kycTableBody.empty();
-
-            if (data.length === 0) {
-                $noKycMessage.show();
-                return;
-            }
-            $noKycMessage.hide();
-
-            data.forEach((kyc) => {
-                let statusBadgeClass = 'bg-info-soft'; // Default for unknown
-                let statusText = kyc.status.toUpperCase();
-                switch (statusText) {
-                    case 'PENDING': statusBadgeClass = 'bg-warning-soft'; break;
-                    case 'APPROVED': statusBadgeClass = 'bg-success-soft'; break;
-                    case 'REJECTED': statusBadgeClass = 'bg-danger-soft'; break;
+            <div class="card-body">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        Please correct the errors below.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 }
 
-                const row = `
-                    <tr data-user-id="${kyc.userId}">
-                        <td>${kyc.userId}</td>
-                        <td>${kyc.name}</td>
-                        <td><a href="mailto:${kyc.email}" id="email-to">${kyc.email}</a></td> <td>
-                            <button class="btn btn-outline-primary btn-sm view-doc-btn view-btn"
-                                        data-doc-url="${kyc.documentUrl}"
-                                        data-doc-type="${kyc.documentType || 'pdf'}"
-                                        title="View ${kyc.name}'s document">
-                                <i class="fas fa-eye me-1"></i>View
-                            </button>
-                        </td>
-                        <td>
-                            <select class="form-select form-select-sm status-dropdown" aria-label="Update KYC status for ${kyc.name}">
-                                <option value="Pending" ${kyc.status === "Pending" ? "selected" : ""}>Pending</option>
-                                <option value="Approved" ${kyc.status === "Approved" ? "selected" : ""}>Approved</option>
-                                <option value="Rejected" ${kyc.status === "Rejected" ? "selected" : ""}>Rejected</option>
-                            </select>
-                        </td>
-                        <td><span class="badge rounded-pill ${statusBadgeClass}">${statusText}</span></td>
-                    </tr>
-                `;
-                $kycTableBody.append(row);
+                <div class="alert alert-instructions" role="alert">
+                    <h4 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Important Information</h4>
+                    <p>To complete your KYC verification, please upload a clear copy of your **identity proof**. Ensure the document is valid and legible.</p>
+                    <hr>
+                    <p class="mb-0">Accepted file types: JPG, PNG, PDF. Maximum file size: 5MB.</p>
+                </div>
+
+                <form asp-action="KYCUpload" method="post" enctype="multipart/form-data" id="kycForm">
+                    @* Added id="kycForm" here *@
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-4">
+                        <label asp-for="IdentityDocumentType" class="form-label fw-bold"><i class="fas fa-id-card me-2"></i>Identity Proof Document</label>
+                        <select asp-for="IdentityDocumentType" class="form-select form-select-lg mb-2">
+                            <option selected disabled value="">Select Document Type...</option>
+                            <option value="aadhaar_card">Aadhaar Card (India)</option>
+                            <option value="pan_card">PAN Card (India)</option>
+                            <option value="drivers_license">Driver's License</option>
+                            <option value="passport">Passport</option>
+                            <option value="voter_id">Voter ID</option>
+                            <option value="other_identity">Other Identity Proof</option>
+                        </select>
+                        <span asp-validation-for="IdentityDocumentType" class="text-danger"></span>
+
+                        <label asp-for="IdentityProofFile" class="file-upload-label mt-2">Upload Identity Proof:</label>
+                        <input asp-for="IdentityProofFile" type="file" class="form-control form-control-lg" accept=".jpg,.jpeg,.png,.pdf">
+                        <div class="form-text">e.g., Aadhaar, PAN, Driver's License, Passport.</div>
+                        <span asp-validation-for="IdentityProofFile" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="DeclarationAccepted" class="form-check-input" type="checkbox" id="declaration">
+                        <label class="form-check-label" for="declaration">
+                            I declare that the information and documents provided are true, correct, and up-to-date.
+                        </label>
+                        <span asp-validation-for="DeclarationAccepted" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-upload me-2"></i>Submit Document for Verification
+                    </button>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <p class="text-muted">Your KYC status is currently: <strong class="text-warning">PENDING</strong>. <br> It will be updated to <strong class="text-success">VERIFIED</strong> after successful review by our team (usually within 24-48 hours).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validation.unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        // Ensure the form element has an ID 'kycForm'
+        const kycForm = document.getElementById('kycForm');
+
+        if (kycForm) { // Only add listener if form is found
+            kycForm.addEventListener('submit', function(event) {
+                Get the IdentityProofFile element
+                const identityFileInput = document.getElementById('IdentityProofFile');
+
+                // Check if the element exists
+                if (!identityFileInput) {
+                    console.error("IdentityProofFile input element not found!");
+                    // event.preventDefault(); Stop submission as we can't validate the file
+                    return;
+                }
+
+                const identityFile = identityFileInput.files[0]; // Now access .files safely
+
+                const maxSize = 5 * 1024 * 1024; // 5MB
+
+                function isValidFile(file, allowedTypes, maxSize) {
+                    if (!file) return false; // Identity Proof is required (client-side check for presence)
+                    const fileType = file.type;
+                    if (!allowedTypes.includes(fileType)) {
+                        return false;
+                    }
+                    if (file.size > maxSize) {
+                        return false;
+                    }
+                    return true;
+                }
+
+                const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                const allowedPdfTypes = ['application/pdf'];
+                const allowedIdentityTypes = [...allowedImageTypes, ...allowedPdfTypes]; // JPG, PNG, PDF
+
+                let allFilesValid = true;
+
+                if (!isValidFile(identityFile, allowedIdentityTypes, maxSize)) {
+                    alert('Identity Proof: Invalid file type or size (max 5MB, JPG/PNG/PDF).');
+                    // event.preventDefault(); Prevent form submission
+                    allFilesValid = false;
+                }
+
+                // Client-side check for DeclarationAccepted (optional, but good for UX)
+                const declarationCheckbox = document.getElementById('declaration');
+                if (declarationCheckbox && !declarationCheckbox.checked) {
+                    alert('You must accept the declaration.');
+                    // event.preventDefault();
+                    allFilesValid = false;
+                }
+
+                if (!allFilesValid) {
+                     return; // Stop the function here if validation fails
+                }
             });
+        } else {
+            console.error("Form with ID 'kycForm' not found. Client-side validation for file uploads might not work.");
         }
 
-        // Initial population of the table
-        $(document).ready(function() {
-            populateKycTable(kycData);
 
-            // Sidebar Toggle
-            $("#menu-toggle").click(function(e) {
-                e.preventDefault();
-                $("#wrapper").toggleClass("toggled");
-            });
-
-            // Handle View Document Button Click
-            $(document).on("click", ".view-doc-btn", function () {
-                const documentUrl = $(this).data("doc-url");
-                const documentType = $(this).data("doc-type");
-
-                const $documentViewer = $("#documentViewer");
-                const $imageViewer = $("#imageViewer");
-                const $unsupportedDocMessage = $("#unsupportedDocMessage");
-                const $downloadDocLink = $("#downloadDocLink");
-
-                $documentViewer.hide().attr("src", "");
-                $imageViewer.hide().attr("src", "");
-                $unsupportedDocMessage.hide();
-                $downloadDocLink.attr("href", documentUrl); // Set download link
-
-                if (documentType === 'pdf') {
-                    $documentViewer.attr("src", documentUrl).show();
-                } else if (documentType === 'image' || documentUrl.match(/\.(jpeg|jpg|gif|png)$/i) ) {
-                    // Basic image type check by extension if docType is 'image' or extension matches
-                    $imageViewer.attr("src", documentUrl).show();
-                } else {
-                    // For unsupported types, show a message and rely on download
-                    $unsupportedDocMessage.html(`Cannot display <strong>.${documentType}</strong> files directly. Please use the download button.`).show();
-                }
-
-                // Update modal title if needed
-                // $('#documentModalLabel').text(`Document: ${documentUrl.split('/').pop()}`);
-
-
-                const documentModal = new bootstrap.Modal($("#documentModal")[0]);
-                documentModal.show();
-            });
-
-            // Handle Status Dropdown Change
-            $(document).on("change", ".status-dropdown", function () {
-                selectedRow = $(this).closest("tr");
-                currentKycUserId = selectedRow.data("user-id"); // Get userId from data attribute
-                originalStatus = selectedRow.find(".status-dropdown").val(); // Store the original status
-                const newStatus = $(this).val();
-
-                $("#actionType").text(newStatus.toLowerCase());
-                // Store the new status to be applied on confirmation
-                $("#confirmActionBtn").data("new-status", newStatus);
-
-                const confirmationModal = new bootstrap.Modal($("#confirmationModal")[0]);
-                confirmationModal.show();
-            });
-
-            // Handle Confirm Action Button
-            $("#confirmActionBtn").on("click", function () {
-                if (!selectedRow || !currentKycUserId) return;
-
-                const newStatus = $(this).data("new-status"); // Retrieve the stored new status
-                const $statusBadge = selectedRow.find("td:last-child .badge");
-
-                // Update the KYC data array (simulating backend update)
-                const kycRecord = kycData.find(kyc => kyc.userId === currentKycUserId);
-                if (kycRecord) {
-                    kycRecord.status = newStatus;
-                }
-
-                // Update the status badge text and class
-                $statusBadge.text(newStatus.toUpperCase());
-                let newBadgeClass = 'bg-info-soft';
-                switch (newStatus) {
-                    case 'Pending': newBadgeClass = 'bg-warning-soft'; break;
-                    case 'Approved': newBadgeClass = 'bg-success-soft'; break;
-                    case 'Rejected': newBadgeClass = 'bg-danger-soft'; break;
-                }
-                $statusBadge.attr("class", `badge rounded-pill ${newBadgeClass}`);
-
-                // Close the confirmation modal
-                const confirmationModal = bootstrap.Modal.getInstance($("#confirmationModal")[0]);
-                confirmationModal.hide();
-
-                // Reset selections
-                selectedRow = null;
-                currentKycUserId = null;
-                originalStatus = null; // Clear original status
-                $(this).removeData("new-status");
-
-                // Optional: Re-filter or re-populate if needed, or just visually update
-                // populateKycTable(kycData.filter(kyc => $("#filterStatus").val() === "All" || kyc.status === $("#filterStatus").val()));
-                console.log(`KYC for User ID ${currentKycUserId} updated to ${newStatus}`);
-            });
-
-            // Handle Cancel Action Button click
-            $("#cancelActionBtn").on("click", function() {
-                if (selectedRow && originalStatus !== null) { // Check for null explicitly as originalStatus could be "Pending" (a valid string)
-                    // Revert the dropdown to its original status
-                    selectedRow.find(".status-dropdown").val(originalStatus);
-                }
-                // Reset selections
-                selectedRow = null;
-                currentKycUserId = null;
-                originalStatus = null; // Clear original status
-                $("#confirmActionBtn").removeData("new-status"); // Clear any stored new status
-            });
-
-            // Handle Filter Dropdown Change
-            $("#filterStatus").on("change", function () {
-                const filterValue = $(this).val();
-                const filteredData = filterValue === "All" ? kycData : kycData.filter((kyc) => kyc.status === filterValue);
-                populateKycTable(filteredData);
-            });
-
-            // Initialize Bootstrap tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"], [title]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
-        });
+        // Basic script to display file name after selection (UX improvement)
+        function setupFileNameDisplay(inputId) {
+            const fileInput = document.getElementById(inputId);
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    const fileName = this.files[0] ? this.files[0].name : "No file chosen";
+                    console.log(`Selected file for ${inputId}: ${fileName}`);
+                });
+            }
+        }
+        setupFileNameDisplay('IdentityProofFile'); // Now only for IdentityProofFile
     </script>
 </body>
 </html>

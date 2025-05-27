@@ -1,14 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // Required for DbContext operations like FindAsync
-using System.Security.Claims; // Required to access user claims (like CustomerId)
-using CredWise_Trail.Models; // Make sure your Customer model is in this namespace
-using CredWise_Trail.ViewModels; // <--- NEW: Using the ViewModel
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using CredWise_Trail.Models;
+using CredWise_Trail.ViewModels;
+using Microsoft.AspNetCore.Hosting;
+using System.IO; // <--- NEW: Using the ViewModel
 
 namespace CredWise_Trail.Controllers
 {
     public class CustomerController : Controller
     {
         private readonly BankLoanManagementDbContext _context;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
         public CustomerController(BankLoanManagementDbContext context)
         {
@@ -52,14 +55,102 @@ namespace CredWise_Trail.Controllers
             return View();
         }
 
+        [HttpGet] // This action displays the KYC Upload form
         public IActionResult KYCUpload()
         {
             if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
             {
                 return RedirectToAction("Login", "Account");
             }
-            return View();
+            return View(); // Return the empty form for GET request
         }
+        [HttpPost] // This action handles the submission of the KYC Upload form
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> KYCUpload(KycUploadViewModel model) // Model bind to the ViewModel
+        {
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var customerIdClaim = User.FindFirst("CustomerId");
+            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+            {
+                TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
+                return RedirectToAction("Logout", "Account");
+            }
+
+            // Check if form has ID 'kycForm' to match JS. If not, ModelState will fail if form is not submitted.
+            // Also ensure enctype="multipart/form-data" in the HTML form.
+
+            if (ModelState.IsValid)
+            {
+                // Define the upload directory
+                string uploadFolder = Path.Combine(_hostEnvironment.WebRootPath, "kyc_documents");
+                if (!Directory.Exists(uploadFolder))
+                {
+                    Directory.CreateDirectory(uploadFolder);
+                }
+
+                try
+                {
+                    // Handle Identity Proof File
+                    string identityFileName = null;
+                    if (model.IdentityProofFile != null)
+                    {
+                        string fileExtension = Path.GetExtension(model.IdentityProofFile.FileName);
+                        // Unique filename for Identity Proof
+                        identityFileName = $"{customerId}_{Guid.NewGuid()}_identity{fileExtension}";
+                        string filePath = Path.Combine(uploadFolder, identityFileName);
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await model.IdentityProofFile.CopyToAsync(fileStream);
+                        }
+                    }
+
+                    // Create a new KycApproval entry
+                    var kycApproval = new KycApproval
+                    {
+                        CustomerId = customerId,
+                        SubmissionDate = DateTime.UtcNow,
+                        Status = "Pending",
+                        DocumentPath = identityFileName, // Store Identity Proof Path
+                        
+                    };
+
+                    _context.KycApprovals.Add(kycApproval);
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "KYC documents uploaded successfully! Your verification is pending review.";
+                    return RedirectToAction("CustomerDashboard");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error uploading KYC documents: {ex.Message}");
+                    TempData["ErrorMessage"] = "An error occurred during document upload. Please try again.";
+                    ModelState.AddModelError("", "An unexpected error occurred. Please try again.");
+                }
+            }
+            else
+            {
+                // Log model state errors for debugging
+                foreach (var state in ModelState)
+                {
+                    foreach (var error in state.Value.Errors)
+                    {
+                        Console.WriteLine($"ModelState Error: {state.Key} - {error.ErrorMessage}");
+                    }
+                }
+            }
+
+            return View(model);
+        }
+
+
+
+
+
+
 
         [HttpGet] // This action displays the customer details
         public async Task<IActionResult> CustomerDetails()
