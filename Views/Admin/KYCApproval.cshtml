@@ -1,6 +1,5 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model List<CredWise_Trail.Models.KycApproval>
+
 @{
     Layout = "~/Views/Shared/AdminUtility.cshtml";
 }
@@ -162,7 +161,7 @@
             <main class="container-fluid p-4 flex-grow-1">
                 <div class="card-table-container">
                     <div class="card-header">
-                        <div><i class="fas fa-tasks title-icon"></i>Pending KYC Verifications</div>
+                        <div><i class="fas fa-tasks title-icon"></i>KYC Verifications</div>
                     </div>
                     <div class="card-body">
                         <div class="filter-section">
@@ -191,6 +190,44 @@
                                     </tr>
                                 </thead>
                                 <tbody id="kycTableBody">
+                                    @foreach (var kyc in Model)
+                                    {
+                                        var statusBadgeClass = "bg-info-soft";
+                                        switch (kyc.Status.ToUpper())
+                                        {
+                                            case "PENDING": statusBadgeClass = "bg-warning-soft"; break;
+                                            case "APPROVED": statusBadgeClass = "bg-success-soft"; break;
+                                            case "REJECTED": statusBadgeClass = "bg-danger-soft"; break;
+                                        }
+
+                                        <tr data-kyc-id="@kyc.KycID" data-customer-id="@kyc.CustomerId">
+                                            <td>@kyc.CustomerId</td>
+                                            <td>@kyc.Customer.Name</td>
+                                            <td><a href="mailto:@kyc.Customer.Email" id="email-to">@kyc.Customer.Email</a></td>
+                                            <td>
+                                                @{
+                                                    var fileName = !string.IsNullOrEmpty(kyc.DocumentPath) ? System.IO.Path.GetFileName(kyc.DocumentPath) : "";
+                                                    var documentExtension = !string.IsNullOrEmpty(fileName) ? System.IO.Path.GetExtension(fileName)?.TrimStart('.') : "";
+                                                    var documentViewUrl = Url.Action("GetKycDocument", "Admin", new { fileName = fileName });
+                                                }
+                                                <button class="btn btn-outline-primary btn-sm view-doc-btn view-btn"
+                                                        data-doc-url="@documentViewUrl"
+                                                        data-doc-type="@documentExtension"
+                                                        title="View @kyc.Customer.Name's document"
+                                                @(string.IsNullOrEmpty(fileName) ? "disabled" : "")>
+                                                    <i class="fas fa-eye me-1"></i>View
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm status-dropdown" aria-label="Update KYC status for @kyc.Customer.Name">
+                                                    <!option value="Pending" @(kyc.Status == "Pending" ? "selected" : "")>Pending</!option>
+                                                    <!option value="Approved" @(kyc.Status == "Approved" ? "selected" : "")>Approved</!option>
+                                                    <!option value="Rejected" @(kyc.Status == "Rejected" ? "selected" : "")>Rejected</!option>
+                                                </select>
+                                            </td>
+                                            <td><span class="badge rounded-pill @statusBadgeClass">@kyc.Status.ToUpper()</span></td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         </div>
@@ -244,78 +281,38 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
-        // Sample KYC data (replace with actual data source)
-        const kycData = [
-            { userId: 'MYBK001', name: "Alice Wonderland", email: "alice.wonder@example.com", documentUrl: "sample-doc.pdf", documentType: "pdf", status: "Pending" },
-            { userId: 'MYBK002', name: "Robert \"Bob\" Builder", email: "bob.builder@example.com", documentUrl: "https://placehold.co/800x1100/E9ECEF/6C757D?text=KYC_Document_Bob.jpg", documentType: "image", status: "Approved" },
-            { userId: 'MYBK003', name: "Charles Xavier", email: "charles.x@example.com", documentUrl: "sample-doc.pdf", documentType: "pdf", status: "Rejected" },
-            { userId: 'MYBK004', name: "Diana Prince", email: "diana.p@example.com", documentUrl: "https://placehold.co/800x1100/E9ECEF/6C757D?text=KYC_Document_Diana.png", documentType: "image", status: "Pending" },
-            { userId: 'MYBK005', name: "Edward Nygma", email: "e.nygma@example.com", documentUrl: "unsupported.docx", documentType: "docx", status: "Pending" },
-        ];
+        let selectedRow = null;
+        let currentKycId = null;
+        let originalStatus = null; // This will store the status *before* a change attempt
 
-        let selectedRow = null; // To track the table row (<tr> element) being updated
-        let currentKycUserId = null; // To track the user ID of the KYC record being acted upon
-        let originalStatus = null; // To store the original status of the selected KYC record
-
-        // Function to populate the KYC table
-        function populateKycTable(data) {
-            const $kycTableBody = $("#kycTableBody");
-            const $noKycMessage = $("#noKycMessage");
-            $kycTableBody.empty();
-
-            if (data.length === 0) {
-                $noKycMessage.show();
-                return;
-            }
-            $noKycMessage.hide();
-
-            data.forEach((kyc) => {
-                let statusBadgeClass = 'bg-info-soft'; // Default for unknown
-                let statusText = kyc.status.toUpperCase();
-                switch (statusText) {
-                    case 'PENDING': statusBadgeClass = 'bg-warning-soft'; break;
-                    case 'APPROVED': statusBadgeClass = 'bg-success-soft'; break;
-                    case 'REJECTED': statusBadgeClass = 'bg-danger-soft'; break;
+        function filterKycTable() {
+            const filterValue = $("#filterStatus").val();
+            let visibleRows = 0;
+            $("#kycTableBody tr").each(function() {
+                const rowStatus = $(this).find(".status-dropdown").val();
+                if (filterValue === "All" || rowStatus === filterValue) {
+                    $(this).show();
+                    visibleRows++;
+                } else {
+                    $(this).hide();
                 }
-
-                const row = `
-                    <tr data-user-id="${kyc.userId}">
-                        <td>${kyc.userId}</td>
-                        <td>${kyc.name}</td>
-                        <td><a href="mailto:${kyc.email}" id="email-to">${kyc.email}</a></td> <td>
-                            <button class="btn btn-outline-primary btn-sm view-doc-btn view-btn"
-                                        data-doc-url="${kyc.documentUrl}"
-                                        data-doc-type="${kyc.documentType || 'pdf'}"
-                                        title="View ${kyc.name}'s document">
-                                <i class="fas fa-eye me-1"></i>View
-                            </button>
-                        </td>
-                        <td>
-                            <select class="form-select form-select-sm status-dropdown" aria-label="Update KYC status for ${kyc.name}">
-                                <option value="Pending" ${kyc.status === "Pending" ? "selected" : ""}>Pending</option>
-                                <option value="Approved" ${kyc.status === "Approved" ? "selected" : ""}>Approved</option>
-                                <option value="Rejected" ${kyc.status === "Rejected" ? "selected" : ""}>Rejected</option>
-                            </select>
-                        </td>
-                        <td><span class="badge rounded-pill ${statusBadgeClass}">${statusText}</span></td>
-                    </tr>
-                `;
-                $kycTableBody.append(row);
             });
+            if (visibleRows === 0) {
+                $("#noKycMessage").show();
+            } else {
+                $("#noKycMessage").hide();
+            }
         }
 
-        // Initial population of the table
         $(document).ready(function() {
-            populateKycTable(kycData);
+            filterKycTable();
 
-            // Sidebar Toggle
-            $("#menu-toggle").click(function(e) {
-                e.preventDefault();
-                $("#wrapper").toggleClass("toggled");
-            });
-
-            // Handle View Document Button Click
             $(document).on("click", ".view-doc-btn", function () {
+                if ($(this).is(':disabled')) {
+                    console.log("Document view button is disabled (no document path).");
+                    return;
+                }
+
                 const documentUrl = $(this).data("doc-url");
                 const documentType = $(this).data("doc-type");
 
@@ -327,104 +324,131 @@
                 $documentViewer.hide().attr("src", "");
                 $imageViewer.hide().attr("src", "");
                 $unsupportedDocMessage.hide();
-                $downloadDocLink.attr("href", documentUrl); // Set download link
+                $downloadDocLink.attr("href", documentUrl);
 
-                if (documentType === 'pdf') {
+                const lowerCaseDocType = (documentType || '').toLowerCase();
+                if (lowerCaseDocType === 'pdf') {
                     $documentViewer.attr("src", documentUrl).show();
-                } else if (documentType === 'image' || documentUrl.match(/\.(jpeg|jpg|gif|png)$/i) ) {
-                    // Basic image type check by extension if docType is 'image' or extension matches
+                } else if (['jpeg', 'jpg', 'gif', 'png', 'webp', 'bmp', 'svg'].includes(lowerCaseDocType)) {
                     $imageViewer.attr("src", documentUrl).show();
                 } else {
-                    // For unsupported types, show a message and rely on download
-                    $unsupportedDocMessage.html(`Cannot display <strong>.${documentType}</strong> files directly. Please use the download button.`).show();
+                    $unsupportedDocMessage.html(`Cannot display <strong>.${documentType || 'unknown'}</strong> files directly. Please use the download button.`).show();
                 }
-
-                // Update modal title if needed
-                // $('#documentModalLabel').text(`Document: ${documentUrl.split('/').pop()}`);
-
 
                 const documentModal = new bootstrap.Modal($("#documentModal")[0]);
                 documentModal.show();
             });
 
-            // Handle Status Dropdown Change
             $(document).on("change", ".status-dropdown", function () {
-                selectedRow = $(this).closest("tr");
-                currentKycUserId = selectedRow.data("user-id"); // Get userId from data attribute
-                originalStatus = selectedRow.find(".status-dropdown").val(); // Store the original status
-                const newStatus = $(this).val();
+                const $thisDropdown = $(this);
+                selectedRow = $thisDropdown.closest("tr");
+                currentKycId = selectedRow.data("kyc-id");
 
-                $("#actionType").text(newStatus.toLowerCase());
-                // Store the new status to be applied on confirmation
+                // --- DEBUGGING LINE 1 ---
+                console.log("DEBUG: Captured currentKycId (from data-kyc-id):", currentKycId);
+
+                // Get the status from the badge, as it represents the current, displayed status in the UI
+                originalStatus = selectedRow.find("td:last-child .badge").text().trim().toLowerCase();
+                const newStatus = $thisDropdown.val().toLowerCase();
+
+                // --- DEBUGGING LINE 2 ---
+                console.log(`DEBUG: Original Status (from badge): '${originalStatus}'`);
+                console.log(`DEBUG: New Status (from dropdown): '${newStatus}'`);
+
+                // Prevent confirmation if status hasn't changed or if no KYC ID
+                if (!currentKycId || newStatus === originalStatus) {
+                    console.log("Status not changed or no KYC ID. Skipping confirmation.");
+                    // Revert the dropdown visually to its original state (correct casing)
+                    $thisDropdown.val(originalStatus.charAt(0).toUpperCase() + originalStatus.slice(1));
+
+                    // Reset global variables
+                    selectedRow = null;
+                    currentKycId = null;
+                    originalStatus = null;
+                    return;
+                }
+
+                $("#actionType").text(newStatus);
                 $("#confirmActionBtn").data("new-status", newStatus);
 
                 const confirmationModal = new bootstrap.Modal($("#confirmationModal")[0]);
                 confirmationModal.show();
             });
 
-            // Handle Confirm Action Button
             $("#confirmActionBtn").on("click", function () {
-                if (!selectedRow || !currentKycUserId) return;
-
-                const newStatus = $(this).data("new-status"); // Retrieve the stored new status
-                const $statusBadge = selectedRow.find("td:last-child .badge");
-
-                // Update the KYC data array (simulating backend update)
-                const kycRecord = kycData.find(kyc => kyc.userId === currentKycUserId);
-                if (kycRecord) {
-                    kycRecord.status = newStatus;
+                if (!selectedRow || !currentKycId) {
+                    console.warn("Confirm button clicked without selected row or KYC ID. This shouldn't happen if previous logic is correct.");
+                    return;
                 }
 
-                // Update the status badge text and class
-                $statusBadge.text(newStatus.toUpperCase());
-                let newBadgeClass = 'bg-info-soft';
-                switch (newStatus) {
-                    case 'Pending': newBadgeClass = 'bg-warning-soft'; break;
-                    case 'Approved': newBadgeClass = 'bg-success-soft'; break;
-                    case 'Rejected': newBadgeClass = 'bg-danger-soft'; break;
-                }
-                $statusBadge.attr("class", `badge rounded-pill ${newBadgeClass}`);
+                const newStatusConfirmed = $(this).data("new-status");
+                const $statusDropdown = selectedRow.find(".status-dropdown");
 
-                // Close the confirmation modal
-                const confirmationModal = bootstrap.Modal.getInstance($("#confirmationModal")[0]);
-                confirmationModal.hide();
+                console.log(`Sending AJAX to update KYC ID: ${currentKycId} to status: ${newStatusConfirmed}`);
 
-                // Reset selections
-                selectedRow = null;
-                currentKycUserId = null;
-                originalStatus = null; // Clear original status
-                $(this).removeData("new-status");
+                $.ajax({
+                    url: '/Admin/UpdateKycStatus',
+                    type: 'POST',
+                    data: { kycId: currentKycId, status: newStatusConfirmed },
+                    success: function (response) {
+                        console.log("AJAX Success Response:", response);
+                        if (response.success) {
+                            const $statusBadge = selectedRow.find("td:last-child .badge");
+                            $statusBadge.text(newStatusConfirmed.toUpperCase());
 
-                // Optional: Re-filter or re-populate if needed, or just visually update
-                // populateKycTable(kycData.filter(kyc => $("#filterStatus").val() === "All" || kyc.status === $("#filterStatus").val()));
-                console.log(`KYC for User ID ${currentKycUserId} updated to ${newStatus}`);
+                            let newBadgeClass = 'bg-info-soft';
+                            switch (newStatusConfirmed) {
+                                case 'pending': newBadgeClass = 'bg-warning-soft'; break;
+                                case 'approved': newBadgeClass = 'bg-success-soft'; break;
+                                case 'rejected': newBadgeClass = 'bg-danger-soft'; break;
+                            }
+                            $statusBadge.attr("class", `badge rounded-pill ${newBadgeClass}`);
+
+                            $statusDropdown.val(newStatusConfirmed.charAt(0).toUpperCase() + newStatusConfirmed.slice(1));
+
+                            filterKycTable();
+                            console.log(`KYC for ID ${currentKycId} successfully updated to ${newStatusConfirmed}.`);
+                        } else {
+                            console.error("Server reported failure:", response.message);
+                            alert("Failed to update KYC status: " + (response.message || "Unknown error."));
+                            // Revert dropdown if update failed (using originalStatus with proper casing)
+                            if (originalStatus !== null) {
+                                $statusDropdown.val(originalStatus.charAt(0).toUpperCase() + originalStatus.slice(1));
+                            }
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX error:", xhr.responseText, status, error);
+                        alert("An error occurred during update. Check console for details.");
+                        // Revert dropdown on AJAX error (using originalStatus with proper casing)
+                        if (originalStatus !== null) {
+                            $statusDropdown.val(originalStatus.charAt(0).toUpperCase() + originalStatus.slice(1));
+                        }
+                    },
+                    complete: function() {
+                        const confirmationModal = bootstrap.Modal.getInstance($("#confirmationModal")[0]);
+                        confirmationModal.hide();
+                        selectedRow = null;
+                        currentKycId = null;
+                        originalStatus = null;
+                        $("#confirmActionBtn").removeData("new-status");
+                    }
+                });
             });
 
-            // Handle Cancel Action Button click
             $("#cancelActionBtn").on("click", function() {
-                if (selectedRow && originalStatus !== null) { // Check for null explicitly as originalStatus could be "Pending" (a valid string)
-                    // Revert the dropdown to its original status
-                    selectedRow.find(".status-dropdown").val(originalStatus);
+                if (selectedRow && originalStatus !== null) {
+                    selectedRow.find(".status-dropdown").val(originalStatus.charAt(0).toUpperCase() + originalStatus.slice(1));
                 }
-                // Reset selections
                 selectedRow = null;
-                currentKycUserId = null;
-                originalStatus = null; // Clear original status
-                $("#confirmActionBtn").removeData("new-status"); // Clear any stored new status
+                currentKycId = null;
+                originalStatus = null;
+                $("#confirmActionBtn").removeData("new-status");
             });
 
-            // Handle Filter Dropdown Change
             $("#filterStatus").on("change", function () {
-                const filterValue = $(this).val();
-                const filteredData = filterValue === "All" ? kycData : kycData.filter((kyc) => kyc.status === filterValue);
-                populateKycTable(filteredData);
+                filterKycTable();
             });
-
-            // Initialize Bootstrap tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"], [title]'))
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
         });
     </script>
 </body>
