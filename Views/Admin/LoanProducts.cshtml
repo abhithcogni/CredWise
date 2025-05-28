@@ -1,16 +1,19 @@
 ﻿@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
+@model IEnumerable<CredWise_Trail.Models.ViewModels.LoanProductViewModel>
+
 @{
     Layout = "~/Views/Shared/AdminUtility.cshtml";
-
+    ViewData["Title"] = "Loan Products"; // Set page title
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Products - MyBank Admin</title>
+    <title>@ViewData["Title"] - MyBank Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,9 +23,6 @@
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5; /* Light gray background */
         }
-
-        /* Sidebar Styles (consistent with Loan Approval page) */
-
 
         /* Card Styles */
         .card {
@@ -74,7 +74,6 @@
             vertical-align: middle;
         }
 
-
         /* Modal Styling */
         .modal-header {
             background-color: #f8f9fa;
@@ -122,15 +121,11 @@
                 border-color: white;
             }
 
-
-
         /* Responsive adjustments */
-
     </style>
 </head>
 <body>
     <div class="d-flex" id="wrapper">
-
         <div id="page-content-wrapper" class="container">
             <div class="container-fluid p-4">
                 <div class="page-header mb-4">
@@ -147,28 +142,29 @@
                             <table class="table table-hover table-striped mb-0" id="loanProductsTable">
                                 <thead>
                                     <tr>
-                                        <th>Product Name</th>
-                                        <th>Interest Rate (%)</th>
-                                        <th>Min. Amount (₹)</th>
-                                        <th>Max. Amount (₹)</th>
-                                        <th>Tenure (Months)</th>
+                                        <th>@Html.DisplayNameFor(model => model.ProductName)</th>
+                                        <th>@Html.DisplayNameFor(model => model.InterestRate) (%)</th>
+                                        <th>@Html.DisplayNameFor(model => model.MinAmount) (₹)</th>
+                                        <th>@Html.DisplayNameFor(model => model.MaxAmount) (₹)</th>
+                                        <th>@Html.DisplayNameFor(model => model.Tenure) (Months)</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @* Data will be loaded here via JavaScript *@
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="card-footer text-muted small" id="tableInfoProducts">
-                        Displaying all loan products.
+                        Loading loan products...
                     </div>
                 </div>
             </div>
-
-
         </div>
     </div>
+
+    @* Edit Product Modal *@
     <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -220,6 +216,7 @@
         </div>
     </div>
 
+    @* Delete Confirmation Modal *@
     <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -243,17 +240,8 @@
 
     <script>
         $(document).ready(function () {
-            // Sample loan product data (can be fetched from an API)
-            const loanProductsData = [
-                { name: 'Housing Loan', interestRate: 6.5, minAmount: 500000, maxAmount: 5000000, tenure: 240 },
-                { name: 'Vehicle Loan', interestRate: 7.2, minAmount: 100000, maxAmount: 2000000, tenure: 60 },
-                { name: 'Personal Loan', interestRate: 10.5, minAmount: 50000, maxAmount: 500000, tenure: 36 },
-                { name: 'Gold Loan', interestRate: 8.0, minAmount: 20000, maxAmount: 1000000, tenure: 120 },
-                { name: 'Education Loan', interestRate: 9.1, minAmount: 25000, maxAmount: 1500000, tenure: 84 },
-            ];
-
-            let currentlyEditingProduct = null;
-            let productToDelete = null;
+            let currentlyEditingProduct = null; // Will store the product name of the item being edited
+            let productToDelete = null; // Will store the product name of the item to be deleted
 
             // Function to populate the table
             function populateTable(data) {
@@ -262,23 +250,23 @@
 
                 if (data.length === 0) {
                     tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">No loan products available.</td></tr>');
-                     $('#tableInfoProducts').text('No loan products found.');
+                    $('#tableInfoProducts').text('No loan products found.');
                     return;
                 }
 
                 data.forEach(product => {
                     const row = `
                         <tr>
-                            <td>${product.name}</td>
+                            <td>${product.productName}</td>
                             <td>${product.interestRate.toFixed(2)}%</td>
-                            <td>₹${product.minAmount.toLocaleString()}</td>
-                            <td>₹${product.maxAmount.toLocaleString()}</td>
+                            <td>₹${product.minAmount.toLocaleString('en-IN')}</td>
+                            <td>₹${product.maxAmount.toLocaleString('en-IN')}</td>
                             <td>${product.tenure} months</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary edit-button edit-btn" data-product-name="${product.name}" title="Edit ${product.name}">
+                                <button class="btn btn-sm btn-outline-primary edit-button edit-btn" data-product-name="${product.productName}" title="Edit ${product.productName}">
                                     <i class="fas fa-edit me-1"></i>Edit
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger delete-button" data-product-name="${product.name}" title="Delete ${product.name}">
+                                <button class="btn btn-sm btn-outline-danger delete-button" data-product-name="${product.productName}" title="Delete ${product.productName}">
                                     <i class="fas fa-trash-alt me-1"></i>Delete
                                 </button>
                             </td>
@@ -286,90 +274,126 @@
                     `;
                     tbody.append(row);
                 });
-                 $('#tableInfoProducts').text(`Displaying ${data.length} loan product(s).`);
+                $('#tableInfoProducts').text(`Displaying ${data.length} loan product(s).`);
+                initializeTooltips(); // Re-initialize tooltips after table is populated
             }
 
-            // Initial population of the table
-            populateTable(loanProductsData);
+            // Function to fetch loan products from the API
+            function fetchLoanProducts() {
+                $.ajax({
+                    url: '@Url.Action("GetAllLoanProducts", "Admin")', // Adjust controller/action as needed
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        populateTable(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error fetching loan products:", error);
+                        $('#tableInfoProducts').text('Error loading loan products.');
+                        $('#loanProductsTable tbody').empty().append('<tr><td colspan="6" class="text-center text-danger py-4">Failed to load loan products. Please try again.</td></tr>');
+                    }
+                });
+            }
 
-            // Sidebar Toggle
-            $("#menu-toggle").click(function(e) {
-                e.preventDefault();
-                $("#wrapper").toggleClass("toggled");
-                 $(this).find("i").toggleClass("fa-bars fa-times");
-            });
+            // Initial fetch of loan products
+            fetchLoanProducts();
 
             // Initialize Bootstrap tooltips for dynamically added buttons
             function initializeTooltips() {
+                // Destroy existing tooltips to prevent duplicates
+                $('[data-bs-toggle="tooltip"]').tooltip('dispose');
+
                 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
                 tooltipTriggerList.map(function (tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl);
                 });
             }
-            initializeTooltips(); // Initial call
-            // Re-initialize tooltips after table is populated or re-populated
-            $(document).ajaxComplete(function() { // Example if using AJAX
-                initializeTooltips();
-            });
 
 
             // Handle Edit button click (event delegation)
             $('#loanProductsTable tbody').on('click', '.edit-button', function () {
                 const productName = $(this).data('product-name');
-                currentlyEditingProduct = productName;
-                const product = loanProductsData.find(p => p.name === productName);
+                currentlyEditingProduct = productName; // Store the product name for editing
 
-                if (product) {
-                    $('#editProductName').val(product.name);
-                    $('#editInterestRate').val(product.interestRate);
-                    $('#editMinAmount').val(product.minAmount);
-                    $('#editMaxAmount').val(product.maxAmount);
-                    $('#editTenure').val(product.tenure);
+                $.ajax({
+                    url: '@Url.Action("GetLoanProductByName", "Admin")', // API endpoint to get a single product
+                    type: 'GET',
+                    data: { productName: productName },
+                    dataType: 'json',
+                    success: function (product) {
+                        if (product) {
+                            $('#editProductName').val(product.productName);
+                            $('#editInterestRate').val(product.interestRate);
+                            $('#editMinAmount').val(product.minAmount);
+                            $('#editMaxAmount').val(product.maxAmount);
+                            $('#editTenure').val(product.tenure);
 
-                    const editModal = new bootstrap.Modal($('#editProductModal')[0]);
-                    editModal.show();
-                }
+                            const editModal = new bootstrap.Modal($('#editProductModal')[0]);
+                            editModal.show();
+                        } else {
+                            alert('Loan product not found.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error fetching loan product for edit:", error);
+                        alert('Failed to retrieve loan product details for editing.');
+                    }
+                });
             });
 
             // Handle Save button click in the edit modal
             $('#saveEditButton').on('click', function () {
-                if (currentlyEditingProduct) {
-                    // Basic validation (can be enhanced)
-                    const interestRate = parseFloat($('#editInterestRate').val());
-                    const minAmount = parseInt($('#editMinAmount').val());
-                    const maxAmount = parseInt($('#editMaxAmount').val());
-                    const tenure = parseInt($('#editTenure').val());
-
-                    if (isNaN(interestRate) || isNaN(minAmount) || isNaN(maxAmount) || isNaN(tenure) ||
-                        interestRate <=0 || minAmount <=0 || maxAmount <=0 || tenure <=0 || minAmount > maxAmount) {
-                        alert("Please enter valid product details. Minimum amount cannot exceed maximum amount.");
-                        return;
-                    }
-
-
-                    const index = loanProductsData.findIndex(p => p.name === currentlyEditingProduct);
-                    if (index !== -1) {
-                        loanProductsData[index].interestRate = interestRate;
-                        loanProductsData[index].minAmount = minAmount;
-                        loanProductsData[index].maxAmount = maxAmount;
-                        loanProductsData[index].tenure = tenure;
-
-                        populateTable(loanProductsData);
-                        initializeTooltips(); // Re-initialize tooltips after table update
-
-                        const editModal = bootstrap.Modal.getInstance($('#editProductModal')[0]);
-                        editModal.hide();
-                        // Add a success notification (e.g., using a toast)
-                        // For demo: alert(`${currentlyEditingProduct} updated successfully!`);
-                    }
-                    currentlyEditingProduct = null;
+                if (!currentlyEditingProduct) {
+                    alert("No product selected for editing.");
+                    return;
                 }
+
+                // Basic client-side validation
+                const interestRate = parseFloat($('#editInterestRate').val());
+                const minAmount = parseFloat($('#editMinAmount').val()); // Use parseFloat for monetary values
+                const maxAmount = parseFloat($('#editMaxAmount').val()); // Use parseFloat for monetary values
+                const tenure = parseInt($('#editTenure').val());
+
+                if (isNaN(interestRate) || isNaN(minAmount) || isNaN(maxAmount) || isNaN(tenure) ||
+                    interestRate <= 0 || minAmount <= 0 || maxAmount <= 0 || tenure <= 0 || minAmount > maxAmount) {
+                    alert("Please enter valid product details. Minimum amount cannot exceed maximum amount, and all values must be positive.");
+                    return;
+                }
+
+                const updatedProduct = {
+                    ProductName: currentlyEditingProduct, // Use the original product name as identifier
+                    InterestRate: interestRate,
+                    MinAmount: minAmount,
+                    MaxAmount: maxAmount,
+                    Tenure: tenure
+                };
+
+                $.ajax({
+                    url: '@Url.Action("UpdateLoanProduct", "Admin")', // API endpoint to update product
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(updatedProduct),
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message); // "Loan product updated successfully!"
+                            fetchLoanProducts(); // Re-fetch and re-populate the table
+                            const editModal = bootstrap.Modal.getInstance($('#editProductModal')[0]);
+                            editModal.hide();
+                        } else {
+                            alert('Error updating loan product: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error updating loan product:", error);
+                        alert('Failed to update loan product. Please try again.');
+                    }
+                });
             });
 
             // Reset currentlyEditingProduct when edit modal is hidden
             $('#editProductModal').on('hidden.bs.modal', function () {
                 currentlyEditingProduct = null;
-                // $('#editProductForm')[0].reset(); // Optional: reset form fields
+                $('#editProductForm')[0].reset(); // Reset form fields
             });
 
             // Handle Delete button click (event delegation)
@@ -382,19 +406,29 @@
 
             // Handle confirmation of delete
             $('#confirmDeleteButton').on('click', function () {
-                if (productToDelete) {
-                    const indexToDelete = loanProductsData.findIndex(p => p.name === productToDelete);
-                    if (indexToDelete !== -1) {
-                        loanProductsData.splice(indexToDelete, 1);
-                        populateTable(loanProductsData);
-                        initializeTooltips(); // Re-initialize tooltips
-                        // Add a success notification
-                        // For demo: alert(`${productToDelete} deleted successfully!`);
-                    }
-                    const deleteModal = bootstrap.Modal.getInstance($('#deleteConfirmationModal')[0]);
-                    deleteModal.hide();
+                if (!productToDelete) {
+                    alert("No product selected for deletion.");
+                    return;
                 }
-                productToDelete = null;
+
+                $.ajax({
+                    url: '@Url.Action("DeleteLoanProduct", "Admin")', // API endpoint to delete product
+                    type: 'POST', // Use POST for deletion as it modifies data
+                    data: { productName: productToDelete }, // Pass the product name
+                    success: function (response) {
+                        if (response.success) {
+                            fetchLoanProducts(); // Re-fetch and re-populate the table
+                            const deleteModal = bootstrap.Modal.getInstance($('#deleteConfirmationModal')[0]);
+                            deleteModal.hide();
+                        } else {
+                            alert('Error deleting loan product: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error deleting loan product:", error);
+                        alert('Failed to delete loan product. Please try again.');
+                    }
+                });
             });
 
             // Reset productToDelete when delete confirmation modal is hidden
@@ -402,12 +436,11 @@
                 productToDelete = null;
             });
 
-            // Sidebar active link handling
-            $('#sidebar-wrapper .list-group-item').on('click', function(e) {
+            // Sidebar active link handling (if AdminUtility.cshtml doesn't handle it)
+            $('#sidebar-wrapper .list-group-item').on('click', function (e) {
                 var currentActive = $('#sidebar-wrapper .list-group-item.active');
                 currentActive.removeClass('active');
                 $(this).addClass('active');
-                // Potentially update page title or load content dynamically here
             });
         });
     </script>

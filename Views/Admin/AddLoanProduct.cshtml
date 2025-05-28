@@ -1,10 +1,10 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model CredWise_Trail.Models.ViewModels.LoanProductViewModel
+
 @{
     Layout = "~/Views/Shared/AdminUtility.cshtml";
-
+    ViewData["Title"] = "Add Loan Product";
 }
+
 <style>
     .btn-outline-primary {
         background-color: #3E92CC;
@@ -22,16 +22,16 @@
     }
 
     .stylish-card {
-        border: none; /* Remove default border */
-        border-radius: 0.85rem; /* Slightly more rounded */
-        box-shadow: 0 8px 25px rgba(0, 0, 0, .07); /* Softer, more diffused shadow */
+        border: none;
+        border-radius: 0.85rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, .07);
         transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         background-color: #ffffff;
-        overflow: hidden; /* Ensures border-radius applies to header */
+        overflow: hidden;
     }
 
     .form-label .fas {
-        font-size: 0.9em; /* Slightly smaller icon next to label text */
+        font-size: 0.9em;
         opacity: 0.8;
         color: #3E92CC;
     }
@@ -43,55 +43,56 @@
         font-size: 0.9rem;
         color: #495057;
     }
-
-    /* Responsive adjustments */
-    
-
-   
 </style>
+
 <div class="container-fluid p-lg-5">
     <div class="row">
         <div class="col-lg-10 offset-lg-1">
             <div class="card custom-card stylish-card">
                 <div class="card-body p-4 p-lg-5">
-                    <h2 style="color: #0A2463;" class="text-center">Add Loan Product</h2>
-                    <form id="loanProductForm">
+                    <h2 style="color: #0A2463;" class="text-center">@ViewData["Title"]</h2>
+                    <form asp-action="AddLoanProduct" asp-controller="Admin" method="post"> @* <-- UPDATED CONTROLLER NAME *@
                         <div class="mb-4">
-                            <label for="productName" class="form-label"><i class="fas fa-tag me-2"></i>Product Name</label>
-                            <input type="text" class="form-control form-control-lg" id="productName" name="productName" required placeholder="e.g., Home Loan,Personal Finance">
+                            <label asp-for="ProductName" class="form-label"><i class="fas fa-tag me-2"></i>Product Name</label>
+                            <input asp-for="ProductName" type="text" class="form-control form-control-lg" required placeholder="e.g., Home Loan,Personal Finance">
+                            <span asp-validation-for="ProductName" class="text-danger"></span>
                         </div>
 
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <label for="interestRate" class="form-label"><i class="fas fa-percentage me-2"></i>Interest Rate</label>
+                                <label asp-for="InterestRate" class="form-label"><i class="fas fa-percentage me-2"></i>Interest Rate</label>
                                 <div class="input-group input-group-lg">
-                                    <input type="number" class="form-control" id="interestRate" name="interestRate" step="0.01" required placeholder="e.g., 5.75">
+                                    <input asp-for="InterestRate" type="number" class="form-control" step="0.01" required placeholder="e.g., 5.75">
                                     <span class="input-group-text">%</span>
                                 </div>
+                                <span asp-validation-for="InterestRate" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
-                                <label for="tenure" class="form-label"><i class="fas fa-calendar-alt me-2"></i>Maximum Tenure</label>
+                                <label asp-for="Tenure" class="form-label"><i class="fas fa-calendar-alt me-2"></i>Maximum Tenure</label>
                                 <div class="input-group input-group-lg">
-                                    <input type="number" class="form-control" id="tenure" name="tenure" required placeholder="e.g., 120">
+                                    <input asp-for="Tenure" type="number" class="form-control" required placeholder="e.g., 120">
                                     <span class="input-group-text">months</span>
                                 </div>
+                                <span asp-validation-for="Tenure" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <label for="minAmount" class="form-label"><i class="fas fa-dollar-sign me-2"></i>Minimum Loan Amount</label>
+                                <label asp-for="MinAmount" class="form-label"><i class="fas fa-dollar-sign me-2"></i>Minimum Loan Amount</label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text">₹</span>
-                                    <input type="number" class="form-control" id="minAmount" name="minAmount" step="100" required placeholder="e.g., 1000">
+                                    <input asp-for="MinAmount" type="number" class="form-control" step="100" required placeholder="e.g., 1000">
                                 </div>
+                                <span asp-validation-for="MinAmount" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
-                                <label for="maxAmount" class="form-label"><i class="fas fa-coins me-2"></i>Maximum Loan Amount</label>
+                                <label asp-for="MaxAmount" class="form-label"><i class="fas fa-coins me-2"></i>Maximum Loan Amount</label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text">₹</span>
-                                    <input type="number" class="form-control" id="maxAmount" name="maxAmount" step="1000" required placeholder="e.g., 500000">
+                                    <input asp-for="MaxAmount" type="number" class="form-control" step="1000" required placeholder="e.g., 500000">
                                 </div>
+                                <span asp-validation-for="MaxAmount" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="text-center">
@@ -103,3 +104,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

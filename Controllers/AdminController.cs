@@ -165,27 +165,185 @@ namespace CredWise_Trail.Controllers
             return View();
         }
 
+        // GET: Admin/AddLoanProduct (Displays the form)
         [HttpGet]
         public IActionResult AddLoanProduct()
         {
             return View();
         }
 
-       
-
-        [HttpGet]
-        public async Task<IActionResult> LoanProducts()
+        // POST: Admin/AddLoanProduct (Handles form submission)
+        [HttpPost]
+        [ValidateAntiForgeryToken] // Protects against CSRF attacks
+        public async Task<IActionResult> AddLoanProduct(LoanProductViewModel model)
         {
-           
+            if (ModelState.IsValid)
+            {
+                // Check if a product with the same name already exists
+                if (await _context.LoanProducts.AnyAsync(p => p.ProductName == model.ProductName))
+                {
+                    ModelState.AddModelError("ProductName", "A loan product with this name already exists.");
+                    return View(model);
+                }
+
+                var loanProduct = new LoanProduct
+                {
+                    ProductName = model.ProductName,
+                    InterestRate = model.InterestRate,
+                    MinAmount = model.MinAmount,
+                    MaxAmount = model.MaxAmount,
+                    Tenure = model.Tenure
+                };
+
+                _context.LoanProducts.Add(loanProduct);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("LoanProducts", "Admin");
+            }
+            return View(model);
+        }
+
+        // GET: Admin/LoanProducts (Displays the Loan Products table page)
+        [HttpGet]
+        public IActionResult LoanProducts()
+        {
+            // The initial view load doesn't need to pass data
+            // Data will be fetched via AJAX by the JavaScript in the view
             return View();
         }
 
-        // ====== MODIFIED EDIT ACTIONS ======
+        // API Endpoint: GET all loan products
+        [HttpGet]
+        public async Task<IActionResult> GetAllLoanProducts()
+        {
+            var products = await _context.LoanProducts
+                                       .Select(p => new LoanProductViewModel
+                                       {
+                                           ProductName = p.ProductName,
+                                           InterestRate = p.InterestRate,
+                                           MinAmount = p.MinAmount,
+                                           MaxAmount = p.MaxAmount,
+                                           Tenure = p.Tenure
+                                       })
+                                       .ToListAsync();
+            return Json(products);
+        }
 
-        // GET: Admin/EditLoanProduct/5 - Displays the edit form
-        
-       
+        // API Endpoint: GET a single loan product by name
+        [HttpGet]
+        public async Task<IActionResult> GetLoanProductByName(string productName)
+        {
+            if (string.IsNullOrEmpty(productName))
+            {
+                return BadRequest(new { success = false, message = "Product name cannot be empty." });
+            }
 
-        
+            var product = await _context.LoanProducts
+                                       .Where(p => p.ProductName == productName)
+                                       .Select(p => new LoanProductViewModel
+                                       {
+                                           ProductName = p.ProductName,
+                                           InterestRate = p.InterestRate,
+                                           MinAmount = p.MinAmount,
+                                           MaxAmount = p.MaxAmount,
+                                           Tenure = p.Tenure
+                                       })
+                                       .FirstOrDefaultAsync();
+
+            if (product == null)
+            {
+                return NotFound(new { success = false, message = "Loan product not found." });
+            }
+
+            return Json(product);
+        }
+
+        // API Endpoint: POST to update a loan product
+        [HttpPost]
+        public async Task<IActionResult> UpdateLoanProduct([FromBody] LoanProductViewModel model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.ProductName))
+            {
+                return BadRequest(new { success = false, message = "Invalid product data." });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                     .Select(e => e.ErrorMessage)
+                                     .ToList();
+                return BadRequest(new { success = false, message = string.Join("; ", errors) });
+            }
+
+            var existingProduct = await _context.LoanProducts.FirstOrDefaultAsync(p => p.ProductName == model.ProductName);
+
+            if (existingProduct == null)
+            {
+                return NotFound(new { success = false, message = "Loan product not found." });
+            }
+
+            // Update properties
+            existingProduct.InterestRate = model.InterestRate;
+            existingProduct.MinAmount = model.MinAmount;
+            existingProduct.MaxAmount = model.MaxAmount;
+            existingProduct.Tenure = model.Tenure;
+
+            try
+            {
+                _context.Update(existingProduct); // Mark the entity as modified
+                await _context.SaveChangesAsync();
+                return Ok(new { success = true, message = "Loan product updated successfully!" });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.LoanProducts.AnyAsync(e => e.ProductName == model.ProductName))
+                {
+                    return NotFound(new { success = false, message = "Loan product not found after update attempt." });
+                }
+                else
+                {
+                    // This error might indicate a concurrency issue (another user updated it).
+                    // Log the error and return a generic message.
+                    return StatusCode(500, new { success = false, message = "A concurrency error occurred. Please try again." });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { success = false, message = $"An error occurred while updating the loan product: {ex.Message}" });
+            }
+        }
+
+
+        // API Endpoint: POST to delete a loan product
+        [HttpPost]
+        public async Task<IActionResult> DeleteLoanProduct(string productName)
+        {
+            if (string.IsNullOrEmpty(productName))
+            {
+                return BadRequest(new { success = false, message = "Product name cannot be empty." });
+            }
+
+            var loanProduct = await _context.LoanProducts.FirstOrDefaultAsync(p => p.ProductName == productName);
+
+            if (loanProduct == null)
+            {
+                return NotFound(new { success = false, message = "Loan product not found." });
+            }
+
+            try
+            {
+                _context.LoanProducts.Remove(loanProduct);
+                await _context.SaveChangesAsync();
+                return Ok( new { success = true, message = $"deleted sucessfuly" });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (e.g., if there are related records that prevent deletion)
+                return StatusCode(500, new { success = false, message = $"An error occurred while deleting the loan product: {ex.Message}" });
+            }
+        }
+
+
+
     }
 }
