@@ -160,9 +160,63 @@ namespace CredWise_Trail.Controllers
             return PhysicalFile(filePath, contentType);
         }
 
-        public IActionResult LoanApproval()
+        public async Task<IActionResult> LoanApproval()
         {
-            return View();
+            // Fetch all loan applications including associated customer and loan product details
+            var loanApplications = await _context.LoanApplications
+                                                .Include(la => la.Customer) // Include Customer details
+                                                .Include(la => la.LoanProduct) // Include LoanProduct details
+                                                .OrderByDescending(la => la.ApplicationDate) // Order by latest application first
+                                                .ToListAsync();
+
+            return View(loanApplications);
+        }
+
+        // POST: Admin/UpdateLoanStatus (for AJAX calls to update status)
+        [HttpPost]
+        public async Task<IActionResult> UpdateLoanStatus(int loanId, string status)
+        {
+            var loanApplication = await _context.LoanApplications.FindAsync(loanId);
+
+            if (loanApplication == null)
+            {
+                return NotFound(new { success = false, message = "Loan application not found." });
+            }
+
+            // Validate status input to prevent invalid values
+            if (status != "Approved" && status != "Rejected" && status != "Pending")
+            {
+                return BadRequest(new { success = false, message = "Invalid status provided." });
+            }
+
+            loanApplication.ApprovalStatus = status;
+
+            // Set approval date only if status is approved or rejected
+            if (status == "Approved" || status == "Rejected")
+            {
+                loanApplication.ApprovalDate = DateTime.Now;
+            }
+            else // If setting back to Pending, clear approval date
+            {
+                loanApplication.ApprovalDate = null;
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, newStatus = loanApplication.ApprovalStatus, loanId = loanApplication.ApplicationId });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Handle concurrency conflicts if multiple admins try to update at once
+                return StatusCode(409, new { success = false, message = "Concurrency conflict: Loan was already updated. Please refresh." });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (e.g., using a logger)
+                Console.WriteLine($"Error updating loan status: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "An error occurred while updating the loan status." });
+            }
         }
 
         // GET: Admin/AddLoanProduct (Displays the form)

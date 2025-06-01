@@ -27,14 +27,113 @@ namespace CredWise_Trail.Controllers
             }
             return View();
         }
-
-        public IActionResult LoanApplication()
+        [HttpGet]
+        public async Task<IActionResult> LoanApplication()
         {
             if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
             {
                 return RedirectToAction("Login", "Account");
             }
+
+            // Retrieve all loan products to populate the dropdown
+            var loanProducts = await _context.LoanProducts.ToListAsync();
+            ViewBag.LoanProducts = loanProducts; // Pass to the view
+
             return View();
+        }
+
+        // POST: Customer/ApplyForLoan
+        [HttpPost]
+        [ValidateAntiForgeryToken] // Good practice for security
+        public async Task<IActionResult> ApplyForLoan(int loanProductId, decimal loanAmount, int tenure)
+        {
+            // Ensure user is authenticated and is a customer
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
+            {
+                return Unauthorized(); // Or RedirectToAction("Login", "Account");
+            }
+
+            // Get the CustomerId from the authenticated user's claims
+            var customerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
+            {
+                ModelState.AddModelError("", "Unable to identify customer. Please log in again.");
+                // Repopulate ViewBag.LoanProducts if returning to the same view
+                ViewBag.LoanProducts = await _context.LoanProducts.ToListAsync();
+                return View("LoanApplication");
+            }
+
+            // Retrieve the selected loan product to get its details (interest rate, min/max amount, max tenure)
+            var selectedLoanProduct = await _context.LoanProducts.FindAsync(loanProductId);
+            if (selectedLoanProduct == null)
+            {
+                ModelState.AddModelError("", "Selected loan product is invalid.");
+                ViewBag.LoanProducts = await _context.LoanProducts.ToListAsync();
+                return View("LoanApplication");
+            }
+
+            // --- Server-Side Validation against LoanProduct limits ---
+            if (loanAmount <= 0)
+            {
+                ModelState.AddModelError("loanAmount", "Loan amount must be a positive value.");
+            }
+            if (loanAmount < selectedLoanProduct.MinAmount)
+            {
+                ModelState.AddModelError("loanAmount", $"Loan amount cannot be less than the minimum required: {selectedLoanProduct.MinAmount:C}");
+            }
+            if (loanAmount > selectedLoanProduct.MaxAmount)
+            {
+                ModelState.AddModelError("loanAmount", $"Loan amount cannot exceed the maximum allowed: {selectedLoanProduct.MaxAmount:C}");
+            }
+
+            if (tenure <= 0)
+            {
+                ModelState.AddModelError("tenure", "Tenure must be a positive value.");
+            }
+            if (tenure > selectedLoanProduct.Tenure)
+            {
+                ModelState.AddModelError("tenure", $"Tenure cannot exceed the maximum allowed: {selectedLoanProduct.Tenure} months.");
+            }
+
+            // If any validation errors, return to the view
+            if (!ModelState.IsValid)
+            {
+                ViewBag.LoanProducts = await _context.LoanProducts.ToListAsync(); // Repopulate dropdown
+                return View("LoanApplication");
+            }
+
+            // Calculate total amount (Simple Interest for estimation)
+            decimal timeInYears = (decimal)tenure / 12m;
+            decimal interestAmount = (loanAmount * selectedLoanProduct.InterestRate * timeInYears) / 100m;
+            // decimal estimatedTotalAmount = loanAmount + interestAmount; // Not used for saving, just for display
+
+            // Create a new LoanApplication object
+            var loanApplication = new LoanApplication
+            {
+                CustomerId = customerId,
+                LoanProductId = loanProductId,
+                LoanAmount = loanAmount,
+                 // Store the rate at time of application
+                ApplicationDate = DateTime.Now,
+                ApprovalStatus = "Pending" // Initial status
+            };
+
+            try
+            {
+                _context.LoanApplications.Add(loanApplication);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Your loan application has been submitted successfully!";
+                return RedirectToAction("LoanStatus"); // Redirect to a success page or dashboard
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (e.g., using a logging framework like Serilog, NLog)
+                Console.WriteLine($"Error submitting loan application: {ex.Message}"); // For debugging
+                ModelState.AddModelError("", "An unexpected error occurred while submitting your application. Please try again.");
+                ViewBag.LoanProducts = await _context.LoanProducts.ToListAsync(); // Repopulate dropdown
+                return View("LoanApplication");
+            }
         }
 
         public IActionResult CustomerStatements()
@@ -46,13 +145,31 @@ namespace CredWise_Trail.Controllers
             return View();
         }
 
-        public IActionResult LoanStatus()
+        public async Task<IActionResult> LoanStatus()
         {
             if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
             {
                 return RedirectToAction("Login", "Account");
             }
-            return View();
+
+            var customerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
+            {
+                // Handle case where customer ID is not found or not parsable
+                TempData["ErrorMessage"] = "Unable to retrieve your loan applications. Please log in again.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Retrieve all loan applications for the current customer
+            // Include LoanProduct to get the ProductName
+            var customerLoanApplications = await _context.LoanApplications
+                                                    .Where(la => la.CustomerId == customerId)
+                                                    .Include(la => la.LoanProduct) // Eager load the related LoanProduct
+                                                    .OrderByDescending(la => la.ApplicationDate)
+                                                    .ToListAsync();
+
+            // Pass the list of loan applications to the view
+            return View(customerLoanApplications);
         }
 
         [HttpGet] // This action displays the KYC Upload form

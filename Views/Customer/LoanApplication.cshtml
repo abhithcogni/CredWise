@@ -1,20 +1,25 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@* For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860 *@
+@model CredWise_Trail.Models.LoanApplication 
 @{
+    ViewData["Title"] = "Apply for Loan";
+    var loanProducts = ViewBag.LoanProducts as List<CredWise_Trail.Models.LoanProduct>;
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Application - MyBank</title>
+    <title>@ViewData["Title"] - MyBank</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        
+        body {
+            background-color: #f0f2f5;
+            
+            margin: 0;
+        }
 
         .card-form-container {
             border: 1px solid #e9ecef;
@@ -43,12 +48,29 @@
             background-color: #3E92CC;
             padding: 0.5rem 1.5rem;
             font-weight: 500;
+            border: none;
         }
 
             .btn-primary:hover {
                 background-color: #0A2463;
                 border-color: white;
             }
+
+        .input-group-text {
+            background-color: #e9ecef;
+            border-right: none;
+            color: #495057;
+        }
+
+        .form-control.no-left-border {
+            border-left: none;
+        }
+
+        .validation-message {
+            color: #dc3545;
+            font-size: 0.875em;
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -59,17 +81,27 @@
             </div>
         </center>
         <div class="card-body">
-            <form id="loanApplicationForm" action="@Url.Action("LApplicationStatus", "Customer")">
-                
+            @* Update the form action to point to the new POST action *@
+            <form id="loanApplicationForm" asp-action="ApplyForLoan" asp-controller="Customer" method="post">
+                @Html.AntiForgeryToken() @* Add anti-forgery token for security *@
 
                 <div class="mb-3">
                     <label for="loanProductName" class="form-label"><i class="fas fa-piggy-bank me-2 text-secondary"></i>Loan Product Name:</label>
-                    <select class="form-select" id="loanProductName" name="loanProductName" required>
+                    <select class="form-select" id="loanProductName" name="loanProductId" required>
                         <option value="" disabled selected>Select a loan product</option>
-                        <option value="Personal Loan">Personal Loan</option>
-                        <option value="Housing Loan">Housing Loan</option>
-                        <option value="Gold Loan">Gold Loan</option>
-                        <option value="Vehicle Loan">Vehicle Loan</option>
+                        @if (loanProducts != null)
+                        {
+                            foreach (var product in loanProducts)
+                            {
+                                <option value="@product.LoanProductId"
+                                        data-interest-rate="@product.InterestRate"
+                                        data-min-amount="@product.MinAmount"
+                                        data-max-amount="@product.MaxAmount"
+                                        data-max-tenure="@product.Tenure">
+                                    @product.ProductName
+                                </option>
+                            }
+                        }
                     </select>
                 </div>
 
@@ -85,25 +117,40 @@
                     <label for="loanAmount" class="form-label"><i class="fas fa-dollar-sign me-2 text-secondary"></i>Loan Amount:</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-coins"></i></span>
-                        <input type="number" class="form-control no-left-border" id="loanAmount" name="loanAmount" required placeholder="Enter desired loan amount">
+                        <input type="number" class="form-control no-left-border" id="loanAmount" name="loanAmount" required placeholder="Enter desired loan amount" step="0.01" min="1">
                     </div>
+                    <div id="loanAmountValidation" class="validation-message"></div>
                 </div>
 
                 <div class="mb-3">
                     <label for="tenure" class="form-label"><i class="far fa-calendar-alt me-2 text-secondary"></i>Tenure (months):</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-hourglass-half"></i></span>
-                        <input type="number" class="form-control no-left-border" id="tenure" name="tenure" required placeholder="Enter tenure in months">
+                        <input type="number" class="form-control no-left-border" id="tenure" name="tenure" required placeholder="Enter tenure in months" min="1">
                     </div>
+                    <div id="tenureValidation" class="validation-message"></div>
                 </div>
 
                 <div class="mb-4">
                     <label for="totalAmount" class="form-label"><i class="fas fa-calculator me-2 text-secondary"></i>Total Amount (Approx.):</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-equals"></i></span>
-                        <input type="number" class="form-control no-left-border" id="totalAmount" name="totalAmount" disabled readonly>
+                        <input type="text" class="form-control no-left-border" id="totalAmount" name="totalAmount" disabled readonly>
                     </div>
                 </div>
+
+                @* Display server-side validation errors if any *@
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <ul>
+                            @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@modelError.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
 
                 <div class="text-center">
                     <button type="submit" class="btn btn-primary btn-lg">
@@ -113,50 +160,119 @@
             </form>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
-                document.addEventListener("DOMContentLoaded", function () {
-            const loanProductName = document.getElementById("loanProductName");
-            const interestRate = document.getElementById("interestRate");
-            const loanAmount = document.getElementById("loanAmount");
-            const tenure = document.getElementById("tenure");
-            const totalAmount = document.getElementById("totalAmount");
+        document.addEventListener("DOMContentLoaded", function () {
+            const loanProductNameSelect = document.getElementById("loanProductName");
+            const interestRateInput = document.getElementById("interestRate");
+            const loanAmountInput = document.getElementById("loanAmount");
+            const tenureInput = document.getElementById("tenure");
+            const totalAmountInput = document.getElementById("totalAmount");
+            const loanAmountValidationDiv = document.getElementById("loanAmountValidation");
+            const tenureValidationDiv = document.getElementById("tenureValidation");
 
-            // Interest rates for different loan products
-            const interestRates = {
-                "Personal Loan": 12,
-                "Housing Loan": 8,
-                "Gold Loan": 10,
-                "Vehicle Loan": 9,
-            };
+            let currentMinAmount = 0;
+            let currentMaxAmount = 0;
+            let currentMaxTenure = 0;
 
-            // Update interest rate when loan product is selected
-            loanProductName.addEventListener("change", function () {
-                const selectedProduct = loanProductName.value;
-                if (interestRates[selectedProduct]) {
-                    interestRate.value = interestRates[selectedProduct];
+            function updateLoanProductLimits() {
+                const selectedOption = loanProductNameSelect.options[loanProductNameSelect.selectedIndex];
+
+                if (selectedOption && selectedOption.value !== "") {
+                    interestRateInput.value = (parseFloat(selectedOption.dataset.interestRate) || 0).toFixed(2);
+                    currentMinAmount = parseFloat(selectedOption.dataset.minAmount) || 0;
+                    currentMaxAmount = parseFloat(selectedOption.dataset.maxAmount) || 0;
+                    currentMaxTenure = parseInt(selectedOption.dataset.maxTenure) || 0;
+
+                    // Set min/max attributes on input fields for browser's default validation
+                    loanAmountInput.min = currentMinAmount;
+                    loanAmountInput.max = currentMaxAmount;
+                    tenureInput.max = currentMaxTenure;
+
+                    // If loanAmount or tenure are already filled, re-validate
+                    validateLoanAmount();
+                    validateTenure();
                 } else {
-                    interestRate.value = "";
+                    interestRateInput.value = "";
+                    currentMinAmount = 0;
+                    currentMaxAmount = 0;
+                    currentMaxTenure = 0;
+
+                    loanAmountInput.min = 1; // Reset to a sensible default or leave empty
+                    loanAmountInput.max = "";
+                    tenureInput.max = "";
+
+                    loanAmountValidationDiv.textContent = "";
+                    tenureValidationDiv.textContent = "";
                 }
+                calculateTotalAmount();
+            }
+
+            function validateLoanAmount() {
+                const amount = parseFloat(loanAmountInput.value);
+                loanAmountValidationDiv.textContent = ""; // Clear previous error
+
+                if (isNaN(amount) || amount <= 0) {
+                    loanAmountValidationDiv.textContent = "Loan amount must be a positive number.";
+                } else if (currentMinAmount > 0 && amount < currentMinAmount) {
+                    loanAmountValidationDiv.textContent = `Loan amount must be at least ${currentMinAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}`; // Format as currency
+                } else if (currentMaxAmount > 0 && amount > currentMaxAmount) {
+                    loanAmountValidationDiv.textContent = `Loan amount cannot exceed ${currentMaxAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}`;
+                }
+            }
+
+            function validateTenure() {
+                const tenure = parseInt(tenureInput.value);
+                tenureValidationDiv.textContent = ""; // Clear previous error
+
+                if (isNaN(tenure) || tenure <= 0) {
+                    tenureValidationDiv.textContent = "Tenure must be a positive whole number.";
+                } else if (currentMaxTenure > 0 && tenure > currentMaxTenure) {
+                    tenureValidationDiv.textContent = `Tenure cannot exceed ${currentMaxTenure} months.`;
+                }
+            }
+
+            function calculateTotalAmount() {
+                const principal = parseFloat(loanAmountInput.value) || 0;
+                const rate = parseFloat(interestRateInput.value) || 0;
+                const tenureMonths = parseFloat(tenureInput.value) || 0;
+
+                let total = 0;
+                if (principal > 0 && rate >= 0 && tenureMonths > 0) {
+                    const timeInYears = tenureMonths / 12;
+                    const interest = (principal * rate * timeInYears) / 100;
+                    total = principal + interest;
+                }
+                totalAmountInput.value = total > 0 ? total.toFixed(2) : "";
+            }
+
+            // Event Listeners
+            loanProductNameSelect.addEventListener("change", updateLoanProductLimits);
+            loanAmountInput.addEventListener("input", function() {
+                validateLoanAmount();
+                calculateTotalAmount();
+            });
+            tenureInput.addEventListener("input", function() {
+                validateTenure();
                 calculateTotalAmount();
             });
 
-            // Calculate total amount when loan amount or tenure changes
-            [loanAmount, tenure].forEach((input) => {
-                input.addEventListener("input", calculateTotalAmount);
-            });
+            // Initial call to set limits and calculate if values are already present (e.g., after a postback)
+            updateLoanProductLimits();
 
-            function calculateTotalAmount() {
-                const principal = parseFloat(loanAmount.value) || 0;
-                const rate = parseFloat(interestRate.value) || 0;
-                const time = parseFloat(tenure.value) / 12 || 0; // Convert months to years
+            // Intercept form submission for client-side validation
+            document.getElementById("loanApplicationForm").addEventListener("submit", function(event) {
+                // Re-run all validations before final submission
+                updateLoanProductLimits(); // Ensure latest limits are applied
+                validateLoanAmount();
+                validateTenure();
 
-                if (principal > 0 && rate > 0 && time > 0) {
-                    const total = principal + (principal * rate * time) / 100;
-                    totalAmount.value = total.toFixed(2);
-                } else {
-                    totalAmount.value = "";
+                // If any validation messages are present, prevent submission
+                if (loanAmountValidationDiv.textContent !== "" || tenureValidationDiv.textContent !== "") {
+                    event.preventDefault(); // Stop form submission
+                    alert("Please correct the highlighted errors before submitting.");
                 }
-            }
+            });
         });
     </script>
 </body>
