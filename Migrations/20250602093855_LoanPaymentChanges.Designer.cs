@@ -4,6 +4,7 @@ using CredWise_Trail.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CredWise_Trail.Migrations
 {
     [DbContext(typeof(BankLoanManagementDbContext))]
-    partial class BankLoanManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250602093855_LoanPaymentChanges")]
+    partial class LoanPaymentChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -4,6 +4,7 @@ using CredWise_Trail.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CredWise_Trail.Migrations
 {
     [DbContext(typeof(BankLoanManagementDbContext))]
-    partial class BankLoanManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250527062944_LoanApplicationChanges")]
+    partial class LoanApplicationChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,13 +156,7 @@ namespace CredWise_Trail.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApplicationId"));
 
-                    b.Property<decimal>("AmountDue")
-                        .HasColumnType("decimal(18, 2)");
-
                     b.Property<DateTime>("ApplicationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ApprovalDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ApprovalStatus")
@@ -170,39 +167,16 @@ namespace CredWise_Trail.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("EMI")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<decimal>("InterestRate")
-                        .HasColumnType("decimal(7, 3)");
-
-                    b.Property<DateTime?>("LastPaymentDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<decimal>("LoanAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<string>("LoanNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<int>("LoanProductId")
                         .HasColumnType("int");
 
-                    b.Property<string>("LoanStatus")
+                    b.Property<string>("LoanProductName")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("NextDueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("OutstandingBalance")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int>("TenureMonths")
-                        .HasColumnType("int");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("ApplicationId");
 
@@ -210,55 +184,10 @@ namespace CredWise_Trail.Migrations
 
                     b.HasIndex("LoanProductId");
 
-                    b.ToTable("LOAN_APPLICATIONS", t =>
+                    b.ToTable("LoanApplications", t =>
                         {
                             t.HasCheckConstraint("CK_LoanApplication_ApprovalStatus", "approvalStatus IN ('PENDING', 'APPROVED', 'REJECTED')");
                         });
-                });
-
-            modelBuilder.Entity("CredWise_Trail.Models.LoanPayment", b =>
-                {
-                    b.Property<int>("PaymentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
-
-                    b.Property<decimal>("AmountDue")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LoanId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PaidAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("TransactionId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("PaymentId");
-
-                    b.HasIndex("LoanId");
-
-                    b.ToTable("LOAN_PAYMENTS");
                 });
 
             modelBuilder.Entity("CredWise_Trail.Models.LoanProduct", b =>
@@ -360,21 +289,10 @@ namespace CredWise_Trail.Migrations
                     b.Navigation("LoanProduct");
                 });
 
-            modelBuilder.Entity("CredWise_Trail.Models.LoanPayment", b =>
-                {
-                    b.HasOne("CredWise_Trail.Models.LoanApplication", "LoanApplication")
-                        .WithMany("Payments")
-                        .HasForeignKey("LoanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("LoanApplication");
-                });
-
             modelBuilder.Entity("CredWise_Trail.Models.Repayment", b =>
                 {
                     b.HasOne("CredWise_Trail.Models.LoanApplication", "LoanApplication")
-                        .WithMany()
+                        .WithMany("Repayments")
                         .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -396,7 +314,7 @@ namespace CredWise_Trail.Migrations
 
             modelBuilder.Entity("CredWise_Trail.Models.LoanApplication", b =>
                 {
-                    b.Navigation("Payments");
+                    b.Navigation("Repayments");
                 });
 
             modelBuilder.Entity("CredWise_Trail.Models.LoanProduct", b =>

@@ -4,6 +4,7 @@ using CredWise_Trail.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CredWise_Trail.Migrations
 {
     [DbContext(typeof(BankLoanManagementDbContext))]
-    partial class BankLoanManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250602091220_LoanApplication")]
+    partial class LoanApplication
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -224,9 +227,6 @@ namespace CredWise_Trail.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
 
-                    b.Property<decimal>("AmountDue")
-                        .HasColumnType("decimal(18, 2)");
-
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
@@ -236,7 +236,7 @@ namespace CredWise_Trail.Migrations
                     b.Property<decimal>("PaidAmount")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<DateTime?>("PaymentDate")
+                    b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PaymentMethod")

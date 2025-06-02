@@ -19,7 +19,7 @@ namespace CredWise_Trail.Models
         [Column(TypeName = "decimal(18, 2)")] // Use decimal for currency to avoid precision issues
         public decimal PaidAmount { get; set; }
 
-        public DateTime PaymentDate { get; set; } = DateTime.Now; // Default to current time
+        public DateTime? PaymentDate { get; set; } = DateTime.Now; // Default to current time
 
         [StringLength(50)]
         public string PaymentMethod { get; set; } // e.g., "Saved Bank Account", "New Card"
@@ -29,6 +29,9 @@ namespace CredWise_Trail.Models
 
         [StringLength(20)]
         public string Status { get; set; } = "Success"; // Status of the payment (Success, Failed, Pending)
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal AmountDue { get; set; }
 
         // Navigation property to the LoanApplication model
         // You'll need to make sure your LoanApplication model exists and is correctly named.

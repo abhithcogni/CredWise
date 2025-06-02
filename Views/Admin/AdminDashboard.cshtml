@@ -1,9 +1,11 @@
 ﻿@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
+@model CredWise_Trail.Models.ViewModels.AdminDashboardViewModel // Declare the model type for the view
+
 @{
     Layout = "~/Views/Shared/AdminUtility.cshtml";
-
+    // This line tells Razor that this view expects an AdminDashboardViewModel object.
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -18,8 +20,8 @@
 
     <style>
         body {
-            font-family: 'Inter', sans-serif; /* Using Inter font for a modern look, falls back to sans-serif */
-            background-color: #f8f9fa; /* Light gray background for the content area */
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
         }
 
         /* Custom Colors */
@@ -64,70 +66,84 @@
 
         /* Card Styles */
         .card {
-            border: none; /* Remove default card borders */
-            border-radius: 0.5rem; /* Rounded corners for cards */
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .1); /* Softer shadow for cards */
-            transition: transform 0.2s ease-in-out; /* Smooth transition for hover effect */
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .1);
+            transition: transform 0.2s ease-in-out;
         }
 
             .card:hover {
-                transform: translateY(-5px); /* Slight lift on hover */
+                transform: translateY(-5px);
             }
 
         .card-icon {
-            font-size: 2.5rem; /* Large icon size for visual prominence */
-            opacity: 0.7; /* Slightly faded icon color */
+            font-size: 2.5rem;
+            opacity: 0.7;
         }
 
         .card-title-custom {
-            font-size: 0.9rem; /* Smaller font size for card titles */
-            font-weight: 500; /* Medium font weight */
-            color: #6c757d; /* Muted color for card titles */
-            margin-bottom: 0.25rem; /* Small margin below title */
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
         }
 
         .card-text-value {
-            font-size: 1.75rem; /* Larger font size for card values */
-            font-weight: bold; /* Bold font weight for values */
-            color: #343a40; /* Dark color for card values */
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #343a40;
         }
 
         /* Chart container */
         .chart-container {
-            position: relative; /* Essential for Chart.js responsiveness */
-            height: 350px; /* Fixed height for chart containers to ensure consistent layout */
-            width: 100%; /* Occupy full width of parent container */
+            position: relative;
+            height: 350px;
+            width: 100%;
         }
 
         /* Table styles */
         .table th {
-            font-weight: 600; /* Slightly bolder table headers */
+            font-weight: 600;
         }
 
         .table td, .table th {
-            vertical-align: middle; /* Vertically align content in table cells */
+            vertical-align: middle;
         }
 
         .table-hover tbody tr:hover {
-            background-color: #e9ecef; /* Light hover effect for table rows */
+            background-color: #e9ecef;
         }
 
         /* Status Badges */
-        .badge.bg-success-subtle {
+        .badge.bg-success-subtle { /* For APPROVED */
             background-color: #d1e7dd !important;
             color: #0f5132 !important;
         }
-        /* Light green background, dark green text */
-        .badge.bg-warning-subtle {
+
+        .badge.bg-warning-subtle { /* For PENDING */
             background-color: #fff3cd !important;
             color: #664d03 !important;
         }
-        /* Light yellow background, dark yellow text */
-        .badge.bg-danger-subtle {
+
+        .badge.bg-danger-subtle { /* For REJECTED */
             background-color: #f8d7da !important;
             color: #58151c !important;
         }
-        /* Light red background, dark red text */
+
+        .badge.bg-info-subtle { /* For LoanStatus: PENDING_DISBURSEMENT */
+            background-color: #cff4fc !important;
+            color: #055160 !important;
+        }
+
+        .badge.bg-primary-subtle { /* For LoanStatus: CLOSED (Paid Off) */
+            background-color: #cfe2ff !important;
+            color: #084298 !important;
+        }
+
+        .badge.bg-secondary-subtle { /* For other/default LoanStatus */
+            background-color: #e2e3e5 !important;
+            color: #495057 !important;
+        }
     </style>
 </head>
 <body>
@@ -143,7 +159,8 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="card-title-custom text-uppercase">Total Loan Value</div>
-                            <div class="card-text-value">₹1,250,800</div>
+                            @* Displaying TotalLoanValue from the ViewModel, formatted as currency with no decimals *@
+                            <div class="card-text-value">₹@Model.TotalLoanValue.ToString("N0")</div>
                         </div>
                     </div>
                 </div>
@@ -156,7 +173,8 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="card-title-custom text-uppercase">Active Loans</div>
-                            <div class="card-text-value">345</div>
+                            @* Displaying ActiveLoansCount from the ViewModel *@
+                            <div class="card-text-value">@Model.ActiveLoansCount</div>
                         </div>
                     </div>
                 </div>
@@ -169,7 +187,8 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="card-title-custom text-uppercase">Pending Applications</div>
-                            <div class="card-text-value">28</div>
+                            @* Displaying PendingApplicationsCount from the ViewModel *@
+                            <div class="card-text-value">@Model.PendingApplicationsCount</div>
                         </div>
                     </div>
                 </div>
@@ -182,7 +201,8 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="card-title-custom text-uppercase">Overdue Loans</div>
-                            <div class="card-text-value">12</div>
+                            @* Displaying OverdueLoansCount from the ViewModel *@
+                            <div class="card-text-value">@Model.OverdueLoansCount</div>
                         </div>
                     </div>
                 </div>
@@ -212,10 +232,11 @@
                             <canvas id="loanStatusChart"></canvas>
                         </div>
                         <div class="mt-3 text-center small">
-                            <span class="me-2"><i class="fas fa-circle text-primary-custom"></i> Active</span>
-                            <span class="me-2"><i class="fas fa-circle text-success"></i> Paid Off</span>
-                            <span class="me-2"><i class="fas fa-circle text-warning"></i> Pending</span>
-                            <span class="me-2"><i class="fas fa-circle text-danger"></i> Overdue</span>
+                            <span class="me-2"><i class="fas fa-circle" style="color:#0A2463;"></i> Active</span>
+                            <span class="me-2"><i class="fas fa-circle" style="color:#198754;"></i> Paid Off</span>
+                            <span class="me-2"><i class="fas fa-circle" style="color:#ffc107;"></i> Pending Approval</span>
+                            <span class="me-2"><i class="fas fa-circle" style="color:#0dcaf0;"></i> Pending Disbursement</span>
+                            <span class="me-2"><i class="fas fa-circle" style="color:#dc3545;"></i> Overdue</span>
                         </div>
                     </div>
                 </div>
@@ -227,90 +248,152 @@
                 <div class="card">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0"><i class="fas fa-list-alt me-2"></i>Recent Loan Applications</h5>
-                        <a href="#" class="btn btn-sm btn-outline-primary-custom">View All <i class="fas fa-arrow-right ms-1"></i></a>
+                        <a href="@Url.Action("LoanApproval","Admin")" class="btn btn-sm btn-outline-primary-custom">View All <i class="fas fa-arrow-right ms-1"></i></a>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover table-striped mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th scope="col">#ID</th>
+                                        <th scope="col">Loan No.</th>
                                         <th scope="col">Applicant Name</th>
                                         <th scope="col">Loan Type</th>
                                         <th scope="col">Amount</th>
                                         <th scope="col">Date Submitted</th>
-                                        <th scope="col">Status</th>
+                                        <th scope="col">Approval Status</th>
+                                        <th scope="col">Loan Status</th>
                                         <th scope="col">Progress</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>LN-00781</td>
-                                        <td>John Doe</td>
-                                        <td>Personal Loan</td>
-                                        <td>₹5,000</td>
-                                        <td>2024-05-15</td>
-                                        <td><span class="badge rounded-pill bg-success-subtle">Approved</span></td>
-                                        <td>
-                                            <div class="progress" style="height: 10px;">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </td>
-                                        
-                                    </tr>
-                                    <tr>
-                                        <td>LN-00782</td>
-                                        <td>Jane Smith</td>
-                                        <td>Home Mortgage</td>
-                                        <td>₹250,000</td>
-                                        <td>2024-05-14</td>
-                                        <td><span class="badge rounded-pill bg-warning-subtle">Pending Review</span></td>
-                                        <td>
-                                            <div class="progress" style="height: 10px;">
-                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </td>
-                                        
-                                    </tr>
-                                    <tr>
-                                        <td>LN-00783</td>
-                                        <td>Mike Johnson</td>
-                                        <td>Car Loan</td>
-                                        <td>₹22,000</td>
-                                        <td>2024-05-13</td>
-                                        <td><span class="badge rounded-pill bg-danger-subtle">Rejected</span></td>
-                                        <td>
-                                            <div class="progress" style="height: 10px;">
-                                                <div class="progress-bar bg-danger" role="progressbar" style="width: 10%;" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>LN-00784</td>
-                                        <td>Sarah Williams</td>
-                                        <td>Business Loan</td>
-                                        <td>₹75,000</td>
-                                        <td>2024-05-12</td>
-                                        <td><span class="badge rounded-pill bg-success-subtle">Approved</span></td>
-                                        <td>
-                                            <div class="progress" style="height: 10px;">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>LN-00785</td>
-                                        <td>David Brown</td>
-                                        <td>Education Loan</td>
-                                        <td>₹30,000</td>
-                                        <td>2024-05-11</td>
-                                        <td><span class="badge rounded-pill bg-warning-subtle">Pending Documents</span></td>
-                                        <td>
-                                            <div class="progress" style="height: 10px;">
-                                                <div class="progress-bar bg-secondary-custom" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    @* Loop through the RecentLoanApplications from the ViewModel *@
+                                    @if (Model.RecentLoanApplications != null && Model.RecentLoanApplications.Any())
+                                    {
+                                        foreach (var application in Model.RecentLoanApplications)
+                                        {
+                                            <tr>
+                                                <td>@application.LoanNumber</td> @* Displays the unique Loan Number *@
+                                                <td>@application.Customer?.Name</td> @* Displays the customer's name, safely handling null Customer object *@
+                                                <td>@application.LoanProduct?.ProductName</td> @* Displays the loan product name, safely handling null LoanProduct object *@
+                                                <td>₹@application.LoanAmount.ToString("N0")</td> @* Displays the loan amount, formatted as currency *@
+                                                <td>@application.ApplicationDate.ToString("yyyy-MM-dd")</td> @* Displays the application date in YYYY-MM-DD format *@
+                                                <td>
+                                                    @{
+                                                        string approvalBadgeClass = "";
+                                                        // Conditional logic to apply Bootstrap subtle badge classes based on ApprovalStatus.
+                                                        if (application.ApprovalStatus == "APPROVED")
+                                                        {
+                                                            approvalBadgeClass = "bg-success-subtle"; // Soft green for approved
+                                                        }
+                                                        else if (application.ApprovalStatus == "PENDING")
+                                                        {
+                                                            approvalBadgeClass = "bg-warning-subtle"; // Soft yellow for pending
+                                                        }
+                                                        else if (application.ApprovalStatus == "REJECTED")
+                                                        {
+                                                            approvalBadgeClass = "bg-danger-subtle"; // Soft red for rejected
+                                                        }
+                                                        // Default to a neutral badge if status is unknown or not handled
+                                                        else
+                                                        {
+                                                            approvalBadgeClass = "bg-secondary-subtle";
+                                                        }
+                                                    }
+                                                    <span class="badge rounded-pill @approvalBadgeClass">@application.ApprovalStatus</span>
+                                                </td>
+                                                <td>
+                                                    @{
+                                                        string loanStatusBadgeClass = "";
+                                                        // Conditional logic to apply Bootstrap subtle badge classes based on LoanStatus.
+                                                        // These are distinct from ApprovalStatus as requested, providing different color meanings.
+                                                        if (application.LoanStatus == "ACTIVE")
+                                                        {
+                                                            loanStatusBadgeClass = "bg-success-subtle";
+                                                        }
+                                                        else if (application.LoanStatus == "PENDING_DISBURSEMENT")
+                                                        {
+                                                            loanStatusBadgeClass = "bg-info-subtle"; // Bootstrap info blue for awaiting disbursement
+                                                        }
+                                                        else if (application.LoanStatus == "OVERDUE")
+                                                        {
+                                                            loanStatusBadgeClass = "bg-danger-subtle";
+                                                        }
+                                                        else if (application.LoanStatus == "CLOSED")
+                                                        {
+                                                            loanStatusBadgeClass = "bg-primary-subtle"; // Bootstrap primary blue for fully paid off/closed
+                                                        }
+                                                        else
+                                                        {
+                                                            loanStatusBadgeClass = "bg-secondary-subtle"; // Default for other states
+                                                        }
+                                                    }
+                                                    <span class="badge rounded-pill @loanStatusBadgeClass">@application.LoanStatus</span>
+                                                </td>
+                                                <td>
+                                                    @{
+                                                        // Calculate progress percentage and assign appropriate Bootstrap progress bar class.
+                                                        int progress = 0;
+                                                        string progressBarClass = "";
+
+                                                        if (application.LoanStatus == "ACTIVE")
+                                                        {
+                                                            // For active loans, calculate progress based on the proportion of loan amount repaid.
+                                                            // If OutstandingBalance is known and reliable, calculate progress from that.
+                                                            // Example: If 20% of the loan is repaid, progress is 20.
+                                                            if (application.LoanAmount > 0 && application.OutstandingBalance >= 0 && application.OutstandingBalance <= application.LoanAmount)
+                                                            {
+                                                                progress = (int)Math.Round(((application.LoanAmount - application.OutstandingBalance) / application.LoanAmount) * 100);
+                                                            }
+                                                            else
+                                                            {
+                                                                progress = 50; // Generic progress for active but no specific repayment progress data available
+                                                            }
+                                                            progressBarClass = "bg-success"; // Green for active/repaying
+                                                        }
+                                                        else if (application.LoanStatus == "CLOSED")
+                                                        {
+                                                            progress = 100; // 100% for closed/fully repaid loans
+                                                            progressBarClass = "bg-success";
+                                                        }
+                                                        else if (application.LoanStatus == "PENDING_DISBURSEMENT")
+                                                        {
+                                                            progress = 75; // Approved but not yet disbursed (high progress as approval is key)
+                                                            progressBarClass = "bg-info"; // Info blue
+                                                        }
+                                                        else if (application.ApprovalStatus == "PENDING") // If application is still pending initial approval
+                                                        {
+                                                            progress = 25; // Application received, awaiting review/approval
+                                                            progressBarClass = "bg-warning"; // Warning yellow
+                                                        }
+                                                        else if (application.LoanStatus == "OVERDUE")
+                                                        {
+                                                            progress = 80; // Indicates significant progress but now an issue
+                                                            progressBarClass = "bg-danger"; // Danger red
+                                                        }
+                                                        else if (application.ApprovalStatus == "REJECTED")
+                                                        {
+                                                            progress = 0; // Rejected applications have 0 progress on loan lifecycle
+                                                            progressBarClass = "bg-dark"; // Dark/grey for rejected
+                                                        }
+                                                        else
+                                                        {
+                                                            progress = 10; // Default for other undefined states
+                                                            progressBarClass = "bg-secondary";
+                                                        }
+                                                    }
+                                                    <div class="progress" style="height: 10px;">
+                                                        <div class="progress-bar @progressBarClass" role="progressbar" style="width: @(progress)%;" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="8" class="text-center">No recent loan applications found.</td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         </div>
@@ -325,71 +408,70 @@
 
     <script>
         // Chart.js Setup for Loan Performance (Bar Chart)
-        // This script block handles the rendering of the bar chart for monthly loan performance.
         const loanPerformanceCtx = document.getElementById('loanPerformanceChart').getContext('2d');
-        if (loanPerformanceCtx) { // Check if the canvas context is available
+        if (loanPerformanceCtx) {
             new Chart(loanPerformanceCtx, {
-                type: 'bar', // Specifies a bar chart
+                type: 'bar',
                 data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], // X-axis labels (months)
+                    labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MonthlyLabels)), // Dynamically pass labels from ViewModel
                     datasets: [{
-                        label: 'New Loans (₹k)', // Label for the first dataset
-                        data: [120, 150, 180, 130, 160, 190, 210, 180, 150, 170, 200, 220], // Data points for new loans
-                        backgroundColor: '#0A2463', // Primary blue color
-                        borderColor: '#0A2463', // Border color for bars
-                        borderWidth: 1, // Thickness of the border
-                        borderRadius: 5, // Rounded corners for the bars
-                        hoverBackgroundColor: '#0A2463', // Background color on hover
-                        barPercentage: 0.7, // Width of the bars relative to the category width
-                        categoryPercentage: 0.7 // Width of the category relative to the available space
+                        label: 'New Loans (₹k)',
+                        data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.NewLoansMonthlyData)), // Dynamically pass data from ViewModel
+                        backgroundColor: '#0A2463', // Custom primary blue
+                        borderColor: '#0A2463',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                        hoverBackgroundColor: '#0A2463',
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.7
                     },
                     {
-                        label: 'Repayments (₹k)', // Label for the second dataset
-                        data: [100, 110, 140, 100, 120, 150, 170, 140, 110, 130, 160, 180], // Data points for repayments
-                        backgroundColor: '#198754', // Bootstrap success green color
-                        borderColor: '#198754', // Border color for bars
-                        borderWidth: 1, // Thickness of the border
-                        borderRadius: 5, // Rounded corners for the bars
-                        hoverBackgroundColor: '#198754', // Background color on hover
-                        barPercentage: 0.7, // Width of the bars relative to the category width
-                        categoryPercentage: 0.7 // Width of the category relative to the available space
+                        label: 'Repayments (₹k)',
+                        data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.RepaymentsMonthlyData)), // Dynamically pass data from ViewModel
+                        backgroundColor: '#198754', // Bootstrap success green
+                        borderColor: '#198754',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                        hoverBackgroundColor: '#198754',
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.7
                     }]
                 },
                 options: {
-                    responsive: true, // Chart will resize with its container
-                    maintainAspectRatio: false, // Prevents the chart from maintaining a fixed aspect ratio
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true, // Y-axis will start from zero
+                            beginAtZero: true,
                             grid: {
-                                color: '#e9ecef' // Lighter grid lines for the Y-axis
+                                color: '#e9ecef' // Light grid lines
                             },
                             ticks: {
                                 callback: function(value) {
-                                    return '₹' + value + 'k'; // Format Y-axis labels as currency with 'k'
+                                    return '₹' + value + 'k'; // Format Y-axis labels
                                 }
                             }
                         },
                         x: {
                             grid: {
-                                display: false // Hide x-axis grid lines for cleaner look
+                                display: false // No X-axis grid lines
                             }
                         }
                     },
                     plugins: {
                         legend: {
-                            position: 'top', // Position the legend at the top
+                            position: 'top', // Legend at the top
                             labels: {
-                                usePointStyle: true, // Use point style (circle) for legend items
+                                usePointStyle: true, // Use circular markers for legend items
                                 pointStyle: 'circle'
                             }
                         },
                         tooltip: {
-                            mode: 'index', // Show tooltip for all datasets at the same x-index
-                            intersect: false, // Tooltip will show even if not directly hovering over a bar
+                            mode: 'index',
+                            intersect: false, // Show tooltips for all elements at the same x-coordinate
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.dataset.label || ''; // Get dataset label
+                                    let label = context.dataset.label || '';
                                     if (label) {
                                         label += ': ';
                                     }
@@ -402,57 +484,54 @@
                         }
                     },
                     interaction: {
-                        mode: 'index', // Enables interaction across datasets
-                        intersect: false, // Allows tooltip to appear without direct intersection
+                        mode: 'index',
+                        intersect: false,
                     },
                 }
             });
         }
 
         // Chart.js Setup for Loan Status Distribution (Doughnut Chart)
-        // This script block handles the rendering of the doughnut chart for loan status distribution.
         const loanStatusCtx = document.getElementById('loanStatusChart').getContext('2d');
-        if (loanStatusCtx) { // Check if the canvas context is available
+        if (loanStatusCtx) {
             new Chart(loanStatusCtx, {
-                type: 'doughnut', // Specifies a doughnut chart
+                type: 'doughnut',
                 data: {
-                    labels: ['Active', 'Paid Off', 'Pending', 'Overdue'], // Labels for segments
+                    labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.LoanStatusLabels)), // Dynamically pass labels from ViewModel
                     datasets: [{
-                        label: 'Loan Status', // Label for the dataset
-                        data: [345, 1200, 28, 12], // Data points corresponding to summary card values
-                        backgroundColor: [ // Colors for each segment
-                            '#0A2463', // Custom primary blue for Active
-                            '#198754', // Bootstrap success green for Paid Off
-                            '#ffc107', // Bootstrap warning yellow for Pending
-                            '#dc3545' // Bootstrap danger red for Overdue
+                        label: 'Loan Status',
+                        data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.LoanStatusCounts)), // Dynamically pass data from ViewModel
+                        backgroundColor: [
+                            '#0A2463', // Active: Custom primary blue
+                            '#198754', // Paid Off (Closed): Bootstrap success green
+                            '#ffc107', // Pending Approval: Bootstrap warning yellow
+                            '#0dcaf0', // Pending Disbursement: Bootstrap info blue
+                            '#dc3545'  // Overdue: Bootstrap danger red
                         ],
-                        borderColor: [ // White border for separation between segments
-                            '#fff',
-                            '#fff',
-                            '#fff',
-                            '#fff'
+                        borderColor: [
+                            '#fff', '#fff', '#fff', '#fff', '#fff' // White borders between segments
                         ],
-                        borderWidth: 2, // Thickness of the border
-                        hoverOffset: 8 // How much the segment expands on hover
+                        borderWidth: 2,
+                        hoverOffset: 8 // Expand segment on hover
                     }]
                 },
                 options: {
-                    responsive: true, // Chart will resize with its container
-                    maintainAspectRatio: false, // Prevents the chart from maintaining a fixed aspect ratio
-                    cutout: '70%', // Creates the doughnut hole (70% of the radius)
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%', // Inner radius of the doughnut
                     plugins: {
                         legend: {
-                            display: false // Hide default legend as a custom one is provided below the chart
+                            display: false // Hide default legend as custom legend is provided below the chart
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.label || ''; // Get segment label (e.g., 'Active')
+                                    let label = context.label || '';
                                     if (label) {
                                         label += ': ';
                                     }
                                     if (context.parsed !== null) {
-                                        label += context.parsed; // Display the raw data value in the tooltip
+                                        label += context.parsed; // Display count in tooltip
                                     }
                                     return label;
                                 }

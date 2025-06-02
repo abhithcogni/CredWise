@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic; // Added for ICollection
 
-namespace CredWise_Trail.Models
+namespace CredWise_Trail.Models // Ensure this namespace matches your project structure
 {
     [Table("LOAN_APPLICATIONS")] // Explicitly setting table name, if not already done by convention
     public class LoanApplication
@@ -25,11 +25,11 @@ namespace CredWise_Trail.Models
 
         [Required]
         [StringLength(10)]
-        public string ApprovalStatus { get; set; } // e.g., "Pending", "Approved", "Rejected"
+        public string ApprovalStatus { get; set; } // e.g., "PENDING", "APPROVED", "REJECTED"
 
         // --- NEW PROPERTIES FOR PAYMENT TRACKING ---
 
-        [Column(TypeName = "decimal(5, 4)")] // For interest rate, e.g., 0.0800 for 8%
+        [Column(TypeName = "decimal(7, 3)")] // For interest rate, e.g., 0.0800 for 8%
         public decimal InterestRate { get; set; } // Annual interest rate of the approved loan product
 
         public int TenureMonths { get; set; } // Loan tenure in months
@@ -50,10 +50,6 @@ namespace CredWise_Trail.Models
         [StringLength(50)]
         public string LoanNumber { get; set; } // A unique identifier for the approved loan itself (e.g., HL05682)
 
-        // If LoanProduct doesn't have a name/type, you might want a string here
-        // [StringLength(100)]
-        // public string LoanType { get; set; } // Example: Home Loan (if not from LoanProduct)
-
         [StringLength(20)]
         public string LoanStatus { get; set; } = "Pending Disbursement"; // Overall loan status: "Active", "Closed", "Overdue", etc.
 
@@ -70,5 +66,22 @@ namespace CredWise_Trail.Models
 
         // This will be for the individual payment records associated with this loan
         public ICollection<LoanPayment> Payments { get; set; } // Changed from Repayments to Payments for consistency with LoanPayment model
+    }
+
+    // You might want to define enums for ApprovalStatus and LoanStatus for strong typing in C#.
+    // Example:
+    public enum LoanApprovalStatus
+    {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
+
+    public enum LoanOverallStatus
+    {
+        ACTIVE,
+        CLOSED,
+        OVERDUE,
+        PENDING_DISBURSEMENT // For loans approved but not yet active
     }
 }
