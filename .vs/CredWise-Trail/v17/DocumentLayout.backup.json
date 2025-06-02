@@ -42,8 +42,7 @@
               "RelativeToolTip": "Controllers\\AdminController.cs",
               "ViewState": "AgIAALkAAAAAAAAAAAAkwNsAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-01T07:00:02.58Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-01T07:00:02.58Z"
             },
             {
               "$type": "Document",
@@ -51,8 +50,8 @@
               "Title": "LoanApproval.cshtml",
               "DocumentMoniker": "C:\\CredWise-Trail\\CredWise\\Views\\Admin\\LoanApproval.cshtml",
               "RelativeDocumentMoniker": "Views\\Admin\\LoanApproval.cshtml",
-              "ToolTip": "C:\\CredWise-Trail\\CredWise\\Views\\Admin\\LoanApproval.cshtml*",
-              "RelativeToolTip": "Views\\Admin\\LoanApproval.cshtml*",
+              "ToolTip": "C:\\CredWise-Trail\\CredWise\\Views\\Admin\\LoanApproval.cshtml",
+              "RelativeToolTip": "Views\\Admin\\LoanApproval.cshtml",
               "ViewState": "AgIAANUAAAAAAAAAAAAAAOgAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-06-01T06:56:46.986Z",
@@ -68,8 +67,7 @@
               "RelativeToolTip": "Controllers\\CustomerController.cs",
               "ViewState": "AgIAACMAAAAAAAAAAAAgwIAAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-01T05:37:59.565Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-01T05:37:59.565Z"
             },
             {
               "$type": "Document",
@@ -81,8 +79,7 @@
               "RelativeToolTip": "Views\\Customer\\LoanApplication.cshtml",
               "ViewState": "AgIAAAMBAAAAAAAAAAAkwBYBAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-06-01T05:36:50.725Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-01T05:36:50.725Z"
             }
           ]
         }
