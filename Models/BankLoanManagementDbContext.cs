@@ -14,6 +14,7 @@ namespace CredWise_Trail.Models
         public DbSet<Repayment> Repayments { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<KycApproval> KycApprovals { get; set; }
+        public DbSet<LoanPayment> LoanPayments { get; set; }    
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

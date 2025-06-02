@@ -3,6 +3,8 @@
 *@
 @{
 }
+@model CredWise_Trail.Controllers.MakePaymentViewModel // Add this line to specify the model type
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -139,10 +141,11 @@
         #proceedToPayButton {
             background-color: #3E92CC;
         }
-        #proceedToPayButton:hover {
+
+            #proceedToPayButton:hover {
                 background-color: #0A2463;
                 border-color: white;
-        }
+            }
 
         .form-check-label a {
             color: #3E92CC;
@@ -158,10 +161,10 @@
             background-color: #3E92CC;
         }
 
-        #confirmPayButton:hover {
+            #confirmPayButton:hover {
                 background-color: #0A2463;
                 border-color: white;
-        }
+            }
 
         #paymentStatusModalHeader {
             background-color: #0A2463 !important;
@@ -171,11 +174,10 @@
             background-color: #3E92CC;
         }
 
-        #paymentStatusCloseButton:hover {
-            background-color: #0A2463;
-            border-color: white;
-        }
-       
+            #paymentStatusCloseButton:hover {
+                background-color: #0A2463;
+                border-color: white;
+            }
     </style>
 </head>
 
@@ -197,25 +199,20 @@
                                 <i class="fas fa-file-invoice-dollar me-2"></i>Payment Due Summary
                             </div>
                             <div class="card-body p-4">
-                                <h5 class="card-title" id="loanProductName">Home Loan (HL05682)</h5>
-                                <p class="card-text text-muted" id="loanShortDescription">
-                                    Your monthly installment for
-                                    your property at 123 Main St.
-                                </p>
+                                <h5 class="card-title" id="loanProductName"></h5>
+                                <p class="card-text text-muted" id="loanShortDescription"></p>
                                 <hr>
                                 <div class="row mb-2">
                                     <div class="col-6 summary-label">Amount Due:</div>
-                                    <div class="col-6 summary-value fw-bold fs-5 text-danger" id="amountDue">
-                                        $1,250.00
-                                    </div>
+                                    <div class="col-6 summary-value fw-bold fs-5 text-danger" id="amountDue"></div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="col-6 summary-label">Due Date:</div>
-                                    <div class="col-6 summary-value" id="dueDate">June 1, 2025</div>
+                                    <div class="col-6 summary-value" id="dueDate"></div>
                                 </div>
                                 <div class="row">
                                     <div class="col-6 summary-label">Outstanding Balance:</div>
-                                    <div class="col-6 summary-value" id="outstandingBalance">$185,750.20</div>
+                                    <div class="col-6 summary-value" id="outstandingBalance"></div>
                                 </div>
                                 <div id="paymentSuccessMessage" class="alert alert-success mt-3 d-none" role="alert">
                                     <i class="fas fa-check-circle me-2"></i>Payment successful! Your next payment
@@ -374,15 +371,18 @@
             crossorigin="anonymous"></script>
     <script>
         $(document).ready(function () {
-            // --- Initial Loan Data (Simulation) ---
+            // --- Initial Loan Data (Populated from server-side Model) ---
+            // The @Model syntax below injects C# model data directly into JavaScript
             let loanData = {
-                productName: "Home Loan (HL05682)",
-                shortDescription: "Your monthly installment for your property at 123 Main St.",
-                amountDue: 1250.00,
-                dueDate: "June 1, 2025", // Keep this date or make it dynamic
-                outstandingBalance: 185750.20,
-                minPayment: 50.00, // Example minimum payment
-                isPaymentDue: true
+                loanId: @Model.LoanId,
+                productName: "@Html.Raw(Model.ProductName)", // Html.Raw to prevent double-encoding
+                shortDescription: "@Html.Raw(Model.ShortDescription)",
+                amountDue: @Model.AmountDue, // This should be the current EMI amount or remaining due
+                // Format date for display, handle null if no due date
+                dueDate: "@(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("MMMM d, yyyy") : "N/A")",
+                outstandingBalance: @Model.OutstandingBalance,
+                minPayment: @Model.MinPayment, // This is the EMI
+                isPaymentDue: @Model.IsPaymentDue.ToString().ToLower() // C# bool to JS boolean string
             };
 
             const confirmationModal = new bootstrap.Modal(document.getElementById('paymentConfirmationModal'));
@@ -390,37 +390,37 @@
 
             // --- Populate Initial Data ---
             function populateLoanDetails() {
+                // Always populate these common fields
+                $('#loanProductName').text(loanData.productName);
+                $('#loanShortDescription').text(loanData.shortDescription);
+                $('#outstandingBalance').text('$' + loanData.outstandingBalance.toFixed(2));
+
+
                 if (loanData.isPaymentDue) {
-                    $('#loanProductName').text(loanData.productName);
-                    $('#loanShortDescription').text(loanData.shortDescription);
-                    $('#amountDue').text('$' + loanData.amountDue.toFixed(2));
+                    $('#amountDue').text('$' + loanData.amountDue.toFixed(2)).removeClass('text-success').addClass('text-danger');
                     $('#dueDate').text(loanData.dueDate);
-                    $('#outstandingBalance').text('$' + loanData.outstandingBalance.toFixed(2));
-                    $('#paymentAmount').val(loanData.amountDue.toFixed(2));
+                    $('#paymentAmount').val(loanData.amountDue.toFixed(2)); // Pre-fill with amount due
 
                     $('#paymentForm').show();
                     $('#proceedToPayButton').removeClass('d-none');
                     $('#paymentCompletedButton').addClass('d-none');
                     $('#noPaymentDueMessage').addClass('d-none');
-                    $('#paymentSuccessMessage').addClass('d-none');
+                    $('#paymentSuccessMessage').addClass('d-none'); // Hide success message on reload
                     $('#paymentPageSubtitle').text('Securely pay your outstanding loan amount.');
                 } else {
-                    $('#loanProductName').text(loanData.productName);
-                    $('#loanShortDescription').text(loanData.shortDescription);
-                    $('#amountDue').text('$0.00').removeClass('text-danger').addClass('text-success');
+                    $('#amountDue').text('$0.00').removeClass('text-danger').addClass('text-success'); // No amount due, green
                     $('#dueDate').text('N/A'); // Or next due date if available
-                    $('#outstandingBalance').text('$' + loanData.outstandingBalance.toFixed(2));
 
-                    $('#paymentForm').hide();
-                    $('#noPaymentDueMessage').removeClass('d-none');
+                    $('#paymentForm').hide(); // Hide the form
+                    $('#noPaymentDueMessage').removeClass('d-none'); // Show info message
                     $('#proceedToPayButton').addClass('d-none');
-                    $('#paymentCompletedButton').addClass('d-none'); // Ensure this is also hidden
-                    $('#paymentPageSubtitle').text('View your loan summary.');
-
+                    $('#paymentCompletedButton').addClass('d-none'); // Ensure this is also hidden if no payment due
+                    $('#paymentSuccessMessage').addClass('d-none'); // Hide success message
+                    $('#paymentPageSubtitle').text('View your loan summary. No payment is currently due.');
                 }
             }
 
-            populateLoanDetails();
+            populateLoanDetails(); // Call this function on page load to display initial data
 
             // --- Handle Payment Method Change ---
             $('#paymentMethod').on('change', function () {
@@ -441,22 +441,27 @@
                 }
                 $(this).removeClass('was-validated');
 
-
                 const paymentAmount = parseFloat($('#paymentAmount').val());
                 const paymentMethodText = $('#paymentMethod option:selected').text();
 
-                if (paymentAmount < loanData.minPayment && loanData.isPaymentDue) {
-                    alert(`Minimum payment amount is $${loanData.minPayment.toFixed(2)}.`);
-                    $('#paymentAmount').addClass('is-invalid');
-                    return;
+                // Client-side validation for amount:
+                // Only validate against minPayment if a payment is actually due
+                if (loanData.isPaymentDue) {
+                    if (paymentAmount < loanData.minPayment) {
+                        alert(`Minimum payment amount is $${loanData.minPayment.toFixed(2)}.`);
+                        $('#paymentAmount').addClass('is-invalid');
+                        return;
+                    }
                 }
-                if (paymentAmount > loanData.outstandingBalance && loanData.isPaymentDue) {
+
+                // Payment amount cannot exceed outstanding balance (always true)
+                if (paymentAmount > loanData.outstandingBalance) {
                     alert(`Payment amount cannot exceed the outstanding balance of $${loanData.outstandingBalance.toFixed(2)}.`);
                     $('#paymentAmount').addClass('is-invalid');
                     return;
                 }
-                $('#paymentAmount').removeClass('is-invalid');
 
+                $('#paymentAmount').removeClass('is-invalid'); // Clear invalid state if valid
 
                 $('#confirmLoanName').text(loanData.productName);
                 $('#confirmPaymentAmount').text('$' + paymentAmount.toFixed(2));
@@ -465,7 +470,7 @@
                 confirmationModal.show();
             });
 
-            // --- Handle Actual Payment Confirmation ---
+            // --- Handle Actual Payment Confirmation (AJAX Call to Backend) ---
             $('#confirmPayButton').on('click', function () {
                 confirmationModal.hide();
 
@@ -477,56 +482,97 @@
                 $('#paymentStatusModalFooter').addClass('d-none');
                 statusModal.show();
 
-                // Simulate API call
-                setTimeout(function () {
-                    const paymentAmount = parseFloat($('#paymentAmount').val()); // Re-fetch amount from input
-                    const success = Math.random() < 0.85; // 85% success rate for simulation
-
-                    $('#paymentProcessingSpinner').addClass('d-none');
-                    $('#paymentStatusResult').removeClass('d-none');
-                    $('#paymentStatusModalFooter').removeClass('d-none');
+                const paymentAmount = parseFloat($('#paymentAmount').val());
+                const paymentMethod = $('#paymentMethod').val(); // Get the actual value for backend
 
 
-                    if (success) {
-                        $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-success text-white');
-                        $('#paymentStatusModalLabel').text('Payment Successful!');
-                        $('#paymentStatusResult').html(`
-                    <div class="text-success"><i class="fas fa-check-circle status-icon"></i></div>
-                    <p class="fs-5">Your payment of <strong>$${paymentAmount.toFixed(2)}</strong> has been processed successfully.</p>
-                    <p>Transaction ID: MOCKTRX${Date.now()}</p>
-                `);
-                        $('#paymentStatusCloseButton').removeClass('btn-danger').addClass('btn-primary');
+                // Make AJAX call to your backend
+                $.ajax({
+                    url: '/Customer/ProcessPayment', // Adjust to your actual controller/action path
+                    type: 'POST',
+                    contentType: 'application/json', // Indicate sending JSON
+                    data: JSON.stringify({ // Stringify the JavaScript object to JSON
+                        loanId: loanData.loanId, // Send the loan ID from your initial data
+                        paymentAmount: paymentAmount,
+                        paymentMethod: paymentMethod
+                        // Add any other new payment method fields here if 'new_bank'/'new_card' selected
+                        // e.g., CardNumber: $('#cardNumberField').val()
+                    }),
+                    success: function (response) {
+                        $('#paymentProcessingSpinner').addClass('d-none');
+                        $('#paymentStatusResult').removeClass('d-none');
+                        $('#paymentStatusModalFooter').removeClass('d-none');
+
+                        if (response.success) {
+                            $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-success text-white');
+                            $('#paymentStatusModalLabel').text('Payment Successful!');
+                            $('#paymentStatusResult').html(`
+                                <div class="text-success"><i class="fas fa-check-circle status-icon"></i></div>
+                                <p class="fs-5">Your payment of <strong>$${paymentAmount.toFixed(2)}</strong> has been processed successfully.</p>
+                                <p>Transaction ID: ${response.transactionId}</p>
+                            `);
+                            $('#paymentStatusCloseButton').removeClass('btn-danger').addClass('btn-primary');
+
+                            // --- Update local loanData based on successful payment ---
+                            loanData.outstandingBalance = parseFloat((loanData.outstandingBalance - paymentAmount).toFixed(2));
+                            loanData.amountDue = 0; // Assume current due is cleared by a successful payment
+                            loanData.isPaymentDue = false; // Payment is now processed for this cycle
+
+                            // Simulate the next due date if the current payment covered the EMI
+                            // In a real app, the server would send the *actual* new NextDueDate
+                            let nextDueDate = new Date(loanData.dueDate); // Use the current dueDate as a base
+                            if (!isNaN(nextDueDate.getTime())) { // Check if valid date
+                                nextDueDate.setMonth(nextDueDate.getMonth() + 1); // Advance by one month
+                                loanData.dueDate = nextDueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                            }
 
 
-                        // Update loan data
-                        loanData.outstandingBalance -= paymentAmount;
-                        loanData.amountDue = 0; // Assuming full payment of due amount clears it
-                        loanData.isPaymentDue = false;
-                        // Could also calculate next due date here:
-                        // let currentDate = new Date();
-                        // currentDate.setMonth(currentDate.getMonth() + 1);
-                        // loanData.dueDate = currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                            populateLoanDetails(); // Re-render the summary card with updated data
+                            $('#paymentForm').hide(); // Hide the payment form
+                            $('#paymentSuccessMessage').removeClass('d-none'); // Show success message on main page
+                            $('#proceedToPayButton').addClass('d-none');
+                            $('#paymentCompletedButton').removeClass('d-none').text('Payment Successful').prop('disabled', true); // Show "Payment Completed" button
 
+                        } else {
+                            $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-danger text-white');
+                            $('#paymentStatusModalLabel').text('Payment Failed');
+                            $('#paymentStatusResult').html(`
+                                <div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
+                                <p class="fs-5">Your payment of <strong>$${paymentAmount.toFixed(2)}</strong> could not be processed.</p>
+                                <p>Reason: ${response.message || 'An unknown error occurred.'}</p>
+                                <p>${response.reason || 'Please try again or contact support.'}</p>
+                            `);
+                            $('#paymentStatusCloseButton').removeClass('btn-primary').addClass('btn-danger');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('#paymentProcessingSpinner').addClass('d-none');
+                        $('#paymentStatusResult').removeClass('d-none');
+                        $('#paymentStatusModalFooter').removeClass('d-none');
 
-                        populateLoanDetails(); // Refresh the summary card
-                        $('#paymentForm').hide(); // Hide form as payment is done
-                        $('#paymentSuccessMessage').removeClass('d-none'); // Show success on main page
-                        $('#proceedToPayButton').addClass('d-none');
-                        $('#paymentCompletedButton').removeClass('d-none').text('Payment Successful').prop('disabled', true);
+                        let errorMessage = "An unexpected error occurred.";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                let res = JSON.parse(xhr.responseText);
+                                errorMessage = res.message || errorMessage;
+                            } catch (e) {
+                                errorMessage = xhr.responseText;
+                            }
+                        }
 
-
-                    } else {
                         $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-danger text-white');
-                        $('#paymentStatusModalLabel').text('Payment Failed');
+                        $('#paymentStatusModalLabel').text('Payment Error');
                         $('#paymentStatusResult').html(`
-                    <div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
-                    <p class="fs-5">Your payment of <strong>$${paymentAmount.toFixed(2)}</strong> could not be processed.</p>
-                    <p>Reason: Insufficient funds (Simulated).</p>
-                    <p>Please try again with a different payment method or contact support.</p>
-                `);
+                            <div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
+                            <p class="fs-5">There was an issue processing your payment.</p>
+                            <p>Error: ${errorMessage}</p>
+                            <p>Please try again or contact support.</p>
+                        `);
                         $('#paymentStatusCloseButton').removeClass('btn-primary').addClass('btn-danger');
                     }
-                }, 2500); // Simulate 2.5 seconds delay
+                });
             });
 
             // Clear validation on input
@@ -537,8 +583,6 @@
                 $(this).removeClass('is-invalid');
                 $('#paymentForm').removeClass('was-validated'); // Reset overall form validation state on interaction
             });
-
-
         });
     </script>
 </body>

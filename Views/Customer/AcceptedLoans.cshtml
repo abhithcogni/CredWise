@@ -1,0 +1,161 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model IEnumerable<CredWise_Trail.Models.LoanApplication>
+@{
+    ViewData["Title"] = "Accepted Loans"; // Set page title
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - MyBank</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Consistent background */
+        }
+
+        .card-table-container {
+            border: 1px solid #e9ecef;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, .04);
+            background-color: #ffffff;
+            margin: auto;
+            max-width: 900px; /* Increased max-width for better display */
+            width: 100%;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            color: #343a40;
+            font-size: 1.25rem;
+            padding: 1rem 1.5rem;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #495057;
+            background-color: #f8f9fa;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+            padding: 0.9rem 1rem;
+        }
+
+        /* Added for no applications message */
+        .no-applications-message {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .quick-action-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #ffffff; /* Text color for the button */
+            background-color: #007bff; /* Primary blue for the button */
+            border: none;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+            .quick-action-btn:hover {
+                background-color: #0056b3; /* Darker blue on hover */
+                color: #ffffff;
+            }
+
+            .quick-action-btn i {
+                margin-right: 0.5rem;
+            }
+    </style>
+</head>
+<body>
+    <main class="container-fluid p-4">
+        <div class="card-table-container shadow">
+            <center>
+                <div class="card-header">
+                    <i class="fas fa-handshake"></i> Your Approved Loans
+                </div>
+            </center>
+            <div class="card-body">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag me-1 text-secondary"></i>App. ID</th>
+                                <th><i class="fas fa-calendar-day me-1 text-secondary"></i>Date</th>
+                                <th><i class="fas fa-piggy-bank me-1 text-secondary"></i>Loan Product</th>
+                                <th><i class="fas fa-dollar-sign me-1 text-secondary"></i>Amount</th>
+                                <th><i class="fas fa-percentage me-1 text-secondary"></i>Int. Rate</th>
+                                <th><i class="fas fa-sack-dollar me-1 text-secondary"></i>Payment</th> @* New column for payment button *@
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any(item => item.ApprovalStatus == "Approved"))
+                            {
+                                foreach (var item in Model.Where(item => item.ApprovalStatus == "Approved"))
+                                {
+                                    <tr>
+                                        <td>@item.ApplicationId</td>
+                                        <td>@item.ApplicationDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@(item.LoanProduct?.ProductName ?? "N/A")</td>
+                                        <td>@item.LoanAmount.ToString("C")</td>
+                                        <td>@item.InterestRate%</td> @* Assuming InterestRate is a property in your model *@
+                                        <td>
+                                            <a href="@Url.Action("MakePayment", "Customer", new { loanId = item.ApplicationId })" class="quick-action-btn">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                                <span>Make Payment</span> @* You can add @item.LoanNumber here if you have it for display *@
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="no-applications-message">
+                                        <i class="fas fa-search me-2"></i>No approved loan applications found.
+                                        <p class="mt-2">Ready to apply? <a href="@Url.Action("LoanApplication", "Customer")">Start a new application</a> today!</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

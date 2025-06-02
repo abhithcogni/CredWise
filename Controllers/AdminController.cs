@@ -191,15 +191,72 @@ namespace CredWise_Trail.Controllers
 
             loanApplication.ApprovalStatus = status;
 
-            // Set approval date only if status is approved or rejected
-            if (status == "Approved" || status == "Rejected")
+            // --- Logic for setting loan details based on status ---
+            if (status == "Approved")
             {
                 loanApplication.ApprovalDate = DateTime.Now;
+                loanApplication.LoanStatus = "Active"; // Set a general loan status to indicate it's now active
+
+                // 1. Calculate EMI (Equated Monthly Installment)
+                // Ensure LoanAmount, InterestRate, LoanTenureMonths are correctly set on the loanApplication model.
+                decimal principal = loanApplication.LoanAmount;
+                decimal annualInterestRate = loanApplication.InterestRate / 100; // Convert percentage to decimal
+                int numberOfMonths = loanApplication.TenureMonths;
+
+                decimal monthlyInterestRate = annualInterestRate / 12;
+
+                decimal calculatedEmi;
+
+                // Handle case where interest rate is 0 (e.g., 0% APR loan)
+                if (monthlyInterestRate > 0)
+                {
+                    // EMI = P * R * (1 + R)^N / ((1 + R)^N - 1)
+                    // Using Math.Pow for exponentiation requires double, then cast back to decimal
+                    calculatedEmi = principal * monthlyInterestRate *
+                                    ((decimal)Math.Pow((double)(1 + monthlyInterestRate), numberOfMonths) /
+                                     ((decimal)Math.Pow((double)(1 + monthlyInterestRate), numberOfMonths) - 1));
+                }
+                else // No interest, just divide principal by tenure
+                {
+                    if (numberOfMonths > 0)
+                    {
+                        calculatedEmi = principal / numberOfMonths;
+                    }
+                    else // Edge case: 0 tenure, whole amount due immediately
+                    {
+                        calculatedEmi = principal;
+                    }
+                }
+                calculatedEmi = Math.Round(calculatedEmi, 2); // Round EMI to two decimal places
+
+                // 2. Set the initial financial details for the active loan
+                loanApplication.EMI = calculatedEmi; // Store the calculated EMI
+                loanApplication.AmountDue = calculatedEmi; // The first EMI is the initial amount due
+                loanApplication.OutstandingBalance = principal; // The entire loan amount is outstanding initially
+                loanApplication.NextDueDate = DateTime.Now.Date.AddMonths(1); // First payment due one month from approval
+                // You might also capture who approved it: loanApplication.ApprovedByAdminId = GetCurrentAdminId();
             }
-            else // If setting back to Pending, clear approval date
+            else if (status == "Rejected")
             {
-                loanApplication.ApprovalDate = null;
+                loanApplication.ApprovalDate = DateTime.Now;
+                loanApplication.LoanStatus = "Closed"; // Mark as closed/rejected
+                // Clear out payment-related fields for rejected loans
+                loanApplication.EMI = 0;
+                loanApplication.AmountDue = 0;
+                loanApplication.OutstandingBalance = 0;
+                loanApplication.NextDueDate = null;
             }
+            else // status == "Pending" or any other non-approved/rejected status
+            {
+                loanApplication.ApprovalDate = null; // Clear approval date if status is not final
+                loanApplication.LoanStatus = "Pending"; // Set general loan status back to pending
+                // Clear financial details if the loan is back to pending state
+                loanApplication.EMI = 0;
+                loanApplication.AmountDue = 0;
+                loanApplication.OutstandingBalance = 0;
+                loanApplication.NextDueDate = null;
+            }
+            // --- End of status-based logic ---
 
             try
             {
