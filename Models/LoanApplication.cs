@@ -27,7 +27,7 @@ namespace CredWise_Trail.Models // Ensure this namespace matches your project st
         [StringLength(10)]
         public string ApprovalStatus { get; set; } // e.g., "PENDING", "APPROVED", "REJECTED"
 
-        // --- NEW PROPERTIES FOR PAYMENT TRACKING ---
+        // --- PROPERTIES FOR PAYMENT TRACKING ---
 
         [Column(TypeName = "decimal(7, 3)")] // For interest rate, e.g., 0.0800 for 8%
         public decimal InterestRate { get; set; } // Annual interest rate of the approved loan product
@@ -35,7 +35,7 @@ namespace CredWise_Trail.Models // Ensure this namespace matches your project st
         public int TenureMonths { get; set; } // Loan tenure in months
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal EMI { get; set; } // Calculated Equated Monthly Installment for this loan
+        public decimal EMI { get; set; } // Calculated Equated Monthly Installment for this loan (fixed monthly payment)
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal OutstandingBalance { get; set; } // Remaining principal balance + accrued interest
@@ -45,13 +45,18 @@ namespace CredWise_Trail.Models // Ensure this namespace matches your project st
         public DateTime? LastPaymentDate { get; set; } // When the last payment was made
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal AmountDue { get; set; } // The specific amount currently expected for the next payment (usually EMI)
+        public decimal AmountDue { get; set; } // The total amount currently expected for payment (EMI + overdue)
 
         [StringLength(50)]
         public string LoanNumber { get; set; } // A unique identifier for the approved loan itself (e.g., HL05682)
 
         [StringLength(20)]
         public string LoanStatus { get; set; } = "Pending Disbursement"; // Overall loan status: "Active", "Closed", "Overdue", etc.
+
+        // --- NEW PROPERTIES FOR OVERDUE TRACKING ---
+        public int OverdueMonths { get; set; } = 0; // Number of months loan is overdue
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal CurrentOverdueAmount { get; set; } = 0; // Total accumulated overdue amount (principal + interest + penalties)
 
 
         // --- EXISTING NAVIGATION PROPERTIES ---

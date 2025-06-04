@@ -30,14 +30,11 @@ namespace CredWise_Trail.Models
         [StringLength(20)]
         public string Status { get; set; } = "Success"; // Status of the payment (Success, Failed, Pending)
 
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal AmountDue { get; set; }
+        // Removed: AmountDue is a property of the LoanApplication, not the payment itself.
+        // public decimal AmountDue { get; set; } 
 
         // Navigation property to the LoanApplication model
-        // You'll need to make sure your LoanApplication model exists and is correctly named.
-        // For example, if your loan application model is named 'LoanApplication'
-        // and has a primary key 'LoanId'.
         [ForeignKey("LoanId")]
         public LoanApplication LoanApplication { get; set; }
     }
-}
+} 
