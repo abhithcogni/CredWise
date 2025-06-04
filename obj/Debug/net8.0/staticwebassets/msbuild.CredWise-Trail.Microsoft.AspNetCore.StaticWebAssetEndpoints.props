@@ -72,6 +72,30 @@
       <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"xtxxf3hu2r"},{"Name":"integrity","Value":"sha256-hRQyftXiu1lLX2P9Ly9xa4gHJgLeR1uGN5qegUobtGo="},{"Name":"label","Value":"_content/CredWise-Trail/js/site.js"}]]]></EndpointProperties>
       <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"231"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022hRQyftXiu1lLX2P9Ly9xa4gHJgLeR1uGN5qegUobtGo=\u0022"},{"Name":"Last-Modified","Value":"Wed, 21 May 2025 05:53:46 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/CredWise-Trail/kyc_documents/7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.felnvmft62.pdf">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"felnvmft62"},{"Name":"integrity","Value":"sha256-F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko="},{"Name":"label","Value":"_content/CredWise-Trail/kyc_documents/7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"355519"},{"Name":"Content-Type","Value":"application/pdf"},{"Name":"ETag","Value":"\u0022F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko=\u0022"},{"Name":"Last-Modified","Value":"Wed, 04 Jun 2025 06:27:47 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/CredWise-Trail/kyc_documents/7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"355519"},{"Name":"Content-Type","Value":"application/pdf"},{"Name":"ETag","Value":"\u0022F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko=\u0022"},{"Name":"Last-Modified","Value":"Wed, 04 Jun 2025 06:27:47 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/CredWise-Trail/kyc_documents/7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.felnvmft62.pdf">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"felnvmft62"},{"Name":"integrity","Value":"sha256-F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko="},{"Name":"label","Value":"_content/CredWise-Trail/kyc_documents/7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"355519"},{"Name":"Content-Type","Value":"application/pdf"},{"Name":"ETag","Value":"\u0022F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko=\u0022"},{"Name":"Last-Modified","Value":"Wed, 04 Jun 2025 06:46:28 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/CredWise-Trail/kyc_documents/7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"355519"},{"Name":"Content-Type","Value":"application/pdf"},{"Name":"ETag","Value":"\u0022F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko=\u0022"},{"Name":"Last-Modified","Value":"Wed, 04 Jun 2025 06:46:28 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/CredWise-Trail/lib/bootstrap/dist/css/bootstrap-grid.agp80tu62r.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\lib\bootstrap\dist\css\bootstrap-grid.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>

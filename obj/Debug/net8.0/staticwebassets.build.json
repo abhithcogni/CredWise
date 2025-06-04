@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "yswh22DJq+soDPU44+mofULHf1ei75tjPqoIWOFGzck=",
+  "Hash": "5Ub58gPQv3cXXAq++gzNdJEURL9ubk9kM81YuefiIjY=",
   "Source": "CredWise-Trail",
   "BasePath": "_content/CredWise-Trail",
   "Mode": "Default",
@@ -162,6 +162,48 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\site.js"
+    },
+    {
+      "Identity": "C:\\CredWise-Trail\\CredWise\\wwwroot\\kyc_documents\\7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf",
+      "SourceId": "CredWise-Trail",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\CredWise-Trail\\CredWise\\wwwroot\\",
+      "BasePath": "_content/CredWise-Trail",
+      "RelativePath": "kyc_documents/7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity#[.{fingerprint}]?.pdf",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "felnvmft62",
+      "Integrity": "F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\kyc_documents\\7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf"
+    },
+    {
+      "Identity": "C:\\CredWise-Trail\\CredWise\\wwwroot\\kyc_documents\\7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf",
+      "SourceId": "CredWise-Trail",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\CredWise-Trail\\CredWise\\wwwroot\\",
+      "BasePath": "_content/CredWise-Trail",
+      "RelativePath": "kyc_documents/7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity#[.{fingerprint}]?.pdf",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "felnvmft62",
+      "Integrity": "F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\kyc_documents\\7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf"
     },
     {
       "Identity": "C:\\CredWise-Trail\\CredWise\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
@@ -1933,6 +1975,170 @@
         {
           "Name": "integrity",
           "Value": "sha256-hRQyftXiu1lLX2P9Ly9xa4gHJgLeR1uGN5qegUobtGo="
+        }
+      ]
+    },
+    {
+      "Route": "kyc_documents/7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.felnvmft62.pdf",
+      "AssetFile": "C:\\CredWise-Trail\\CredWise\\wwwroot\\kyc_documents\\7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "355519"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/pdf"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 04 Jun 2025 06:27:47 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "felnvmft62"
+        },
+        {
+          "Name": "label",
+          "Value": "kyc_documents/7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko="
+        }
+      ]
+    },
+    {
+      "Route": "kyc_documents/7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf",
+      "AssetFile": "C:\\CredWise-Trail\\CredWise\\wwwroot\\kyc_documents\\7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "355519"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/pdf"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 04 Jun 2025 06:27:47 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko="
+        }
+      ]
+    },
+    {
+      "Route": "kyc_documents/7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.felnvmft62.pdf",
+      "AssetFile": "C:\\CredWise-Trail\\CredWise\\wwwroot\\kyc_documents\\7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "355519"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/pdf"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 04 Jun 2025 06:46:28 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "felnvmft62"
+        },
+        {
+          "Name": "label",
+          "Value": "kyc_documents/7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko="
+        }
+      ]
+    },
+    {
+      "Route": "kyc_documents/7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf",
+      "AssetFile": "C:\\CredWise-Trail\\CredWise\\wwwroot\\kyc_documents\\7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "355519"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/pdf"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 04 Jun 2025 06:46:28 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-F5PSvI+jZDku8UfX24dgtUHJuvvRyC6+KxFAyxl4yko="
         }
       ]
     },

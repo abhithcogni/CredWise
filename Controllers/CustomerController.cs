@@ -37,9 +37,59 @@ namespace CredWise_Trail.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var loanProducts = await _context.LoanProducts.ToListAsync();
-            ViewBag.LoanProducts = loanProducts;
-            return View();
+            var customerIdClaim = User.FindFirstValue("CustomerId"); // Or ClaimTypes.NameIdentifier if that's what you use
+            if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
+            {
+                TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
+                return RedirectToAction("Logout", "Account"); // Or a more appropriate error view/redirect
+            }
+
+            // Fetch the most recent KYC record for the customer
+            var latestKyc = await _context.KycApprovals
+                                        .Where(k => k.CustomerId == customerId)
+                                        .OrderByDescending(k => k.SubmissionDate)
+                                        .FirstOrDefaultAsync();
+
+            ViewData["ShowLoanForm"] = false; // Default: do not show the loan form
+
+            if (latestKyc != null)
+            {
+                ViewData["KycStatus"] = latestKyc.Status;
+                switch (latestKyc.Status)
+                {
+                    case "Approved":
+                        ViewData["ShowLoanForm"] = true;
+                        // Only load loan products if KYC is approved
+                        var loanProducts = await _context.LoanProducts.ToListAsync();
+                        ViewBag.LoanProducts = loanProducts; // This is used by your view
+                        break;
+                    case "Pending":
+                        TempData["WarningMessage"] = "Your KYC verification is currently pending. It must be approved before you can apply for a loan.";
+                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
+                        ViewData["KycPageLinkText"] = "Check KYC Status / Upload Documents";
+                        break;
+                    case "Rejected":
+                        TempData["ErrorMessage"] = "Your KYC verification was rejected. Please re-submit your KYC documents and get approval before applying for a loan.";
+                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
+                        ViewData["KycPageLinkText"] = "Re-apply for KYC";
+                        break;
+                    default: // Handles any other status
+                        TempData["InfoMessage"] = $"Your KYC status is '{latestKyc.Status}'. Please ensure it is approved to apply for a loan.";
+                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer");
+                        ViewData["KycPageLinkText"] = "Review KYC Status";
+                        break;
+                }
+            }
+            else // No KYC record found for the customer
+            {
+                ViewData["KycStatus"] = "Not Submitted";
+                TempData["InfoMessage"] = "You need to complete and get your KYC verified before applying for a loan.";
+                ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
+                ViewData["KycPageLinkText"] = "Complete KYC Verification";
+            }
+
+            // The view will now use ViewData["ShowLoanForm"] to decide what to display
+            return View(); // If ShowLoanForm is true, it will expect ViewBag.LoanProducts
         }
 
         [HttpPost]

@@ -25,6 +25,14 @@
       "PackagePath": "staticwebassets\\js\\site.js"
     },
     {
+      "Id": "C:\\CredWise-Trail\\CredWise\\wwwroot\\kyc_documents\\7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf",
+      "PackagePath": "staticwebassets\\kyc_documents\\7_bbb3a00e-ada7-4fde-b904-fb38ffe3d049_identity.pdf"
+    },
+    {
+      "Id": "C:\\CredWise-Trail\\CredWise\\wwwroot\\kyc_documents\\7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf",
+      "PackagePath": "staticwebassets\\kyc_documents\\7_ec10c3fd-19af-4948-91d8-4adc637a9dd0_identity.pdf"
+    },
+    {
       "Id": "C:\\CredWise-Trail\\CredWise\\wwwroot\\lib\\bootstrap\\LICENSE",
       "PackagePath": "staticwebassets\\lib\\bootstrap"
     },

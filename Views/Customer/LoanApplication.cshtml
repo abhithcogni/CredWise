@@ -10,6 +10,25 @@
     string kycPageLink = ViewData["KycPageLink"] as string;
     string kycPageLinkText = ViewData["KycPageLinkText"] as string;
     string kycStatus = ViewData["KycStatus"] as string;
+    string kycStatusClass = "";
+    if (!string.IsNullOrEmpty(kycStatus))
+    {
+        switch (kycStatus.ToLower()) // Use ToLower for case-insensitive comparison
+        {
+            case "pending":
+                kycStatusClass = "text-warning"; // Bootstrap's yellow text
+                break;
+            case "rejected":
+                kycStatusClass = "text-danger";  // Bootstrap's red text
+                break;
+            case "not submitted":
+                kycStatusClass = "text-secondary"; // A muted/grey color for not submitted
+                break;
+            default:
+                kycStatusClass = "text-info"; // Default color for other statuses like "Approved" (though "Approved" wouldn't typically show here)
+                break;
+        }
+    }
 }
 
 <!DOCTYPE html>
@@ -25,6 +44,8 @@
             background-color: #f0f2f5;
             margin: 0;
         }
+
+        
 
         .card-form-container {
             border: 1px solid #e9ecef;
@@ -211,8 +232,11 @@
                 @if (!string.IsNullOrEmpty(kycPageLink) && !string.IsNullOrEmpty(kycPageLinkText))
                 {
                     <div class="text-center mt-3">
-                        <p>Your KYC status: <strong>@kycStatus</strong></p>
-                        <a href="@kycPageLink" class="btn btn-info btn-lg">
+                        @if (!string.IsNullOrEmpty(kycStatus))
+                        {
+                            <p>Your KYC status: <strong class="@kycStatusClass">@kycStatus</strong></p>
+                        }
+                        <a href="@kycPageLink" class="btn btn-primary btn-lg">
                             <i class="fas fa-user-shield me-2"></i>@kycPageLinkText
                         </a>
                     </div>
