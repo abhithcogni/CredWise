@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "KYC Verification - MyBank";
+    bool showForm = (bool?)ViewData["ShowForm"] ?? true; // Default to true if not set
+    string currentKycStatus = ViewData["CurrentKycStatus"] as string;
 }
 
 <!DOCTYPE html>
@@ -42,13 +44,19 @@
         .form-check-input {
             accent-color: #0A2463;
         }
+
+        .alert-instructions {
+            background-color: #e7f3fe; /* Light blue for instructions */
+            border-color: #d0eaff;
+            color: #0c5460;
+        }
     </style>
 </head>
 <body>
     <div class="kyc-form-container-wrapper mt-3">
         <div class="card form-card">
             <div class="card-header">
-                <i class="fas fa-shield-alt"></i>KYC Document Upload
+                <i class="fas fa-shield-alt"></i> KYC Document Upload
             </div>
             <div class="card-body">
                 @if (TempData["SuccessMessage"] != null)
@@ -65,139 +73,187 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 }
-                @if (!ViewData.ModelState.IsValid)
+                @if (TempData["InfoMessage"] != null)
                 {
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        Please correct the errors below.
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        @TempData["InfoMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["WarningMessage"] != null)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        @TempData["WarningMessage"]
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 }
 
-                <div class="alert alert-instructions" role="alert">
-                    <h4 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Important Information</h4>
-                    <p>To complete your KYC verification, please upload a clear copy of your **identity proof**. Ensure the document is valid and legible.</p>
-                    <hr>
-                    <p class="mb-0">Accepted file types: JPG, PNG, PDF. Maximum file size: 5MB.</p>
-                </div>
+                @if (!ViewData.ModelState.IsValid && !TempData.ContainsKey("ErrorMessage")) // Show model state errors if not already covered by a general ErrorMessage
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        Please correct the errors below.
+                        @* You can also list model errors here if desired: *@
+                        @* <div asp-validation-summary="ModelOnly" class="text-danger"></div> *@
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
 
-                <form asp-action="KYCUpload" method="post" enctype="multipart/form-data" id="kycForm">
-                    @* Added id="kycForm" here *@
-                    @Html.AntiForgeryToken()
-
-                    <div class="mb-4">
-                        <label asp-for="IdentityDocumentType" class="form-label fw-bold"><i class="fas fa-id-card me-2"></i>Identity Proof Document</label>
-                        <select asp-for="IdentityDocumentType" class="form-select form-select-lg mb-2">
-                            <option selected disabled value="">Select Document Type...</option>
-                            <option value="aadhaar_card">Aadhaar Card (India)</option>
-                            <option value="pan_card">PAN Card (India)</option>
-                            <option value="drivers_license">Driver's License</option>
-                            <option value="passport">Passport</option>
-                            <option value="voter_id">Voter ID</option>
-                            <option value="other_identity">Other Identity Proof</option>
-                        </select>
-                        <span asp-validation-for="IdentityDocumentType" class="text-danger"></span>
-
-                        <label asp-for="IdentityProofFile" class="file-upload-label mt-2">Upload Identity Proof:</label>
-                        <input asp-for="IdentityProofFile" type="file" class="form-control form-control-lg" accept=".jpg,.jpeg,.png,.pdf">
-                        <div class="form-text">e.g., Aadhaar, PAN, Driver's License, Passport.</div>
-                        <span asp-validation-for="IdentityProofFile" class="text-danger"></span>
+                @if (showForm) // Conditionally display the form
+                {
+                    <div class="alert alert-instructions" role="alert">
+                        <h4 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Important Information</h4>
+                        <p>To complete your KYC verification, please upload a clear copy of your **identity proof**. Ensure the document is valid and legible.</p>
+                        <hr>
+                        <p class="mb-0">Accepted file types: JPG, PNG, PDF. Maximum file size: 5MB.</p>
                     </div>
 
-                    <div class="form-check mb-4">
-                        <input asp-for="DeclarationAccepted" class="form-check-input" type="checkbox" id="declaration">
-                        <label class="form-check-label" for="declaration">
-                            I declare that the information and documents provided are true, correct, and up-to-date.
-                        </label>
-                        <span asp-validation-for="DeclarationAccepted" class="text-danger"></span>
-                    </div>
+                    <form asp-action="KYCUpload" method="post" enctype="multipart/form-data" id="kycForm">
+                        @Html.AntiForgeryToken()
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100">
-                        <i class="fas fa-upload me-2"></i>Submit Document for Verification
-                    </button>
-                </form>
+                        <div class="mb-4">
+                            <label asp-for="IdentityDocumentType" class="form-label fw-bold"><i class="fas fa-id-card me-2"></i>Identity Proof Document Type</label>
+                            <select asp-for="IdentityDocumentType" class="form-select form-select-lg mb-2">
+                                <option selected disabled value="">Select Document Type...</option>
+                                <option value="aadhaar_card">Aadhaar Card (India)</option>
+                                <option value="pan_card">PAN Card (India)</option>
+                                <option value="drivers_license">Driver's License</option>
+                                <option value="passport">Passport</option>
+                                <option value="voter_id">Voter ID</option>
+                                <option value="other_identity">Other Identity Proof</option>
+                            </select>
+                            <span asp-validation-for="IdentityDocumentType" class="text-danger"></span>
+
+                            <label asp-for="IdentityProofFile" class="form-label fw-bold mt-3"><i class="fas fa-file-upload me-2"></i>Upload Identity Proof File</label>
+                            <input asp-for="IdentityProofFile" type="file" class="form-control form-control-lg" accept=".jpg,.jpeg,.png,.pdf">
+                            <div class="form-text">e.g., Aadhaar, PAN, Driver's License, Passport. Max 5MB.</div>
+                            <span asp-validation-for="IdentityProofFile" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input asp-for="DeclarationAccepted" class="form-check-input" type="checkbox" id="declaration">
+                            <label class="form-check-label" for="declaration">
+                                I declare that the information and documents provided are true, correct, and up-to-date.
+                            </label>
+                            <span asp-validation-for="DeclarationAccepted" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-upload me-2"></i>Submit Document for Verification
+                        </button>
+                    </form>
+                }
+                else if (currentKycStatus == "Approved") // If form is not shown and status is Approved
+                {
+                    // The TempData["InfoMessage"] already covers this, but you can add a specific visual here.
+                    // For example:
+                    // <div class="text-center mt-4">
+                    //    <h4><i class="fas fa-check-circle text-success me-2"></i>KYC Approved</h4>
+                    //    <p>Your KYC has been successfully verified. No further action is needed.</p>
+                    //    <a asp-controller="Customer" asp-action="CustomerDashboard" class="btn btn-outline-secondary mt-2">Go to Dashboard</a>
+                    // </div>
+                }
+
 
                 <div class="mt-4 text-center">
-                    <p class="text-muted">Your KYC status is currently: <strong class="text-warning">PENDING</strong>. <br> It will be updated to <strong class="text-success">VERIFIED</strong> after successful review by our team (usually within 24-48 hours).</p>
+                    @if (!string.IsNullOrEmpty(currentKycStatus))
+                    {
+                        if (currentKycStatus == "Pending")
+                        {
+                            <p class="text-muted">Your current KYC submission status: <strong class="text-warning">PENDING REVIEW</strong>.</p>
+                            @if (showForm)
+                            {
+                                <p class="text-muted small">It will be updated after review by our team (usually within 24-48 hours). You can re-submit if necessary.</p>
+                            }
+                        }
+                        else if (currentKycStatus == "Rejected")
+                        {
+                            <p class="text-muted">Your previous KYC submission status: <strong class="text-danger">REJECTED</strong>.</p>
+                            @if (showForm)
+                            {
+                                <p class="text-muted small">Please upload your documents again for verification.</p>
+                            }
+                        }
+                        else if (currentKycStatus == "Approved" && !showForm) // Only show this if the form is hidden
+                        {
+                            <p class="text-muted">Your KYC status: <strong class="text-success">APPROVED</strong>.</p>
+                        }
+                        else if (currentKycStatus == "Not Submitted" && showForm)
+                        {
+                            <p class="text-muted">You have not submitted KYC documents yet. Please upload them for verification.</p>
+                            <p class="text-muted small">After submission, your status will become <strong class="text-warning">PENDING REVIEW</strong>.</p>
+                        }
+                    }
                 </div>
+
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    @* jQuery and Unobtrusive validation scripts are good for client-side validation, keep them if you use data annotations for validation on your ViewModel *@
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.6.0.min.js"></script> @* Ensure jQuery is loaded before unobtrusive validation *@
     <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.3/jquery.validate.min.js"></script>
     <script src="https://ajax.aspnetcdn.com/ajax/jquery.validation.unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
-        // Ensure the form element has an ID 'kycForm'
-        const kycForm = document.getElementById('kycForm');
+        document.addEventListener('DOMContentLoaded', function () {
+            const kycForm = document.getElementById('kycForm');
 
-        if (kycForm) { // Only add listener if form is found
-            kycForm.addEventListener('submit', function(event) {
-                Get the IdentityProofFile element
-                const identityFileInput = document.getElementById('IdentityProofFile');
+            if (kycForm) {
+                kycForm.addEventListener('submit', function (event) {
+                    const identityFileInput = document.getElementById('IdentityProofFile');
+                    const declarationCheckbox = document.getElementById('declaration');
+                    let allClientValid = true;
 
-                // Check if the element exists
-                if (!identityFileInput) {
-                    console.error("IdentityProofFile input element not found!");
-                    // event.preventDefault(); Stop submission as we can't validate the file
-                    return;
-                }
+                    // File validation
+                    if (identityFileInput && identityFileInput.files.length > 0) {
+                        const identityFile = identityFileInput.files[0];
+                        const maxSize = 5 * 1024 * 1024; // 5MB
+                        const allowedIdentityTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
 
-                const identityFile = identityFileInput.files[0]; // Now access .files safely
-
-                const maxSize = 5 * 1024 * 1024; // 5MB
-
-                function isValidFile(file, allowedTypes, maxSize) {
-                    if (!file) return false; // Identity Proof is required (client-side check for presence)
-                    const fileType = file.type;
-                    if (!allowedTypes.includes(fileType)) {
-                        return false;
+                        if (!allowedIdentityTypes.includes(identityFile.type)) {
+                            alert('Identity Proof: Invalid file type. Please upload JPG, PNG, or PDF.');
+                            allClientValid = false;
+                        }
+                        if (identityFile.size > maxSize) {
+                            alert('Identity Proof: File size exceeds 5MB.');
+                            allClientValid = false;
+                        }
+                    } else if (identityFileInput) { // File input exists but no file selected
+                        // Server-side validation will catch this as required if attribute is present.
+                        // You can add an alert here if you want immediate client feedback for missing file.
+                        // alert('Please select an Identity Proof file to upload.');
+                        // allClientValid = false;
                     }
-                    if (file.size > maxSize) {
-                        return false;
+
+
+                    // Declaration check
+                    if (declarationCheckbox && !declarationCheckbox.checked) {
+                        alert('You must accept the declaration to proceed.');
+                        allClientValid = false;
                     }
-                    return true;
-                }
 
-                const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-                const allowedPdfTypes = ['application/pdf'];
-                const allowedIdentityTypes = [...allowedImageTypes, ...allowedPdfTypes]; // JPG, PNG, PDF
-
-                let allFilesValid = true;
-
-                if (!isValidFile(identityFile, allowedIdentityTypes, maxSize)) {
-                    alert('Identity Proof: Invalid file type or size (max 5MB, JPG/PNG/PDF).');
-                    // event.preventDefault(); Prevent form submission
-                    allFilesValid = false;
-                }
-
-                // Client-side check for DeclarationAccepted (optional, but good for UX)
-                const declarationCheckbox = document.getElementById('declaration');
-                if (declarationCheckbox && !declarationCheckbox.checked) {
-                    alert('You must accept the declaration.');
-                    // event.preventDefault();
-                    allFilesValid = false;
-                }
-
-                if (!allFilesValid) {
-                     return; // Stop the function here if validation fails
-                }
-            });
-        } else {
-            console.error("Form with ID 'kycForm' not found. Client-side validation for file uploads might not work.");
-        }
-
-
-        // Basic script to display file name after selection (UX improvement)
-        function setupFileNameDisplay(inputId) {
-            const fileInput = document.getElementById(inputId);
-            if (fileInput) {
-                fileInput.addEventListener('change', function () {
-                    const fileName = this.files[0] ? this.files[0].name : "No file chosen";
-                    console.log(`Selected file for ${inputId}: ${fileName}`);
+                    if (!allClientValid) {
+                        event.preventDefault(); // Stop form submission if client-side validation fails
+                        return;
+                    }
+                    // If all client-side checks pass, the form will submit normally.
                 });
             }
-        }
-        setupFileNameDisplay('IdentityProofFile'); // Now only for IdentityProofFile
+
+            function setupFileNameDisplay(inputId) {
+                const fileInput = document.getElementById(inputId);
+                if (fileInput) {
+                    fileInput.addEventListener('change', function () {
+                        const fileName = this.files[0] ? this.files[0].name : "No file chosen";
+                        // You could update a label next to the input to show the file name
+                        // For example, create a <span id="fileNameDisplay"></span> and update its textContent.
+                        console.log(`Selected file for ${inputId}: ${fileName}`);
+                    });
+                }
+            }
+            setupFileNameDisplay('IdentityProofFile');
+        });
     </script>
 </body>
 </html>

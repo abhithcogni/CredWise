@@ -6,7 +6,8 @@ using CredWise_Trail.ViewModels;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using System.ComponentModel.DataAnnotations;
-using System.Linq; // Added for LINQ operations
+using System.Linq;
+using Microsoft.AspNetCore.Authorization; // Added for LINQ operations
 
 namespace CredWise_Trail.Controllers
 {
@@ -166,24 +167,71 @@ namespace CredWise_Trail.Controllers
         }
 
         [HttpGet]
-        public IActionResult KYCUpload()
+        [Authorize(Roles = "Customer")] // Ensures only authenticated customers can access
+        public async Task<IActionResult> KYCUpload()
         {
-            if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
+            // User.Identity.IsAuthenticated check is implicitly handled by [Authorize]
+            // User.IsInRole("Customer") is also handled by [Authorize(Roles="Customer")]
+
+            var customerIdClaim = User.FindFirst("CustomerId"); // Or User.FindFirst(ClaimTypes.NameIdentifier) if that's what you use
+            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
             {
-                return RedirectToAction("Login", "Account");
+                TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
+                // It might be better to redirect to Login if customerId is crucial and missing,
+                // or ensure it's always present for authenticated customers.
+                return RedirectToAction("Logout", "Account"); // Or an error page
             }
-            return View();
+
+            // Fetch the most recent KYC record for the customer
+            var latestKyc = await _context.KycApprovals
+                                        .Where(k => k.CustomerId == customerId)
+                                        .OrderByDescending(k => k.SubmissionDate)
+                                        .FirstOrDefaultAsync();
+
+            var model = new KycUploadViewModel(); // Initialize model for the view
+
+            if (latestKyc != null)
+            {
+                ViewData["CurrentKycStatus"] = latestKyc.Status; // Store current status for display
+                switch (latestKyc.Status)
+                {
+                    case "Approved":
+                        ViewData["ShowForm"] = false; // Flag to hide form
+                        TempData["InfoMessage"] = "Your KYC has already been approved. No further action is required.";
+                        // Optionally, redirect to dashboard if no other info needs to be shown on this page
+                        // return RedirectToAction("CustomerDashboard");
+                        break;
+                    case "Pending":
+                        ViewData["ShowForm"] = true; // Flag to show form (allows resubmission)
+                        TempData["InfoMessage"] = "Your KYC submission is currently pending review. You can upload new documents if you wish to replace the previous submission.";
+                        break;
+                    case "Rejected":
+                        ViewData["ShowForm"] = true; // Flag to show form for resubmission
+                        TempData["WarningMessage"] = "Your previous KYC submission was rejected. Please review any feedback and upload the correct documents again.";
+                        break;
+                    default: // Handles any other unforeseen status or if a new submission is desired
+                        ViewData["ShowForm"] = true;
+                        break;
+                }
+            }
+            else // No existing KYC record, it's a new submission
+            {
+                ViewData["ShowForm"] = true;
+                ViewData["CurrentKycStatus"] = "Not Submitted"; // For display purposes
+                                                                // No specific TempData message needed here, the standard form instructions will show.
+            }
+
+            return View(model);
         }
 
+        // Your existing HttpPost KYCUpload action remains largely the same.
+        // It will create a new KYC record with "Pending" status upon each submission.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> KYCUpload(KycUploadViewModel model)
         {
-            if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
+            // Existing authentication and customerId retrieval logic
             var customerIdClaim = User.FindFirst("CustomerId");
             if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
             {
@@ -191,10 +239,22 @@ namespace CredWise_Trail.Controllers
                 return RedirectToAction("Logout", "Account");
             }
 
+            // Check if an "Approved" KYC already exists. If so, prevent new submissions.
+            // This is an additional safeguard in the POST, complementing the GET logic.
+            var existingApprovedKyc = await _context.KycApprovals
+                                            .AnyAsync(k => k.CustomerId == customerId && k.Status == "Approved");
+            if (existingApprovedKyc)
+            {
+                TempData["InfoMessage"] = "Your KYC is already approved. You cannot submit new documents.";
+                return RedirectToAction("CustomerDashboard"); // Or back to the KYCUpload page which will show the approved message
+            }
+
+
             if (ModelState.IsValid)
             {
-                string contentRootPath = Directory.GetCurrentDirectory();
-                string uploadFolder = Path.Combine(contentRootPath, "kyc_documents");
+                string contentRootPath = Directory.GetCurrentDirectory(); // Consider using IWebHostEnvironment
+                string uploadFolder = Path.Combine(contentRootPath, "wwwroot", "kyc_documents"); // Store in wwwroot for easier serving if needed
+
                 if (!Directory.Exists(uploadFolder))
                 {
                     Directory.CreateDirectory(uploadFolder);
@@ -203,9 +263,26 @@ namespace CredWise_Trail.Controllers
                 try
                 {
                     string identityFileName = null;
-                    if (model.IdentityProofFile != null)
+                    if (model.IdentityProofFile != null && model.IdentityProofFile.Length > 0)
                     {
-                        string fileExtension = Path.GetExtension(model.IdentityProofFile.FileName);
+                        // Basic validation (you have client-side, but server-side is crucial)
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
+                        var fileExtension = Path.GetExtension(model.IdentityProofFile.FileName).ToLowerInvariant();
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            ModelState.AddModelError("IdentityProofFile", "Invalid file type. Only JPG, PNG, PDF are allowed.");
+                            TempData["ErrorMessage"] = "Invalid file type submitted.";
+                            return View(model);
+                        }
+
+                        long maxFileSize = 5 * 1024 * 1024; // 5MB
+                        if (model.IdentityProofFile.Length > maxFileSize)
+                        {
+                            ModelState.AddModelError("IdentityProofFile", "File size exceeds the 5MB limit.");
+                            TempData["ErrorMessage"] = "File size exceeds the 5MB limit.";
+                            return View(model);
+                        }
+
                         identityFileName = $"{customerId}_{Guid.NewGuid()}_identity{fileExtension}";
                         string filePath = Path.Combine(uploadFolder, identityFileName);
                         using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -213,13 +290,20 @@ namespace CredWise_Trail.Controllers
                             await model.IdentityProofFile.CopyToAsync(fileStream);
                         }
                     }
+                    else
+                    {
+                        ModelState.AddModelError("IdentityProofFile", "Identity proof document is required.");
+                        TempData["ErrorMessage"] = "Identity proof document is required.";
+                        return View(model); // Stay on the view if the file is missing
+                    }
 
                     var kycApproval = new KycApproval
                     {
                         CustomerId = customerId,
                         SubmissionDate = DateTime.UtcNow,
-                        Status = "Pending",
-                        DocumentPath = identityFileName,
+                        Status = "Pending", // New submissions are always Pending
+                        DocumentPath = identityFileName, // Relative path if stored in wwwroot, or full path
+                                                         // DocumentType = model.IdentityDocumentType // Assuming you add this to KycApproval model if needed
                     };
 
                     _context.KycApprovals.Add(kycApproval);
@@ -230,13 +314,15 @@ namespace CredWise_Trail.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error uploading KYC documents: {ex.Message}");
+                    // Log the exception (ex)
+                    Console.WriteLine($"Error uploading KYC documents: {ex.Message}"); // Basic logging
                     TempData["ErrorMessage"] = "An error occurred during document upload. Please try again.";
                     ModelState.AddModelError("", "An unexpected error occurred. Please try again.");
                 }
             }
             else
             {
+                // Log ModelState errors for debugging
                 foreach (var state in ModelState)
                 {
                     foreach (var error in state.Value.Errors)
@@ -244,8 +330,11 @@ namespace CredWise_Trail.Controllers
                         Console.WriteLine($"ModelState Error: {state.Key} - {error.ErrorMessage}");
                     }
                 }
+                TempData["ErrorMessage"] = "Please correct the errors below and try again.";
             }
 
+            // If ModelState is invalid or an exception occurred, return to the view with the model
+            // The view will then display the validation errors and TempData messages
             return View(model);
         }
 

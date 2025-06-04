@@ -577,3 +577,4 @@ C:\Users\2406687\OneDrive - Cognizant\Desktop\CredWise final\CredWise\obj\Debug\
 C:\Users\2406687\OneDrive - Cognizant\Desktop\CredWise final\CredWise\obj\Debug\net8.0\CredWise-Trail.pdb
 C:\Users\2406687\OneDrive - Cognizant\Desktop\CredWise final\CredWise\obj\Debug\net8.0\CredWise-Trail.genruntimeconfig.cache
 C:\Users\2406687\OneDrive - Cognizant\Desktop\CredWise final\CredWise\obj\Debug\net8.0\ref\CredWise-Trail.dll
+C:\CredWise-Trail\CredWise\bin\Debug\net8.0\Newtonsoft.Json.dll
