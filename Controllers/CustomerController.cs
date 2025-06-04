@@ -303,7 +303,7 @@ namespace CredWise_Trail.Controllers
             if (ModelState.IsValid)
             {
                 string contentRootPath = Directory.GetCurrentDirectory(); // Consider using IWebHostEnvironment
-                string uploadFolder = Path.Combine(contentRootPath, "wwwroot", "kyc_documents"); // Store in wwwroot for easier serving if needed
+                string uploadFolder = Path.Combine(contentRootPath, "kyc_documents"); // Store in wwwroot for easier serving if needed
 
                 if (!Directory.Exists(uploadFolder))
                 {

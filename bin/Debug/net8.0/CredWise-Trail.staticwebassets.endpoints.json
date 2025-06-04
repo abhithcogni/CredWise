@@ -659,6 +659,88 @@
       ]
     },
     {
+      "Route": "kyc_documents/7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.pdf",
+      "AssetFile": "kyc_documents/7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.pdf",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "245490"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/pdf"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"E7tIRjEogkx6jsDF9O9lPvOmZTffNaeqNoEjfoeKIiE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 04 Jun 2025 07:05:50 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-E7tIRjEogkx6jsDF9O9lPvOmZTffNaeqNoEjfoeKIiE="
+        }
+      ]
+    },
+    {
+      "Route": "kyc_documents/7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.rq1xgxomte.pdf",
+      "AssetFile": "kyc_documents/7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.pdf",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "245490"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/pdf"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"E7tIRjEogkx6jsDF9O9lPvOmZTffNaeqNoEjfoeKIiE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 04 Jun 2025 07:05:50 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "rq1xgxomte"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-E7tIRjEogkx6jsDF9O9lPvOmZTffNaeqNoEjfoeKIiE="
+        },
+        {
+          "Name": "label",
+          "Value": "kyc_documents/7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.pdf"
+        }
+      ]
+    },
+    {
       "Route": "lib/bootstrap/LICENSE",
       "AssetFile": "lib/bootstrap/LICENSE",
       "Selectors": [],

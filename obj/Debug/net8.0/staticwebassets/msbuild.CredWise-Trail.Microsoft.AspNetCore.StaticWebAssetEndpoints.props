@@ -96,6 +96,18 @@
       <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko="}]]]></EndpointProperties>
       <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"355519"},{"Name":"Content-Type","Value":"application/pdf"},{"Name":"ETag","Value":"\u0022F5PSvI\u002BjZDku8UfX24dgtUHJuvvRyC6\u002BKxFAyxl4yko=\u0022"},{"Name":"Last-Modified","Value":"Wed, 04 Jun 2025 06:46:28 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/CredWise-Trail/kyc_documents/7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.pdf">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.pdf'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-E7tIRjEogkx6jsDF9O9lPvOmZTffNaeqNoEjfoeKIiE="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"245490"},{"Name":"Content-Type","Value":"application/pdf"},{"Name":"ETag","Value":"\u0022E7tIRjEogkx6jsDF9O9lPvOmZTffNaeqNoEjfoeKIiE=\u0022"},{"Name":"Last-Modified","Value":"Wed, 04 Jun 2025 07:05:50 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/CredWise-Trail/kyc_documents/7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.rq1xgxomte.pdf">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.pdf'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"rq1xgxomte"},{"Name":"integrity","Value":"sha256-E7tIRjEogkx6jsDF9O9lPvOmZTffNaeqNoEjfoeKIiE="},{"Name":"label","Value":"_content/CredWise-Trail/kyc_documents/7_fee8e640-fcdf-4ab9-8065-1857f25878fd_identity.pdf"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"245490"},{"Name":"Content-Type","Value":"application/pdf"},{"Name":"ETag","Value":"\u0022E7tIRjEogkx6jsDF9O9lPvOmZTffNaeqNoEjfoeKIiE=\u0022"},{"Name":"Last-Modified","Value":"Wed, 04 Jun 2025 07:05:50 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/CredWise-Trail/lib/bootstrap/dist/css/bootstrap-grid.agp80tu62r.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\lib\bootstrap\dist\css\bootstrap-grid.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
