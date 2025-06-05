@@ -480,87 +480,112 @@
                 statusModal.show();
 
                 // AJAX call to process payment
-                $.ajax({
-                    type: "POST",
-                    url: $(this).attr('action'), // Get URL from form's action attribute
-                    data: $(this).serialize(),   // Serialize form data (includes AntiForgeryToken)
-                    dataType: "json",            // Expect JSON response from server
-                    success: function (response) {
-                        modalSpinner.addClass('d-none');    // Hide spinner
-                        modalResultDiv.removeClass('d-none'); // Show result area
-                        modalFooter.removeClass('d-none');  // Show footer with close button
+                    $.ajax({
+                type: "POST",
+                url: $(this).attr('action'),
+                data: $(this).serialize(),
+                dataType: "json",
+                success: function (response) {
+                    modalSpinner.addClass('d-none');
+                    modalResultDiv.removeClass('d-none');
+                    modalFooter.removeClass('d-none');
 
-                        if (response.success) {
-                            modalHeader.removeClass('bg-primary').addClass('bg-success text-white');
-                            modalLabel.text('Payment Successful!');
-                            modalResultDiv.html(
-                                `<div class="text-success"><i class="fas fa-check-circle status-icon"></i></div>
-                                 <p class="fs-5">${response.message || "Your payment has been processed successfully."}</p>
-                                 ${response.outstandingBalance !== undefined ? `<p>New Outstanding Balance: INR ${parseFloat(response.outstandingBalance).toFixed(2)}</p>` : ''}
-                                 ${response.transactionId ? `<p class="small text-muted">Transaction ID: ${response.transactionId}</p>` : ''}`
-                            );
-                            modalCloseButton.removeClass('btn-danger').addClass('btn-primary');
+                    if (response.success) {
+                        modalHeader.removeClass('bg-primary').addClass('bg-success text-white');
+                        modalLabel.text('Payment Successful!');
+                        modalResultDiv.html(
+                            `<div class="text-success"><i class="fas fa-check-circle status-icon"></i></div>
+                             <p class="fs-5">${response.message || "Your payment has been processed successfully."}</p>
+                             ${response.outstandingBalance !== undefined ? `<p>New Outstanding Balance: INR ${parseFloat(response.outstandingBalance).toFixed(2)}</p>` : ''}
+                             ${response.transactionId ? `<p class="small text-muted">Transaction ID: ${response.transactionId}</p>` : ''}`
+                        );
+                        modalCloseButton.removeClass('btn-danger btn-primary').addClass('btn-success');
 
 
-                            // Update page elements with new data from response
-                            if (response.amountDue !== undefined) {
-                                amountDueDisplay.text('INR ' + parseFloat(response.amountDue).toFixed(2));
-                                if (parseFloat(response.amountDue) > 0 && response.loanStatus !== "Closed") {
-                                    amountDueDisplay.removeClass('text-success').addClass('text-danger');
-                                } else {
-                                    amountDueDisplay.removeClass('text-danger').addClass('text-success');
-                                }
-                                // Update payment amount input for next payment
-                                paymentAmountInput.val(parseFloat(response.amountDue > 0 ? response.amountDue : (response.emi > 0 ? response.emi : "100.00")).toFixed(2));
+                        // --- Enhanced Page Element Updates ---
+                        amountDueDisplay.text('INR ' + parseFloat(response.amountDue > 0 ? response.amountDue : 0).toFixed(2));
+                        if (parseFloat(response.amountDue) > 0 && response.loanStatus !== "Closed") {
+                            amountDueDisplay.removeClass('text-success').addClass('text-danger');
+                        } else {
+                            amountDueDisplay.removeClass('text-danger').addClass('text-success');
+                        }
+
+                        if (response.nextDueDate) {
+                            dueDateDisplay.text(new Date(response.nextDueDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }));
+                        } else {
+                            dueDateDisplay.text("N/A");
+                        }
+
+                        outstandingBalanceDisplay.text('INR ' + parseFloat(response.outstandingBalance).toFixed(2));
+
+                        loanStatusSpan.text(response.loanStatus)
+                            .removeClass('text-danger text-info text-success text-secondary')
+                            .addClass(response.loanStatus === "Overdue" ? "text-danger" :
+                                     (response.loanStatus === "Closed" ? "text-success" :
+                                     (response.loanStatus === "Active" ? "text-info" : "text-secondary")));
+
+                        // Update Overdue Details Section
+                        if (response.loanStatus === "Overdue" && response.overdueMonths > 0) {
+                            overdueMonthsDisplay.text(response.overdueMonths);
+                            currentOverdueAmountDisplay.text('INR ' + parseFloat(response.currentOverdueAmount).toFixed(2));
+                            overdueDetailsRowOverdueMonths.removeClass('d-none').show(); // Ensure visible
+                            overdueDetailsRowCurrentOverdueAmount.removeClass('d-none').show(); // Ensure visible
+                        } else {
+                            overdueMonthsDisplay.text('0');
+                            currentOverdueAmountDisplay.text('INR 0.00');
+                            overdueDetailsRowOverdueMonths.addClass('d-none'); // Hide if not overdue
+                            overdueDetailsRowCurrentOverdueAmount.addClass('d-none'); // Hide if not overdue
+                        }
+
+                        // Update Payment Amount Input and Helper Text
+                        let suggestedPaymentValue = "0.00";
+                        paymentAmountFormText.find('.text-danger.d-block.mt-1').remove(); // Clear old overdue message
+
+                        if (response.loanStatus === "Overdue" && response.currentOverdueAmount > 0) {
+                            // For overdue, the amountDue from response should be total (overdue + current if any)
+                            suggestedPaymentValue = parseFloat(response.amountDue).toFixed(2);
+                            if (response.currentOverdueAmount > 0) {
+                                 paymentAmountFormText.append(`<span class="text-danger d-block mt-1">Your loan is overdue. Suggested payment: INR ${parseFloat(response.amountDue).toFixed(2)} (includes INR ${parseFloat(response.currentOverdueAmount).toFixed(2)} in dues).</span>`);
                             }
-                            if (response.nextDueDate) {
-                                dueDateDisplay.text(new Date(response.nextDueDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }));
-                            } else if (response.loanStatus === "Closed") {
-                                dueDateDisplay.text("N/A");
-                            }
-                            if (response.outstandingBalance !== undefined) {
-                                outstandingBalanceDisplay.text('INR ' + parseFloat(response.outstandingBalance).toFixed(2));
-                            }
-                            if (response.loanStatus) {
-                                loanStatusSpan.text(response.loanStatus)
-                                    .removeClass('text-danger text-info text-success text-secondary') // Clear existing color classes
-                                    .addClass(response.loanStatus === "Overdue" ? "text-danger" :
-                                             (response.loanStatus === "Closed" ? "text-success" :
-                                             (response.loanStatus === "Active" ? "text-info" : "text-secondary")));
-                            }
+                        } else if (response.loanStatus === "Active") {
+                            suggestedPaymentValue = parseFloat(response.amountDue > 0 ? response.amountDue : (response.emi > 0 ? response.emi : "100.00")).toFixed(2);
+                        }
+                        paymentAmountInput.val(suggestedPaymentValue);
 
-                            // Handle UI changes based on new loan status
-                            if (response.loanStatus === "Closed" || (response.outstandingBalance !== undefined && response.outstandingBalance <= 0)) {
-                                paymentForm.hide(); // Hide payment form if loan is closed or fully paid
-                                processingLoaderInline.addClass('d-none'); // Hide inline loader too
-                                paymentSuccessPageMsg.addClass('d-none'); // Hide generic success message on page
-                                noPaymentDuePageMsgDiv.html('<i class="fas fa-info-circle me-2"></i>No payment is due as this loan is fully paid and closed.').removeClass('d-none');
-                                $('#paymentPageSubtitle').text(`This loan (${$('#loanProductName').text()}) is closed.`);
-                            } else {
-                                paymentSuccessPageMsg.removeClass('d-none'); // Show "Payment successful" message on page
-                                noPaymentDuePageMsgDiv.addClass('d-none'); // Hide "no payment due" if there was one
 
-                                // Reset form for potential next payment (if not closed)
-                                paymentForm[0].reset();
-                                $('#termsAndConditions').prop('checked', false); // Uncheck terms
-                                // Re-enable button and hide loader only if form is still relevant
-                                proceedButton.prop('disabled', false).removeClass('d-none');
-                                processingLoaderInline.addClass('d-none');
-                            }
-                        } else { // Payment failed or error reported by server
-                            modalHeader.removeClass('bg-primary').addClass('bg-danger text-white');
-                            modalLabel.text('Payment Failed');
-                            modalResultDiv.html(
-                                `<div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
-                                 <p class="fs-5">${response.message || "Your payment could not be processed."}</p>`
-                            );
-                            modalCloseButton.removeClass('btn-success').addClass('btn-danger');
-
-                            // Re-enable form for another attempt
+                        // Handle UI for loan closure or no payment due
+                        if (response.loanStatus === "Closed" || (response.outstandingBalance !== undefined && response.outstandingBalance <= 0 && response.amountDue <=0)) {
+                            paymentForm.hide();
+                            processingLoaderInline.addClass('d-none');
+                            paymentSuccessPageMsg.addClass('d-none');
+                            noPaymentDuePageMsgDiv.html('<i class="fas fa-info-circle me-2"></i>No payment is due as this loan is fully paid and closed.').removeClass('d-none');
+                            $('#paymentPageSubtitle').text(`This loan (${$('#loanProductName').text()}) is closed.`);
+                             // Ensure proceed button is hidden if form is hidden
+                            proceedButton.addClass('d-none');
+                        } else {
+                            paymentForm.show(); // Ensure form is visible if loan is not closed
+                            paymentSuccessPageMsg.removeClass('d-none');
+                            noPaymentDuePageMsgDiv.addClass('d-none');
+                            // Reset form for potential next payment
+                            // paymentForm[0].reset(); // Don't reset, we've set the suggested value
+                            $('#termsAndConditions').prop('checked', false);
                             proceedButton.prop('disabled', false).removeClass('d-none');
                             processingLoaderInline.addClass('d-none');
                         }
-                    },
+
+                    } else { // Payment failed or error reported by server
+                        modalHeader.removeClass('bg-primary bg-success').addClass('bg-danger text-white');
+                        modalLabel.text(response.errorType || 'Payment Failed'); // Use a more specific errorType if available
+                        modalResultDiv.html(
+                            `<div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
+                             <p class="fs-5">${response.message || "Your payment could not be processed."}</p>`
+                        );
+                        modalCloseButton.removeClass('btn-success btn-primary').addClass('btn-danger');
+                        proceedButton.prop('disabled', false).removeClass('d-none');
+                        processingLoaderInline.addClass('d-none');
+                    }
+                },
+               
                     error: function (xhr, status, error) { // AJAX call itself failed
                         modalSpinner.addClass('d-none');
                         modalResultDiv.removeClass('d-none');

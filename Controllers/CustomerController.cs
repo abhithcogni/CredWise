@@ -680,7 +680,6 @@ namespace CredWise_Trail.Controllers
         }
 
         // This action displays the list of accepted loans and simulates their disbursement
-        [HttpGet]
         // GET: /Customer/MakePayment/{loanApplicationId}
         // Displays the payment page for a specific loan, ensuring it belongs to the authenticated customer.
         [HttpGet]
@@ -851,14 +850,20 @@ namespace CredWise_Trail.Controllers
         // POST: /Customer/ProcessPayment
         [HttpPost]
         [ValidateAntiForgeryToken]
+        
+        
         public async Task<IActionResult> ProcessPayment(int loanId, decimal paidAmount, string paymentMethod)
         {
             // IMPORTANT: Validate that loanId belongs to the currently authenticated customer.
-            // Example:
-            // var customerIdClaim = User.FindFirst("CustomerId");
-            // if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int currentCustomerId)) {
-            //     return Json(new { success = false, message = "User not authenticated." });
-            // }
+            // Example using claims:
+            var customerIdClaim = User.FindFirst("CustomerId"); // Ensure "CustomerId" is the correct claim type
+            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int currentCustomerId))
+            {
+                // If you're using ASP.NET Core Identity, User.Identity.Name might give username,
+                // then you'd fetch customer ID from your users table.
+                // Or, a common approach is to store CustomerId as a claim upon login.
+                return Json(new { success = false, message = "User not authenticated or CustomerId not found in claims." });
+            }
 
             if (paidAmount <= 0)
             {
@@ -866,12 +871,12 @@ namespace CredWise_Trail.Controllers
             }
 
             var loanApplication = await _context.LoanApplications
-                                          .Include(la => la.Repayments.Where(r => r.PaymentStatus == "PENDING").OrderBy(r => r.DueDate)) // Eager load pending repayments
-                                          .FirstOrDefaultAsync(la => la.ApplicationId == loanId /* && la.CustomerId == currentCustomerId */); // Uncomment customerId check
+                                                .Include(la => la.Repayments.Where(r => r.PaymentStatus == "PENDING").OrderBy(r => r.DueDate)) // Eager load pending repayments
+                                                .FirstOrDefaultAsync(la => la.ApplicationId == loanId && la.CustomerId == currentCustomerId); // Enforce customer ownership
 
             if (loanApplication == null)
             {
-                return Json(new { success = false, message = "Loan application not found." });
+                return Json(new { success = false, message = "Loan application not found or does not belong to the current user." });
             }
 
             if (loanApplication.LoanStatus == "Closed")
@@ -891,20 +896,28 @@ namespace CredWise_Trail.Controllers
                 PaidAmount = paidAmount,
                 PaymentDate = DateTime.Now,
                 PaymentMethod = paymentMethod,
-                TransactionId = $"MOCKTRX{DateTime.Now.Ticks}", // Placeholder: Generate a real transaction ID
+                TransactionId = $"MOCKTRX{DateTime.Now.Ticks}", // Placeholder: Generate a real transaction ID from payment gateway
                 Status = "Success" // Placeholder: Set based on actual payment gateway response
             };
             _context.LoanPayments.Add(payment);
-            // Ensure LoanPayment.LoanId ForeignKey attribute correctly maps to LoanApplication.ApplicationId.
+            // Ensure LoanPayment.LoanId ForeignKey attribute correctly maps to LoanApplication.ApplicationId in your model.
 
             // --- 2. Apply Payment to Repayments and Update Loan Application ---
             decimal remainingAmountToAllocate = paidAmount;
-            bool duesClearedThisTransaction = false;
+            DateTime today = DateTime.Now.Date;
 
             // Handle overdue payments first
-            if (loanApplication.LoanStatus == "Overdue")
+            // Check based on in-memory loaded repayments or explicitly query if status might have changed externally.
+            // The eager-loaded 'loanApplication.Repayments' should only contain 'PENDING' ones.
+            if (loanApplication.LoanStatus == "Overdue" ||
+                loanApplication.Repayments.Any(r => r.DueDate.Date < today)) // No need to check r.PaymentStatus == "PENDING" if already filtered by Include
             {
-                var pendingOverdueRepayments = loanApplication.Repayments.ToList(); // Already filtered for PENDING, ordered by DueDate
+                if (loanApplication.LoanStatus != "Overdue") loanApplication.LoanStatus = "Overdue"; // Correct status if needed
+
+                var pendingOverdueRepayments = loanApplication.Repayments
+                                                    .Where(r => r.DueDate.Date < today) // Already filtered for PENDING by Include, ordered by DueDate
+                                                    .OrderBy(r => r.DueDate) // Re-order just to be certain if Include's order isn't guaranteed post-load modifications
+                                                    .ToList();
 
                 foreach (var repayment in pendingOverdueRepayments)
                 {
@@ -919,44 +932,27 @@ namespace CredWise_Trail.Controllers
 
                     loanApplication.OutstandingBalance -= principalFromThisEmi;
                     repayment.PaymentDate = DateTime.Now;
-                    repayment.PaymentStatus = "COMPLETED";
-                    _context.Repayments.Update(repayment);
+                    repayment.PaymentStatus = "COMPLETED"; // EF Core tracks this change
                     remainingAmountToAllocate -= amountToApplyToThisRepayment;
-                }
-                if (loanApplication.OutstandingBalance < 0) loanApplication.OutstandingBalance = 0;
-
-                // Check if all past dues are now cleared
-                var stillOverdueRepayments = await _context.Repayments
-                                                .Where(r => r.ApplicationId == loanApplication.ApplicationId &&
-                                                            r.PaymentStatus == "PENDING" &&
-                                                            r.DueDate.Date < DateTime.Now.Date)
-                                                .ToListAsync();
-                if (!stillOverdueRepayments.Any())
-                {
-                    loanApplication.LoanStatus = "Active";
-                    loanApplication.OverdueMonths = 0;
-                    loanApplication.CurrentOverdueAmount = 0;
-                    duesClearedThisTransaction = true;
-                }
-                else
-                { // Still overdue, update overdue details
-                    loanApplication.CurrentOverdueAmount = stillOverdueRepayments.Sum(r => r.AmountDue);
-                    loanApplication.OverdueMonths = stillOverdueRepayments.Count(); // Number of overdue EMIs
                 }
             }
 
-            // Apply to current/future EMIs if loan is Active or dues were just cleared, and funds remain
-            if ((loanApplication.LoanStatus == "Active" || duesClearedThisTransaction) && remainingAmountToAllocate > 0)
+            // Apply to current/future EMIs if loan is Active or dues are now clear, and funds remain
+            // Check if there are NO PENDING overdue repayments in the *in-memory collection* after the above processing.
+            if ((loanApplication.LoanStatus == "Active" || !loanApplication.Repayments.Any(r => r.PaymentStatus == "PENDING" && r.DueDate.Date < today))
+                && remainingAmountToAllocate > 0)
             {
-                var nextPendingRepayments = await _context.Repayments
-                                .Where(r => r.ApplicationId == loanApplication.ApplicationId && r.PaymentStatus == "PENDING")
-                                .OrderBy(r => r.DueDate)
-                                .ToListAsync();
+                // Dues are clear, or loan was already active. Apply to current/future.
+                // Fetch from the in-memory collection, which should reflect any updates from the overdue section.
+                var nextPendingRepayments = loanApplication.Repayments
+                                            .Where(r => r.PaymentStatus == "PENDING") // Still pending after potential overdue payments
+                                            .OrderBy(r => r.DueDate)
+                                            .ToList();
 
                 foreach (var repayment in nextPendingRepayments)
                 {
                     if (remainingAmountToAllocate <= 0) break;
-                    // Assumes payment covers full EMIs. Partial payment of a single EMI needs more complex logic.
+
                     decimal amountToApplyToThisRepayment = Math.Min(remainingAmountToAllocate, repayment.AmountDue);
                     decimal interestForThisEmiPeriod = CalculateInterestForPeriod(loanApplication.OutstandingBalance, loanApplication.InterestRate);
                     decimal principalFromThisEmi = Math.Max(0, amountToApplyToThisRepayment - interestForThisEmiPeriod);
@@ -964,88 +960,137 @@ namespace CredWise_Trail.Controllers
 
                     loanApplication.OutstandingBalance -= principalFromThisEmi;
                     repayment.PaymentDate = DateTime.Now;
-                    repayment.PaymentStatus = "COMPLETED";
-                    _context.Repayments.Update(repayment);
+                    repayment.PaymentStatus = "COMPLETED"; // Mark as completed
                     remainingAmountToAllocate -= amountToApplyToThisRepayment;
                 }
-                if (loanApplication.OutstandingBalance < 0) loanApplication.OutstandingBalance = 0;
             }
 
+            if (loanApplication.OutstandingBalance < 0.01m && loanApplication.OutstandingBalance > -0.01m) // Handle potential floating point inaccuracies
+            {
+                loanApplication.OutstandingBalance = 0;
+            }
             loanApplication.LastPaymentDate = DateTime.Now;
 
-            // --- 3. Update Loan Application's Next Due Date and Amount Due ---
-            var nextScheduledRepayment = await _context.Repayments
-                                    .Where(r => r.ApplicationId == loanApplication.ApplicationId && r.PaymentStatus == "PENDING")
-                                    .OrderBy(r => r.DueDate)
-                                    .FirstOrDefaultAsync();
+            // INSIDE ProcessPayment method, replacing the "FINAL STATE CALCULATION" block
 
-            if (nextScheduledRepayment != null)
+            // --- FINAL STATE CALCULATION for LoanApplication ---
+            // Ensure 'today' is defined in this scope
+
+            // Explicitly get the current state of all Repayment entities for this loan
+            // from EF Core's local change tracker. This reflects all in-memory changes.
+            var allTrackedRepaymentsForThisLoan = _context.ChangeTracker.Entries<Repayment>()
+                .Where(e => e.Entity.ApplicationId == loanApplication.ApplicationId)
+                .Select(e => e.Entity)
+                .ToList();
+
+            // Log the state of these tracked repayments
+            System.Diagnostics.Debug.WriteLine($"--- Repayment States from ChangeTracker (LoanID: {loanApplication.ApplicationId}) BEFORE final LA state calc ---");
+            if (allTrackedRepaymentsForThisLoan.Any())
             {
-                loanApplication.NextDueDate = nextScheduledRepayment.DueDate;
-                loanApplication.AmountDue = nextScheduledRepayment.AmountDue;
+                foreach (var rep in allTrackedRepaymentsForThisLoan.OrderBy(r => r.DueDate))
+                {
+                    System.Diagnostics.Debug.WriteLine($"ChangeTracker Source: RepID: {rep.RepaymentId}, Due: {rep.DueDate.ToShortDateString()}, Amt: {rep.AmountDue}, Status: {rep.PaymentStatus}, PayDate: {rep.PaymentDate?.ToShortDateString() ?? "N/A"}");
+                }
             }
-            else // No more pending repayments
+            else
             {
+                // Fallback if change tracker isn't providing them for some reason (e.g. if they were re-fetched without tracking)
+                // This path indicates a deeper issue if hit, as Include should make them tracked.
+                allTrackedRepaymentsForThisLoan = loanApplication.Repayments?.ToList() ?? new List<Repayment>();
+                System.Diagnostics.Debug.WriteLine($"Warning/Info: Using loanApplication.Repayments navigation property as fallback for final calc. Count: {allTrackedRepaymentsForThisLoan.Count}");
+                // Log these too if fallback is used
+                foreach (var rep in allTrackedRepaymentsForThisLoan.OrderBy(r => r.DueDate))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Fallback Source: RepID: {rep.RepaymentId}, Due: {rep.DueDate.ToShortDateString()}, Amt: {rep.AmountDue}, Status: {rep.PaymentStatus}, PayDate: {rep.PaymentDate?.ToShortDateString() ?? "N/A"}");
+                }
+            }
+            System.Diagnostics.Debug.WriteLine("--- End Repayment States from ChangeTracker ---");
+
+
+            var finalPastDueRepayments = allTrackedRepaymentsForThisLoan // Use this refreshed list
+                .Where(r => r.PaymentStatus == "PENDING" && r.DueDate.Date < today)
+                .ToList();
+
+            var nextUpcomingPendingRepayment = allTrackedRepaymentsForThisLoan // Use this refreshed list
+                .Where(r => r.PaymentStatus == "PENDING")
+                .OrderBy(r => r.DueDate)
+                .FirstOrDefault();
+
+            System.Diagnostics.Debug.WriteLine($"Final Calc - From Tracked Repayments: Found {finalPastDueRepayments.Count} PENDING past due. Next upcoming PENDING: {nextUpcomingPendingRepayment?.DueDate.ToShortDateString() ?? "None"} (RepaymentID: {nextUpcomingPendingRepayment?.RepaymentId}, Status: {nextUpcomingPendingRepayment?.PaymentStatus})");
+
+
+            if (loanApplication.OutstandingBalance <= 0.01m && !finalPastDueRepayments.Any() && nextUpcomingPendingRepayment == null)
+            {
+                loanApplication.LoanStatus = "Closed";
+                loanApplication.OutstandingBalance = 0;
                 loanApplication.NextDueDate = null;
                 loanApplication.AmountDue = 0;
-                if (loanApplication.OutstandingBalance <= 0.01m) // Using a small threshold for decimal precision
+                loanApplication.CurrentOverdueAmount = 0;
+                loanApplication.OverdueMonths = 0;
+                System.Diagnostics.Debug.WriteLine($"LA State set to: Closed");
+            }
+            else if (finalPastDueRepayments.Any())
+            {
+                loanApplication.LoanStatus = "Overdue";
+                loanApplication.OverdueMonths = finalPastDueRepayments.Count;
+                loanApplication.CurrentOverdueAmount = finalPastDueRepayments.Sum(r => r.AmountDue);
+
+                loanApplication.AmountDue = loanApplication.CurrentOverdueAmount;
+                if (nextUpcomingPendingRepayment != null &&
+                    !finalPastDueRepayments.Any(pr => pr.RepaymentId == nextUpcomingPendingRepayment.RepaymentId) && // Ensure it's not also a past due one
+                    nextUpcomingPendingRepayment.DueDate.Date >= today) // And it's current or future
                 {
-                    loanApplication.OutstandingBalance = 0; // Ensure exact zero
-                    loanApplication.LoanStatus = "Closed"; // Loan Closure
-                    loanApplication.CurrentOverdueAmount = 0;
-                    loanApplication.OverdueMonths = 0;
+                    loanApplication.AmountDue += nextUpcomingPendingRepayment.AmountDue;
                 }
+                loanApplication.NextDueDate = nextUpcomingPendingRepayment?.DueDate; // Should be the oldest overall PENDING
+                System.Diagnostics.Debug.WriteLine($"LA State set in OVERDUE block: Status='{loanApplication.LoanStatus}', OverdueMonths='{loanApplication.OverdueMonths}', CurrentOverdueAmount='{loanApplication.CurrentOverdueAmount}', NextDueDate='{loanApplication.NextDueDate?.ToShortDateString()}', Calc AmountDue='{loanApplication.AmountDue}'");
+            }
+            else // No past dues, so loan is Active (if not closed)
+            {
+                loanApplication.LoanStatus = "Active";
+                loanApplication.OverdueMonths = 0;
+                loanApplication.CurrentOverdueAmount = 0m;
+                loanApplication.AmountDue = nextUpcomingPendingRepayment?.AmountDue ?? 0;
+                loanApplication.NextDueDate = nextUpcomingPendingRepayment?.DueDate;
+                System.Diagnostics.Debug.WriteLine($"LA State set in ACTIVE block: Status='{loanApplication.LoanStatus}', OverdueMonths='{loanApplication.OverdueMonths}', CurrentOverdueAmount='{loanApplication.CurrentOverdueAmount}', NextDueDate='{loanApplication.NextDueDate?.ToShortDateString()}', Calc AmountDue='{loanApplication.AmountDue}'");
             }
 
-            // --- 4. Update Overdue Status (Conceptual: Typically handled by a separate batch job) ---
-            // This section simulates a check that a nightly batch job might perform.
-            if (loanApplication.LoanStatus != "Closed" && loanApplication.LoanStatus != "Overdue")
-            { // If not already closed or marked overdue by payment logic
-                var firstPendingPastDueInstallment = await _context.Repayments
-                    .Where(r => r.ApplicationId == loanApplication.ApplicationId &&
-                                 r.PaymentStatus == "PENDING" &&
-                                 r.DueDate.Date < DateTime.Now.Date)
-                    .OrderBy(r => r.DueDate)
-                    .FirstOrDefaultAsync();
+            // Ensure OutstandingBalance isn't negative after all calculations
+            if (loanApplication.OutstandingBalance < 0) loanApplication.OutstandingBalance = 0;
 
-                if (firstPendingPastDueInstallment != null)
-                {
-                    loanApplication.LoanStatus = "Overdue";
-                    var allPendingPastDues = await _context.Repayments
-                        .Where(r => r.ApplicationId == loanApplication.ApplicationId &&
-                                     r.PaymentStatus == "PENDING" &&
-                                     r.DueDate.Date < DateTime.Now.Date)
-                        .ToListAsync();
-                    loanApplication.OverdueMonths = allPendingPastDues.Count();
-                    loanApplication.CurrentOverdueAmount = allPendingPastDues.Sum(r => r.AmountDue);
-                    // Adjust overall AmountDue on LoanApplication based on overdue status
-                    loanApplication.AmountDue = loanApplication.CurrentOverdueAmount;
-                    if (nextScheduledRepayment != null && nextScheduledRepayment.DueDate.Date >= DateTime.Now.Date)
-                    {
-                        loanApplication.AmountDue += nextScheduledRepayment.AmountDue; // Add current month's EMI if applicable
-                    }
-                }
-            }
-            // --- End of Conceptual Overdue Check ---
+            // --- LOG STATE BEFORE SAVE --- (Keep this log)
+            System.Diagnostics.Debug.WriteLine($"ProcessPayment - BEFORE Save - LoanID: {loanApplication.ApplicationId}, Status: {loanApplication.LoanStatus}, OB: {loanApplication.OutstandingBalance}, NextDue: {loanApplication.NextDueDate}, AmtDue: {loanApplication.AmountDue}, OverdueAmt: {loanApplication.CurrentOverdueAmount}, OverdueMonths: {loanApplication.OverdueMonths}");
+           //PrintRepaymentStates(allTrackedRepaymentsForThisLoan, "Repayments from ChangeTracker/Fallback BEFORE Save"); // Log this collection
+
+            // ... rest of your try/catch for SaveChangesAsync and JSON response ...
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // Save all changes to LoanApplication, Repayments, and LoanPayments
                 return Json(new
                 {
                     success = true,
                     message = $"Payment of INR {paidAmount:N2} processed successfully.",
                     loanStatus = loanApplication.LoanStatus,
                     outstandingBalance = loanApplication.OutstandingBalance,
-                    nextDueDate = loanApplication.NextDueDate?.ToString("yyyy-MM-dd"),
-                    amountDue = loanApplication.AmountDue
+                    nextDueDate = loanApplication.NextDueDate?.ToString("yyyy-MM-dd"), // Format for JS consistency
+                    amountDue = loanApplication.AmountDue, // This is the crucial total amount currently payable
+                    currentOverdueAmount = loanApplication.CurrentOverdueAmount,
+                    overdueMonths = loanApplication.OverdueMonths,
+                    emi = loanApplication.EMI // Useful for defaulting payment amount if loan becomes Active
                 });
+            }
+            catch (DbUpdateException ex) // More specific exception
+            {
+                // Log ex for detailed error diagnosis (inner exception often has more details)
+                Console.WriteLine($"Error processing payment for LoanId {loanId}: {ex.Message} {ex.InnerException?.Message} {ex.StackTrace}");
+                return Json(new { success = false, message = "An error occurred while saving the payment details. Please try again." });
             }
             catch (Exception ex)
             {
                 // Log ex for detailed error diagnosis
                 Console.WriteLine($"Error processing payment for LoanId {loanId}: {ex.Message} {ex.StackTrace}");
-                return Json(new { success = false, message = "An error occurred while processing the payment." });
+                return Json(new { success = false, message = "An unexpected error occurred while processing the payment." });
             }
         }
 
