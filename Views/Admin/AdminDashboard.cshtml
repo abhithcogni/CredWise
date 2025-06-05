@@ -232,10 +232,8 @@
                             <canvas id="loanStatusChart"></canvas>
                         </div>
                         <div class="mt-3 text-center small">
-                            <span class="me-2"><i class="fas fa-circle" style="color:#0A2463;"></i> Active</span>
-                            <span class="me-2"><i class="fas fa-circle" style="color:#198754;"></i> Paid Off</span>
+                            <span class="me-2"><i class="fas fa-circle" style="color:#198754;"></i> Active</span>
                             <span class="me-2"><i class="fas fa-circle" style="color:#ffc107;"></i> Pending Approval</span>
-                            <span class="me-2"><i class="fas fa-circle" style="color:#0dcaf0;"></i> Pending Disbursement</span>
                             <span class="me-2"><i class="fas fa-circle" style="color:#dc3545;"></i> Overdue</span>
                         </div>
                     </div>
@@ -501,16 +499,14 @@
                     datasets: [{
                         label: 'Loan Status',
                         data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.LoanStatusCounts)), // Dynamically pass data from ViewModel
-                        backgroundColor: [
-                            '#0A2463', // Active: Custom primary blue
-                            '#198754', // Paid Off (Closed): Bootstrap success green
-                            '#ffc107', // Pending Approval: Bootstrap warning yellow
-                            '#0dcaf0', // Pending Disbursement: Bootstrap info blue
-                            '#dc3545'  // Overdue: Bootstrap danger red
-                        ],
-                        borderColor: [
-                            '#fff', '#fff', '#fff', '#fff', '#fff' // White borders between segments
-                        ],
+                                backgroundColor: [
+            '#198754', // Active (Changed to Green, e.g., Bootstrap success green)
+            '#ffc107', // Pending Approval
+            '#dc3545'  // Overdue
+        ],
+        borderColor: [ // Adjust if you want different border colors or based on number of segments
+            '#fff', '#fff', '#fff'
+        ],
                         borderWidth: 2,
                         hoverOffset: 8 // Expand segment on hover
                     }]

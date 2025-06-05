@@ -133,7 +133,7 @@
                                         <td>@item.LoanAmount.ToString("C")</td>
                                         <td>@item.InterestRate%</td> @* Assuming InterestRate is a property in your model *@
                                         <td>
-                                            <a href="@Url.Action("MakePayment", "Customer", new { loanId = item.ApplicationId })" class="quick-action-btn">
+                                            <a href="@Url.Action("MakePayment", "Customer", new { loanApplicationId = item.ApplicationId })" class="quick-action-btn">
                                                 <i class="fas fa-money-bill-wave"></i>
                                                 <span>Make Payment</span> @* You can add @item.LoanNumber here if you have it for display *@
                                             </a>

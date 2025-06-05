@@ -1,14 +1,50 @@
 ﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+    CustomerStatement.cshtml
+    This view expects a CustomerStatementViewModel object from the controller.
 *@
+@model CredWise_Trail.Models.ViewModels.CustomerStatementViewModel
+
 @{
+    ViewData["Title"] = "Customer Report & Statement";
+    // Layout = "~/Views/Shared/_YourCustomerLayout.cshtml"; // Optional: Set your layout page
+
+    // Helper function to determine badge class based on Loan Approval Status
+    Func<string, string> GetLoanApprovalBadgeClass = (status) =>
+    {
+        if (string.IsNullOrEmpty(status)) return "badge-secondary"; // Default for null or empty
+        return status.ToUpper() switch
+        {
+            "APPROVED" => "badge-custom-approved",
+            "PENDING" => "badge-custom-pending",
+            "REJECTED" => "badge-custom-rejected",
+            _ => "badge-secondary" // Default for any other statuses
+        };
+    };
+
+    // Helper function to determine badge class based on Repayment Status
+    Func<string, string> GetRepaymentBadgeClass = (status) =>
+    {
+        if (string.IsNullOrEmpty(status)) return "badge-custom-pending"; // Default for null or empty
+        return status.ToUpper() switch
+        {
+            "COMPLETED" => "badge-custom-completed",
+            "SUCCESS" => "badge-custom-completed",   // If "SUCCESS" is used for completed
+            "PENDING" => "badge-custom-pending",
+            "FAILED" => "badge-custom-rejected",     // Assuming 'failed' maps to rejected style
+            _ => "badge-secondary" // Default for any other statuses
+        };
+    };
+
+    // Determine the identifier of the first loan to show by default
+    var firstLoanIdentifierToShow = Model?.LoanStatements?.FirstOrDefault()?.UniqueLoanIdentifier;
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Report & Statement</title>
+    <title>@ViewData["Title"]</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
@@ -94,7 +130,7 @@
         /* Custom badge styles for different statuses */
         .badge-custom-pending {
             background-color: #ffc107; /* Yellow for pending status */
-            color: #333;
+            color: #333; /* Dark text for yellow badge */
         }
 
         .badge-custom-verified, .badge-custom-approved, .badge-custom-completed {
@@ -102,11 +138,16 @@
             color: white;
         }
 
-        .badge-custom-rejected {
+        .badge-custom-rejected { /* Also used for FAILED repayments */
             background-color: #dc3545; /* Red for rejected status */
             color: white;
         }
-        /* Styling for individual summary items (e.g., in customer details or loan overview) */
+
+        .badge-secondary { /* Default/unknown status */
+            background-color: #6c757d;
+            color: white;
+        }
+        /* Styling for individual summary items */
         .summary-item {
             margin-bottom: 10px;
         }
@@ -124,209 +165,238 @@
             font-size: 0.9em;
             color: #555;
         }
-        /* Print-specific styles to hide elements not needed in print */
-       
+        /* Print-specific styles */
+        @@media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                font-size: 10pt; /* Adjust print font size */
+                color: #000; /* Ensure text is black for printing */
+            }
+
+            .card-custom {
+                border-left: none;
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .table th, .table td {
+                border: 1px solid #dee2e6 !important; /* Ensure table borders are visible */
+            }
+
+            .table th {
+                background-color: #f2f2f2 !important; /* Ensure background for TH */
+                -webkit-print-color-adjust: exact; /* For Chrome/Safari */
+                print-color-adjust: exact; /* Standard */
+            }
+
+            .page-header, .section-header {
+                border-bottom: none;
+                margin-bottom: 15px; /* Adjust spacing for print */
+            }
+
+            .container {
+                margin-top: 0;
+                padding: 0;
+            }
+
+            hr {
+                display: none;
+            }
+
+            .badge { /* Basic badge styling for print */
+                border: 1px solid #ccc;
+                padding: .25em .4em;
+                color: #000 !important; /* Override badge text color for print */
+                background-color: transparent !important; /* No background for badges */
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <div class="page-header d-flex align-items-center">
-            <i class="fas fa-file-invoice-dollar primary-color icon"></i>
-            <h1 class="primary-color mb-0">Customer Report & Statement</h1>
-            <button id="printStatementBtn" class="btn btn-primary-custom ml-auto no-print"><i class="fas fa-print"></i> Print Statement</button>
-        </div>
-
-        <hr>
-
-        <section id="loanSummary" class="mb-4">
-            <h4 class="section-header"><i class="fas fa-landmark icon"></i>Loan Overview</h4>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card text-center bg-light mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title primary-color">Total Active Loans</h5>
-                            <p class="card-text display-4 primary-color" id="totalActiveLoans">2</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card text-center bg-light mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title primary-color">Total Amount Disbursed</h5>
-                            <p class="card-text display-4 primary-color" id="totalDisbursed">₹75,000</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card text-center bg-light mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title primary-color">Total Outstanding</h5>
-                            <p class="card-text display-4 secondary-color" id="totalOutstanding">₹45,500</p>
-                        </div>
-                    </div>
-                </div>
+        @if (Model == null)
+        {
+            <div class="alert alert-danger text-center" role="alert">
+                <strong>Critical Error:</strong> The statement data model was not properly provided to the view. Please contact support or try again later.
             </div>
-        </section>
-        <hr>
-
-        <section id="loanStatement">
-            <h4 class="section-header"><i class="fas fa-list-alt icon"></i>Loan Account Statement</h4>
-
-            <div class="form-group no-print">
-                <label for="loanAccountSelect" class="summary-label">Select Loan Account to View Statement:</label>
-                <select class="form-control" id="loanAccountSelect">
-                    <option value="LNAPP001" selected>Home Loan (LNAPP001) - ₹50,000</option>
-                    <option value="LNAPP005">Personal Loan (LNAPP005) - ₹25,000</option>
-                </select>
+        }
+        else if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-warning text-center" role="alert">
+                @Model.ErrorMessage
+            </div>
+        }
+        else // Model is valid and has no explicit error message
+        {
+            <div class="page-header d-flex align-items-center">
+                <i class="fas fa-file-invoice-dollar primary-color icon"></i>
+                <h1 class="primary-color mb-0">Customer Report & Statement</h1>
+                <button id="printStatementBtn" class="btn btn-primary-custom ml-auto no-print"><i class="fas fa-print"></i> Print Statement</button>
             </div>
 
-            <div id="statementDetailsLNAPP001" class="statement-content">
-                <div class="card card-custom">
-                    <div class="card-header bg-secondary-custom">
-                        <h5 class="mb-0">Home Loan Details (LNAPP001)</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-4"><span class="summary-label">Application ID:</span> LNAPP001</div>
-                            <div class="col-md-4"><span class="summary-label">Product:</span> Home Loan</div>
-                            <div class="col-md-4"><span class="summary-label">Loan Amount:</span> ₹50,000.00</div>
-                            <div class="col-md-4"><span class="summary-label">Interest Rate:</span> 7.5%</div>
-                            <div class="col-md-4"><span class="summary-label">Tenure:</span> 120 Months</div>
-                            <div class="col-md-4"><span class="summary-label">Application Date:</span> 2023-01-15</div>
-                            <div class="col-md-4"><span class="summary-label">Status:</span> <span class="badge badge-custom-approved">APPROVED</span></div>
-                            <div class="col-md-4"><span class="summary-label">Outstanding Balance:</span> ₹30,500.00</div>
+            <section id="customerDetails" class="mb-4 no-print">
+                <h4 class="section-header"><i class="fas fa-user-circle icon"></i>Customer Details</h4>
+                <div class="summary-item"><span class="summary-label">Customer ID:</span> @Model.CustomerId</div>
+                <div class="summary-item"><span class="summary-label">Name:</span> @Model.CustomerName</div>
+            </section>
+            <hr class="no-print">
+
+            <section id="loanSummary" class="mb-4">
+                <h4 class="section-header"><i class="fas fa-landmark icon"></i>Loan Overview</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card text-center bg-light mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title primary-color">Total Active Loans</h5>
+                                <p class="card-text display-4 primary-color" id="totalActiveLoans">@Model.TotalActiveLoans</p>
+                            </div>
                         </div>
-                        <h5 class="section-header mt-4"><i class="fas fa-history icon"></i>Repayment History</h5>
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Due Date</th>
-                                        <th>Amount Due</th>
-                                        <th>Payment Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>2024-05-01</td>
-                                        <td>₹590.50</td>
-                                        <td>2024-04-28</td>
-                                        <td><span class="badge badge-custom-completed">COMPLETED</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>2024-06-01</td>
-                                        <td>₹590.50</td>
-                                        <td>2024-05-29</td>
-                                        <td><span class="badge badge-custom-completed">COMPLETED</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>2024-07-01</td>
-                                        <td>₹590.50</td>
-                                        <td>-</td>
-                                        <td><span class="badge badge-custom-pending">PENDING</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center bg-light mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title primary-color">Total Amount Disbursed</h5>
+                                <p class="card-text display-4 primary-color" id="totalDisbursed">₹@Model.TotalAmountDisbursed.ToString("N2")</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center bg-light mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title primary-color">Total Outstanding</h5>
+                                <p class="card-text display-4 secondary-color" id="totalOutstanding">₹@Model.TotalOutstandingAmount.ToString("N2")</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+            <hr>
 
-            <div id="statementDetailsLNAPP005" class="statement-content" style="display: none;">
-                <div class="card card-custom">
-                    <div class="card-header bg-secondary-custom">
-                        <h5 class="mb-0">Personal Loan Details (LNAPP005)</h5>
+            @if (Model.LoanStatements != null && Model.LoanStatements.Any())
+            {
+                <section id="loanStatement">
+                    <h4 class="section-header"><i class="fas fa-list-alt icon"></i>Loan Account Statement</h4>
+
+                    <div class="form-group no-print">
+                        <label for="loanAccountSelect" class="summary-label">Select Loan Account to View Statement:</label>
+                        <select class="form-control" id="loanAccountSelect">
+                            @foreach (var loanOption in Model.LoanAccountsForSelection)
+                            {
+                                <option value="@loanOption.LoanIdValue" selected="@(loanOption.LoanIdValue == firstLoanIdentifierToShow ? "selected" : null)">
+                                    @loanOption.LoanDisplayText
+                                </option>
+                            }
+                        </select>
                     </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-4"><span class="summary-label">Application ID:</span> LNAPP005</div>
-                            <div class="col-md-4"><span class="summary-label">Product:</span> Personal Loan</div>
-                            <div class="col-md-4"><span class="summary-label">Loan Amount:</span> ₹25,000.00</div>
-                            <div class="col-md-4"><span class="summary-label">Interest Rate:</span> 10.2%</div>
-                            <div class="col-md-4"><span class="summary-label">Tenure:</span> 60 Months</div>
-                            <div class="col-md-4"><span class="summary-label">Application Date:</span> 2023-06-10</div>
-                            <div class="col-md-4"><span class="summary-label">Status:</span> <span class="badge badge-custom-approved">APPROVED</span></div>
-                            <div class="col-md-4"><span class="summary-label">Outstanding Balance:</span> ₹15,000.00</div>
+
+                    @foreach (var statement in Model.LoanStatements)
+                    {
+                        <div id="statementDetails@(statement.UniqueLoanIdentifier)" class="statement-content" style="@(statement.UniqueLoanIdentifier == firstLoanIdentifierToShow ? "" : "display: none;")">
+                            <div class="card card-custom">
+                                <div class="card-header bg-secondary-custom">
+                                    <h5 class="mb-0">@statement.ProductName Details (@statement.ApplicationIdDisplay)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4 summary-item"><span class="summary-label">Application ID:</span> @statement.ApplicationIdDisplay</div>
+                                        <div class="col-md-4 summary-item"><span class="summary-label">Product:</span> @statement.ProductName</div>
+                                        <div class="col-md-4 summary-item"><span class="summary-label">Loan Amount:</span> ₹@statement.LoanAmount.ToString("N2")</div>
+                                        <div class="col-md-4 summary-item"><span class="summary-label">Interest Rate:</span> @statement.InterestRate.ToString("0.##")%</div>
+                                        <div class="col-md-4 summary-item"><span class="summary-label">Tenure:</span> @statement.TenureMonths Months</div>
+                                        <div class="col-md-4 summary-item"><span class="summary-label">Application Date:</span> @statement.ApplicationDate.ToString("yyyy-MM-dd")</div>
+                                        <div class="col-md-4 summary-item">
+                                            <span class="summary-label">Status:</span>
+                                            <span class="badge @GetLoanApprovalBadgeClass(statement.ApprovalStatus)">@(statement.ApprovalStatus?.ToUpper())</span>
+                                        </div>
+                                        <div class="col-md-4 summary-item"><span class="summary-label">Outstanding Balance:</span> ₹@statement.OutstandingBalance.ToString("N2")</div>
+                                    </div>
+
+                                    <h5 class="section-header mt-4"><i class="fas fa-history icon"></i>Repayment History</h5>
+                                    @if (statement.RepaymentHistory != null && statement.RepaymentHistory.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-striped table-sm">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Repayment ID</th>
+                                                        <th>Due Date</th>
+                                                        <th>Amount Due</th>
+                                                        <th>Payment Date</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var repayment in statement.RepaymentHistory)
+                                                    {
+                                                        <tr>
+                                                            <td>REP@(repayment.RepaymentId.ToString("D3"))</td>
+                                                            <td>@repayment.DueDate.ToString("yyyy-MM-dd")</td>
+                                                            <td>₹@repayment.AmountDue.ToString("N2")</td>
+                                                            <td>@(repayment.PaymentDate.HasValue ? repayment.PaymentDate.Value.ToString("yyyy-MM-dd") : "-")</td>
+                                                            <td>
+                                                                <span class="badge @GetRepaymentBadgeClass(repayment.PaymentStatus)">@(repayment.PaymentStatus?.ToUpper())</span>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p>No repayment history available for this loan.</p>
+                                    }
+                                </div>
+                            </div>
                         </div>
-                        <h5 class="section-header mt-4"><i class="fas fa-history icon"></i>Repayment History</h5>
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Repayment ID</th>
-                                        <th>Due Date</th>
-                                        <th>Amount Due</th>
-                                        <th>Payment Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>REP010</td>
-                                        <td>2024-05-15</td>
-                                        <td>₹530.20</td>
-                                        <td>2024-05-14</td>
-                                        <td><span class="badge badge-custom-completed">COMPLETED</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>REP011</td>
-                                        <td>2024-06-15</td>
-                                        <td>₹530.20</td>
-                                        <td>-</td>
-                                        <td><span class="badge badge-custom-pending">PENDING</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    }
+                </section>
+            }
+            else // No loan statements to display for this customer
+            {
+                <hr>
+                <div class="alert alert-info text-center" role="alert">
+                    No loan accounts are currently available to display for @Model.CustomerName.
                 </div>
-            </div>
-        </section>
-
+            }
+        }
     </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
-        $(document).ready(function(){
-            // This JavaScript code is executed once the document (HTML) is fully loaded.
+        $(document).ready(function () {
+            // Current year is now set by Razor in the footer, this JS line is not strictly needed
+            // if you keep the Razor version: $('#currentYear').text(new Date().getFullYear());
 
-            // Set current year in footer
-            // This line finds the HTML element with the ID 'currentYear' and updates its text content
-            // to the current full year using `new Date().getFullYear()`.
-            $('#currentYear').text(new Date().getFullYear());
-
-            // Print button functionality
-            // This attaches an event listener to the HTML element with the ID 'printStatementBtn'.
-            // When this button is clicked, the `window.print()` function is called,
-            // which opens the browser's print dialog.
-            $('#printStatementBtn').on('click', function(){
+            $('#printStatementBtn').on('click', function () {
                 window.print();
             });
 
-            // Loan account selection
-            // This attaches an event listener to the HTML select element with the ID 'loanAccountSelect'.
-            // When the selected option in this dropdown changes, the provided function is executed.
-            $('#loanAccountSelect').on('change', function(){
-                // `$(this).val()` gets the value of the currently selected option in the dropdown.
+            $('#loanAccountSelect').on('change', function () {
                 var selectedLoanId = $(this).val();
-                // `.statement-content` is a class applied to both loan statement detail divs.
-                // This line hides all elements that have the class 'statement-content'.
+                // Hide all statement content divs that are part of the selection process
                 $('.statement-content').hide();
-                // This line constructs an ID string by concatenating 'statementDetails' with the
-                // `selectedLoanId` (e.g., 'statementDetailsLNAPP001' or 'statementDetailsLNAPP005').
-                // It then shows the specific statement details div corresponding to the selected loan.
+                // Show the selected one
                 $('#statementDetails' + selectedLoanId).show();
             });
 
-            // Simulate fetching data - in a real app, this would be an AJAX call
-            // For demonstration, we are using static data and showing the first loan by default.
-            // This line ensures that the statement details for 'LNAPP001' are visible
-            // when the page initially loads, as it's the default selected option in the dropdown.
-            $('#statementDetailsLNAPP001').show();
+            // Ensure the initially selected loan's details are visible
+            // This is now primarily handled by the inline style in the Razor loop,
+            // but this JS can act as a fallback or reinforcement if needed.
+            var initialSelectedLoan = $('#loanAccountSelect').val();
+            if (initialSelectedLoan) {
+                $('#statementDetails' + initialSelectedLoan).show();
+            } else {
+                // If no specific loan is selected (e.g., if LoanAccountsForSelection is empty),
+                // ensure no statement-content is accidentally shown.
+                $('.statement-content').hide();
+            }
         });
     </script>
-
 </body>
 </html>

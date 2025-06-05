@@ -1,6 +1,6 @@
 ﻿@* Ensure your model is defined if your form strongly types to it,
-   otherwise, you can remove it if all inputs are manually named.
-   If the form is NOT shown, this model isn't strictly used by this page directly. *@
+    otherwise, you can remove it if all inputs are manually named.
+    If the form is NOT shown, this model isn't strictly used by this page directly. *@
 @* @model CredWise_Trail.Models.LoanApplication *@
 @{
     ViewData["Title"] = "Apply for Loan";
@@ -44,8 +44,6 @@
             background-color: #f0f2f5;
             margin: 0;
         }
-
-        
 
         .card-form-container {
             border: 1px solid #e9ecef;
@@ -179,7 +177,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="loanAmount" class="form-label"><i class="fas fa-dollar-sign me-2 text-secondary"></i>Loan Amount:</label>
+                        <label for="loanAmount" class="form-label"><i class="bi bi-currency-rupee me-2 text-secondary"></i>Loan Amount:</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-coins"></i></span>
                             <input type="number" class="form-control no-left-border" id="loanAmount" name="loanAmount" required placeholder="Enter desired loan amount" step="any" min="1">
@@ -196,6 +194,22 @@
                         </div>
                         <div id="tenureValidation" class="validation-message"></div>
                         @Html.ValidationMessage("tenure", new { @class = "validation-message" })
+                    </div>
+
+                    <div class="mb-3">
+                        @* New div for Monthly EMI *@
+                        <label for="monthlyEmi" class="form-label">
+                            <i class=" bi bi-currency-rupee me-2 text-secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-currency-rupee text-secondary">
+                                    " viewBox="0 0 16 16">
+                                    <path d="M4 3.06h2.726c1.22 0 2.12.575 2.325 1.724H4v1.051h5.051C8.855 7.001 8 7.558 6.788 7.558H4v1.317L8.437 14h2.11L6.095 8.884h.855c2.316-.018 3.465-1.476 3.688-3.049H12V4.784h-1.345c-.08-.778-.357-1.335-.793-1.732H12V2H4z" />
+                                </svg>
+                            </i>Monthly EMI:
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-wallet"></i></span>
+                            <input type="text" class="form-control no-left-border" id="monthlyEmi" disabled readonly>
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -259,6 +273,7 @@
             const loanAmountInput = document.getElementById("loanAmount");
             const tenureInput = document.getElementById("tenure");
             const totalAmountInput = document.getElementById("totalAmount");
+            const monthlyEmiInput = document.getElementById("monthlyEmi"); // New: Monthly EMI input
             const loanAmountValidationDiv = document.getElementById("loanAmountValidation");
             const tenureValidationDiv = document.getElementById("tenureValidation");
             const loanApplicationForm = document.getElementById("loanApplicationForm");
@@ -270,7 +285,7 @@
 
             function formatCurrency(value) {
                 // Basic currency formatting, adjust as needed (e.g., for INR)
-                return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+                return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value); // Changed to 2 decimal places for EMI
             }
 
             function updateLoanProductLimits() {
@@ -281,7 +296,7 @@
                     interestRateInput.value = (parseFloat(selectedOption.dataset.interestRate) || 0).toFixed(2);
                     currentMinAmount = parseFloat(selectedOption.dataset.minAmount) || 0;
                     currentMaxAmount = parseFloat(selectedOption.dataset.maxAmount) || Infinity; // Use Infinity if not set
-                    currentMaxTenure = parseInt(selectedOption.dataset.maxTenure) || Infinity;   // Use Infinity if not set
+                    currentMaxTenure = parseInt(selectedOption.dataset.maxTenure) || Infinity;    // Use Infinity if not set
 
                     loanAmountInput.min = currentMinAmount;
                     loanAmountInput.max = currentMaxAmount === Infinity ? "" : currentMaxAmount; // HTML max attribute doesn't like Infinity
@@ -302,7 +317,7 @@
                     if(loanAmountValidationDiv) loanAmountValidationDiv.textContent = "";
                     if(tenureValidationDiv) tenureValidationDiv.textContent = "";
                 }
-                calculateTotalAmount();
+                calculateLoanDetails(); // Call combined calculation function
             }
 
             function validateLoanAmount() {
@@ -331,33 +346,32 @@
                 }
             }
 
-            function calculateTotalAmount() {
-                if (!loanAmountInput || !interestRateInput || !tenureInput || !totalAmountInput) return; // Guard
+            function calculateLoanDetails() { // Renamed from calculateTotalAmount
+                if (!loanAmountInput || !interestRateInput || !tenureInput || !totalAmountInput || !monthlyEmiInput) return; // Guard
                 const principal = parseFloat(loanAmountInput.value) || 0;
                 const annualRate = parseFloat(interestRateInput.value) || 0; // Annual rate from input
                 const tenureMonths = parseInt(tenureInput.value) || 0;
 
                 let totalRepayment = 0;
-                if (principal > 0 && annualRate >= 0 && tenureMonths > 0) {
-                    // Simple Interest Calculation: P + (P * R * T)
-                    // R = annual rate / 100
-                    // T = tenure in years
-                    const rateDecimal = annualRate / 100;
-                    const timeInYears = tenureMonths / 12;
-                    const simpleInterest = principal * rateDecimal * timeInYears;
-                    totalRepayment = principal + simpleInterest;
+                let monthlyEmi = 0;
 
-                    // For EMI based calculation (more accurate for loans):
-                    // M = P [ i(1 + i)^n ] / [ (1 + i)^n – 1]
-                    // P = Principal, i = monthly interest rate, n = tenure in months
-                    // const monthlyRate = rateDecimal / 12;
-                    // if (monthlyRate > 0) {
-                    //     const emi = principal * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths) / (Math.pow(1 + monthlyRate, tenureMonths) - 1);
-                    //     totalRepayment = emi * tenureMonths;
-                    // } else { // if rate is 0
-                    //     totalRepayment = principal;
-                    // }
+                if (principal > 0 && annualRate >= 0 && tenureMonths > 0) {
+                    // It's crucial to use the correct EMI formula for monthly payments.
+                    // Simple interest is generally for short-term or specific product types.
+                    // For standard loans, EMI (Equated Monthly Installment) is calculated.
+
+                    const monthlyRate = (annualRate / 100) / 12; // Monthly interest rate
+
+                    if (monthlyRate > 0) {
+                        monthlyEmi = principal * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths) / (Math.pow(1 + monthlyRate, tenureMonths) - 1);
+                        totalRepayment = monthlyEmi * tenureMonths;
+                    } else { // If rate is 0
+                        monthlyEmi = principal / tenureMonths;
+                        totalRepayment = principal;
+                    }
                 }
+
+                monthlyEmiInput.value = monthlyEmi > 0 ? formatCurrency(monthlyEmi) : "";
                 totalAmountInput.value = totalRepayment > 0 ? formatCurrency(totalRepayment) : "";
             }
 
@@ -368,19 +382,19 @@
             if (loanAmountInput) {
                 loanAmountInput.addEventListener("input", function() {
                     validateLoanAmount();
-                    calculateTotalAmount();
+                    calculateLoanDetails(); // Call combined calculation function
                 });
             }
             if (tenureInput) {
                 tenureInput.addEventListener("input", function() {
                     validateTenure();
-                    calculateTotalAmount();
+                    calculateLoanDetails(); // Call combined calculation function
                 });
             }
 
             // Initial call if form is present
             if (showLoanForm) {
-                 updateLoanProductLimits(); // This will also trigger dependant validations and calculations
+                updateLoanProductLimits(); // This will also trigger dependant validations and calculations
             }
 
             if (loanApplicationForm) {
