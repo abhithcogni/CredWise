@@ -1,22 +1,20 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model CredWise_Trail.Models.LoanApplication // Assuming your model's namespace
 @{
-    // This is where you can set ViewBag or other Razor-specific logic if needed
+    ViewData["Title"] = "Make Payment";
+    // Layout = "_CustomerLayout"; // If you have a specific customer layout
 }
-@model CredWise_Trail.ViewModels.MakePaymentViewModel 
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Make Payment - Customer Portal</title>
+    <title>@ViewData["Title"] - Customer Portal</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-          xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
           crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -27,14 +25,11 @@
             line-height: 1.6;
         }
 
-        /* Page Header */
         .h2.fw-bold {
             color: #2c3e50;
         }
 
-        /* Cards */
-        .payment-summary-card,
-        .make-payment-card {
+        .payment-summary-card, .make-payment-card {
             border: none;
             border-radius: 0.85rem;
             box-shadow: 0 8px 25px rgba(0, 0, 0, .07);
@@ -43,19 +38,17 @@
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
 
-            .payment-summary-card:hover,
-            .make-payment-card:hover {
+            .payment-summary-card:hover, .make-payment-card:hover {
                 transform: translateY(-5px);
                 box-shadow: 0 12px 30px rgba(0, 0, 0, .09);
             }
 
         .card-header {
-            background-color: #0A2463;
+            background-color: #0A2463; /* Primary blue */
             color: #ffffff;
             border-bottom: none;
             font-weight: 600;
             font-size: 1.05rem;
-            /* Slightly smaller than admin header */
             padding: 0.9rem 1.25rem;
             letter-spacing: 0.3px;
         }
@@ -66,7 +59,6 @@
 
         .summary-label {
             color: #6c757d;
-            /* Muted text for labels */
             font-size: 0.9rem;
         }
 
@@ -75,25 +67,22 @@
             font-size: 0.95rem;
         }
 
-        /* Form Elements */
         .form-label {
             font-weight: 500;
             color: #495057;
             font-size: 0.9rem;
         }
 
-        .form-control,
-        .form-select {
+        .form-control, .form-select {
             border-radius: 0.375rem;
             border: 1px solid #ced4da;
             padding: 0.6rem 0.8rem;
             font-size: 0.9rem;
         }
 
-            .form-control:focus,
-            .form-select:focus {
-                border-color: #0A2463;
-                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .15);
+            .form-control:focus, .form-select:focus {
+                border-color: #0A2463; /* Primary blue focus */
+                box-shadow: 0 0 0 0.25rem rgba(10, 36, 99, .15); /* Adjusted shadow to match #0A2463 */
             }
 
         .input-group-text {
@@ -102,7 +91,6 @@
             font-size: 0.9rem;
         }
 
-        /* Buttons */
         .stylish-button {
             padding: 0.65rem 1.5rem;
             font-weight: 500;
@@ -120,32 +108,16 @@
                 transform: scale(1.1);
             }
 
-        .btn-primary.stylish-button:hover {
-            box-shadow: 0 4px 10px rgba(13, 110, 253, .25);
-        }
-
-        /* Payment status icons */
-        .status-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .text-success .status-icon {
-            color: #198754;
-        }
-
-        .text-danger .status-icon {
-            color: #dc3545;
-        }
-
         #proceedToPayButton {
             background-color: #3E92CC;
+            border-color: #3E92CC;
         }
-
+            /* Accent Blue */
             #proceedToPayButton:hover {
                 background-color: #0A2463;
-                border-color: white;
+                border-color: #0A2463;
             }
+        /* Primary blue on hover */
 
         .form-check-label a {
             color: #3E92CC;
@@ -159,216 +131,203 @@
 
         #confirmPayButton {
             background-color: #3E92CC;
+            border-color: #3E92CC;
         }
 
             #confirmPayButton:hover {
                 background-color: #0A2463;
-                border-color: white;
+                border-color: #0A2463;
             }
 
         #paymentStatusModalHeader {
             background-color: #0A2463 !important;
+            color: white;
         }
-
+        /* Primary blue */
         #paymentStatusCloseButton {
             background-color: #3E92CC;
+            border-color: #3E92CC;
         }
 
             #paymentStatusCloseButton:hover {
                 background-color: #0A2463;
-                border-color: white;
+                border-color: #0A2463;
             }
 
-        /* Overdue Specific Styling */
-        .overdue-info {
-            background-color: #fcebe9; /* Light red/peach for overdue */
-            border: 1px solid #f0b4ae;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            color: #a72200; /* Darker red text */
-            font-weight: 500;
-        }
-        .overdue-info .fas {
-            color: #dc3545; /* Red icon */
-            margin-right: 0.5rem;
-        }
-        .overdue-info .amount {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #c62828;
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
         }
 
-        /* Message Box for client-side validation */
-        .message-box {
-            padding: 10px;
-            border-radius: 0.375rem;
-            margin-top: 15px;
-            text-align: center;
-            font-weight: 500;
-        }
-        .message-box.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .text-success .status-icon {
+            color: #198754;
         }
 
+        .text-danger .status-icon {
+            color: #dc3545;
+        }
     </style>
 </head>
-
 <body>
     <div class="d-flex" id="wrapper">
         <div id="page-content-wrapper" class="w-100">
-
-
             <div class="container-fluid p-4 p-md-5">
                 <div class="mb-4">
                     <h1 class="h2 fw-bold">Make a Payment</h1>
-                    <p class="text-muted" id="paymentPageSubtitle">Securely pay your outstanding loan amount.</p>
+                    <p class="text-muted" id="paymentPageSubtitle">
+                        @if (Model != null && Model.LoanStatus == "Active" || Model.LoanStatus == "Overdue")
+                        {
+                            @:Securely pay your outstanding loan amount for @Model.LoanProduct?.ProductName (@Model.LoanNumber).
+                        }
+                        else if (Model != null && Model.LoanStatus == "Closed")
+                        {
+                            @:This loan (@Model.LoanProduct?.ProductName - @Model.LoanNumber) is closed.
+                        }
+                        else if (ViewBag.NoPaymentDueMessage != null)
+                        {
+                            @ViewBag.NoPaymentDueMessage
+                        }
+                        else
+                        {
+                            @:Loan details are currently unavailable.
+                        }
+                    </p>
                 </div>
 
-                <div class="row">
-                    <div class="col-lg-7 col-xl-6 mb-4 mb-lg-0">
-                        <div class="card payment-summary-card">
-                            <div class="card-header">
-                                <i class="fas fa-file-invoice-dollar me-2"></i>Payment Due Summary
-                            </div>
-                            <div class="card-body p-4">
-                                <h5 class="card-title" id="loanProductName">@Model.ProductName</h5>
-                                <p class="card-text text-muted" id="loanShortDescription">@Model.ShortDescription</p>
-                                <hr>
-                                <div class="row mb-2">
-                                    <div class="col-6 summary-label">Monthly Installment (EMI):</div>
-                                    <div class="col-6 summary-value" id="monthlyInstallment">$@Model.MonthlyInstallmentAmount.ToString("N2")</div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-6 summary-label">Total Amount Due Now:</div>
-                                    <div class="col-6 summary-value fw-bold fs-5" id="amountDueDisplay"></div> @* Updated ID *@
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-6 summary-label">Next Payment Due Date:</div>
-                                    <div class="col-6 summary-value" id="dueDateDisplay"></div> @* Updated ID *@
-                                </div>
-                                <div class="row">
-                                    <div class="col-6 summary-label">Outstanding Balance:</div>
-                                    <div class="col-6 summary-value" id="outstandingBalanceDisplay"></div> @* Updated ID *@
-                                </div>
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
 
-                                @* NEW: Overdue Information Section *@
-                                <div id="overdueInfoSection" class="overdue-info mt-3 @(Model.IsOverdue ? "" : "d-none")">
-                                    <p>
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        <strong>Overdue!</strong> Your loan is currently <span id="overdueMonthsDisplay">@Model.OverdueMonths</span> month(s) overdue.
-                                    </p>
-                                    <p>
-                                        Total Overdue Amount: <span class="amount" id="currentOverdueAmountDisplay">$@Model.CurrentOverdueAmount.ToString("N2")</span>
-                                    </p>
-                                    <p class="small text-muted">
-                                        The "Total Amount Due Now" includes this overdue amount.
-                                    </p>
+                @if (Model != null)
+                {
+                    <div class="row">
+                        <div class="col-lg-7 col-xl-6 mb-4 mb-lg-0">
+                            <div class="card payment-summary-card">
+                                <div class="card-header">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i>Payment Due Summary
                                 </div>
-                                @* END NEW *@
-
-                                @* Updated messages based on loan status and payment state *@
-                                <div id="paymentSuccessMessage" class="alert alert-success mt-3 d-none" role="alert"></div>
-                                <div id="noPaymentDueMessage" class="alert alert-info mt-3 d-none" role="alert"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-5 col-xl-6">
-                        <div class="card make-payment-card">
-                            <div class="card-header">
-                                <i class="fas fa-credit-card me-2"></i>Payment Details
-                            </div>
-                            <div class="card-body p-4">
-                                <form id="paymentForm">
-                                    <div class="mb-3">
-                                        <label for="paymentAmount" class="form-label">Payment Amount</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" id="paymentAmount"
-                                                   name="paymentAmount" step="0.01" required>
+                                <div class="card-body p-4">
+                                    <h5 class="card-title" id="loanProductName">
+                                        @Model.LoanProduct?.ProductName (@Model.LoanNumber)
+                                    </h5>
+                                    <p class="card-text text-muted" id="loanShortDescription">
+                                        Current Status: <span class="fw-bold @(Model.LoanStatus == "Overdue" ? "text-danger" : (Model.LoanStatus == "Closed" ? "text-success" : "text-info"))">@Model.LoanStatus</span>
+                                    </p>
+                                    <hr>
+                                    <div class="row mb-2">
+                                        <div class="col-6 summary-label">Amount Currently Due:</div>
+                                        <div class="col-6 summary-value fw-bold fs-5 @(Model.AmountDue > 0 ? "text-danger" : "text-success")" id="amountDueDisplay">
+                                            INR @Model.AmountDue.ToString("N2")
                                         </div>
-                                        <div class="form-text">
-                                            You can pay the full amount or a partial amount (if allowed).
-                                            Minimum payment: $<span id="minPaymentDisplay">@Model.MinPayment.ToString("N2")</span>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6 summary-label">Next Due Date:</div>
+                                        <div class="col-6 summary-value" id="dueDateDisplay">
+                                            @(Model.NextDueDate?.ToString("MMMM d, yyyy") ?? "N/A")
                                         </div>
-                                        <div id="paymentAmountError" class="message-box error" style="display:none;"></div> @* Client-side error message *@
+                                    </div>
+                                    @if (Model.LoanStatus == "Overdue")
+                                    {
+                                        <div class="row mb-2">
+                                            <div class="col-6 summary-label text-danger">Overdue Months:</div>
+                                            <div class="col-6 summary-value text-danger" id="overdueMonthsDisplay">@Model.OverdueMonths</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-6 summary-label text-danger">Total Overdue Amount:</div>
+                                            <div class="col-6 summary-value text-danger" id="currentOverdueAmountDisplay">INR @Model.CurrentOverdueAmount.ToString("N2")</div>
+                                        </div>
+                                    }
+                                    <div class="row">
+                                        <div class="col-6 summary-label">Total Outstanding Balance:</div>
+                                        <div class="col-6 summary-value" id="outstandingBalanceDisplay">INR @Model.OutstandingBalance.ToString("N2")</div>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="paymentMethod" class="form-label">Payment Method</label>
-                                        <select class="form-select" id="paymentMethod" name="paymentMethod" required>
-                                            <option value="" selected disabled>Select a payment method...</option>
-                                            <option value="Debit Card">Debit Card</option>
-                                            <option value="Credit Card">Credit Card</option>
-                                            <option value="Net Banking">Net Banking</option>
-                                            @* Add more options if needed, e.g., "new_bank", "new_card" *@
-                                        </select>
+                                    <div id="paymentSuccessPageMessage" class="alert alert-success mt-3 d-none" role="alert">
+                                        <i class="fas fa-check-circle me-2"></i>Payment successful! Your loan details have been updated.
                                     </div>
-
-                                    @* Removed dynamic newPaymentMethodFields for simplicity based on provided HTML,
-                                       but you can re-add if needed with JS logic. *@
-
-                                    <div class="form-check mt-3 mb-3">
-                                        <input class="form-check-input" type="checkbox" value="" id="termsAndConditions"
-                                               required>
-                                        <label class="form-check-label small" for="termsAndConditions">
-                                            I agree to the <a href="#">Terms and Conditions</a> of this payment.
-                                        </label>
+                                    <div id="noPaymentDuePageMessage" class="alert alert-info mt-3 @(Model.LoanStatus == "Closed" || (ViewBag.NoPaymentDueMessage != null && Model.LoanStatus != "Active" && Model.LoanStatus != "Overdue") ? "" : "d-none")" role="alert">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        @if (Model.LoanStatus == "Closed")
+                                        {
+                                            @:No payment is due as this loan is fully paid and closed.
+                                        }
+                                        else
+                                        {
+                                            @ViewBag.NoPaymentDueMessage
+                                        }
                                     </div>
-
-                                    <button type="submit" class="btn btn-primary w-100 stylish-button"
-                                            id="proceedToPayButton">
-                                        <i class="fas fa-arrow-circle-right me-2"></i>Proceed to Pay
-                                    </button>
-                                    <button type="button" class="btn btn-success w-100 stylish-button mt-2 d-none"
-                                            id="paymentCompletedButton" disabled>
-                                        <i class="fas fa-check-circle me-2"></i>Payment Completed
-                                    </button>
-                                </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="modal fade" id="paymentConfirmationModal" tabindex="-1"
-                 aria-labelledby="paymentConfirmationModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="paymentConfirmationModalLabel">
-                                <i class="fas fa-question-circle me-2 text-primary"></i>Confirm Payment
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Please review your payment details:</p>
-                            <ul class="list-unstyled">
-                                <li><strong>Loan:</strong> <span id="confirmLoanName"></span></li>
-                                <li>
-                                    <strong>Payment Amount:</strong> <span id="confirmPaymentAmount"
-                                                                           class="fw-bold"></span>
-                                </li>
-                                <li><strong>Payment Method:</strong> <span id="confirmPaymentMethod"></span></li>
-                            </ul>
-                            <p class="text-muted small mt-3">
-                                By clicking "Confirm & Pay", you authorize this payment.
-                            </p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary"
-                                    data-bs-dismiss="modal">
-                                Cancel
-                            </button>
-                            <button type="button" class="btn btn-primary" id="confirmPayButton">
-                                <i class="fas fa-shield-alt me-2"></i>Confirm & Pay
-                            </button>
-                        </div>
+                        @if (Model.LoanStatus == "Active" || Model.LoanStatus == "Overdue") // Only show payment form if loan is active or overdue
+                        {
+                            <div class="col-lg-5 col-xl-6">
+                                <div class="card make-payment-card">
+                                    <div class="card-header">
+                                        <i class="fas fa-credit-card me-2"></i>Payment Details
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <form id="paymentForm" asp-controller="Customer" asp-action="ProcessPayment" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="loanId" id="loanId" value="@Model.ApplicationId" />
+
+                                            <div class="mb-3">
+                                                <label for="paymentAmount" class="form-label">Payment Amount (INR)</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">₹</span>
+                                                    <input type="number" class="form-control" id="paymentAmount"
+                                                           name="paidAmount" step="0.01" min="1.00"
+                                                           value="@(Model.AmountDue > 0 ? Model.AmountDue.ToString("F2") : "100.00")" required>
+                                                </div>
+                                                <div class="form-text">
+                                                    Enter the amount you wish to pay.
+                                                    @if (Model.LoanStatus == "Overdue")
+                                                    {
+                                                        <span class="text-danger">Your loan is overdue. Minimum payment to clear dues: INR @Model.CurrentOverdueAmount.ToString("N2")</span>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="paymentMethod" class="form-label">Payment Method</label>
+                                                <select class="form-select" id="paymentMethod" name="paymentMethod" required>
+                                                    <option value="" selected disabled>Select a payment method...</option>
+                                                    <option value="UPI">UPI</option>
+                                                    <option value="Net Banking">Net Banking</option>
+                                                    <option value="Debit Card">Debit Card</option>
+                                                    <option value="Credit Card">Credit Card</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-check mt-3 mb-3">
+                                                <input class="form-check-input" type="checkbox" value="" id="termsAndConditions" required>
+                                                <label class="form-check-label small" for="termsAndConditions">
+                                                    I agree to the <a href="#" target="_blank">Terms and Conditions</a> of this payment.
+                                                </label>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-primary w-100 stylish-button" id="proceedToPayButton">
+                                                <i class="fas fa-arrow-circle-right me-2"></i>Proceed to Pay
+                                            </button>
+                                            <div id="paymentProcessingLoader" class="text-center mt-2 d-none">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Processing...</span>
+                                                </div>
+                                                <p>Processing payment...</p>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
-                </div>
+                }
+                else if (ViewBag.NoPaymentDueMessage == null) // Only show if not already handled by NoPaymentDueMessage
+                {
+                    <div class="alert alert-warning">Loan details could not be loaded. Please try again or contact support.</div>
+                }
             </div>
 
             <div class="modal fade" id="paymentStatusModal" tabindex="-1" aria-labelledby="paymentStatusModalLabel"
@@ -379,9 +338,8 @@
                             <h5 class="modal-title" id="paymentStatusModalLabel">Processing Payment...</h5>
                         </div>
                         <div class="modal-body text-center py-4">
-                            <div id="paymentProcessingSpinner" class="mb-3">
-                                <div class="spinner-border text-primary" role="status"
-                                     style="width: 3rem; height: 3rem;">
+                            <div id="paymentProcessingSpinnerModal" class="mb-3">
+                                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
                                 <p class="mt-2">Please wait, we are securely processing your payment.</p>
@@ -390,8 +348,7 @@
                             </div>
                         </div>
                         <div class="modal-footer d-none" id="paymentStatusModalFooter">
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
-                                    id="paymentStatusCloseButton">
+                            <button type="button" class="btn btn-primary" id="paymentStatusCloseButton" data-bs-dismiss="modal">
                                 Close
                             </button>
                         </div>
@@ -404,110 +361,27 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
             integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
     <script>
         $(document).ready(function () {
-            // --- Initial Loan Data (Populated from server-side Model) ---
-            let loanData = {
-                loanId: @Model.LoanId,
-                productName: "@Html.Raw(Model.ProductName)",
-                shortDescription: "@Html.Raw(Model.ShortDescription)",
-                monthlyInstallmentAmount: @Model.MonthlyInstallmentAmount, // Added EMI
-                amountDue: @Model.AmountDue, // This is the current EMI amount or remaining due + overdue
-                dueDate: "@(Model.DueDate.HasValue ? Model.DueDate.Value.ToShortDateString() : "N/A")", // Formatted for display
-                outstandingBalance: @Model.OutstandingBalance,
-                minPayment: @Model.MinPayment, // This is the EMI
-                isPaymentDue: @Model.IsPaymentDue.ToString().ToLower(),
-                overdueMonths: @Model.OverdueMonths, // New
-                currentOverdueAmount: @Model.CurrentOverdueAmount, // New
-                isOverdue: @Model.IsOverdue.ToString().ToLower(), // New
-                loanStatus: "@Html.Raw(Model.LoanStatus)" // New: Pass loan status to JS
-            };
+            const statusModalElement = document.getElementById('paymentStatusModal');
+            const statusModal = new bootstrap.Modal(statusModalElement);
+            const paymentForm = $('#paymentForm');
+            const proceedButton = $('#proceedToPayButton');
+            const processingLoader = $('#paymentProcessingLoader'); // Loader beneath button
 
-            const confirmationModal = new bootstrap.Modal(document.getElementById('paymentConfirmationModal'));
-            const statusModal = new bootstrap.Modal(document.getElementById('paymentStatusModal'));
+            // For displaying results in the modal
+            const modalHeader = $('#paymentStatusModalHeader');
+            const modalLabel = $('#paymentStatusModalLabel');
+            const modalSpinner = $('#paymentProcessingSpinnerModal');
+            const modalResultDiv = $('#paymentStatusResult');
+            const modalFooter = $('#paymentStatusModalFooter');
+            const modalCloseButton = $('#paymentStatusCloseButton');
 
-            // --- Populate Initial Data ---
-            function populateLoanDetails() {
-                $('#loanProductName').text(loanData.productName);
-                $('#loanShortDescription').text(loanData.shortDescription);
-                $('#monthlyInstallment').text('$' + loanData.monthlyInstallmentAmount.toFixed(2));
-                $('#outstandingBalanceDisplay').text('$' + loanData.outstandingBalance.toFixed(2));
-                $('#minPaymentDisplay').text(loanData.minPayment.toFixed(2)); // Update min payment text
 
-                // --- Handle different loan states ---
-                if (loanData.loanStatus === "Closed") {
-                    $('#paymentForm').hide();
-                    $('#noPaymentDueMessage').addClass('d-none');
-                    $('#overdueInfoSection').addClass('d-none'); // Ensure overdue section is hidden if closed
-                    $('#paymentSuccessMessage').removeClass('d-none').html('<i class="fas fa-check-circle me-2"></i>Congratulations! Your loan has been fully paid and closed.');
-                    $('#proceedToPayButton').addClass('d-none').prop('disabled', true);
-                    $('#paymentCompletedButton').removeClass('d-none').text('Loan Fully Paid').prop('disabled', true);
-                    $('#paymentPageSubtitle').text('Your loan has been successfully closed.');
-                    $('#amountDueDisplay').text('$0.00').removeClass('text-danger').addClass('text-success');
-                    $('#dueDateDisplay').text('N/A');
-                    return; // Exit function as loan is closed
-                }
-
-                // If loan is active but current cycle paid (AmountDue is 0, but outstanding balance > 0)
-                if (loanData.amountDue === 0 && loanData.outstandingBalance > 0) {
-                    $('#amountDueDisplay').text('$0.00').removeClass('text-danger').addClass('text-success');
-                    $('#dueDateDisplay').text(loanData.dueDate); // Show next due date
-                    $('#overdueInfoSection').addClass('d-none'); // Hide overdue section
-                    $('#paymentForm').hide(); // Hide the form
-                    $('#noPaymentDueMessage').removeClass('d-none').html('<i class="fas fa-info-circle me-2"></i>You have completed this month\'s payment. Your next payment is due on <strong>' + loanData.dueDate + '</strong>.');
-                    $('#paymentSuccessMessage').addClass('d-none'); // Hide general success message
-                    $('#proceedToPayButton').addClass('d-none').prop('disabled', true);
-                    $('#paymentCompletedButton').addClass('d-none');
-                    $('#paymentPageSubtitle').text('Payment for the current cycle is complete.');
-                } else if (loanData.amountDue > 0 && loanData.isPaymentDue) { // Payment is due (might be overdue or current EMI)
-                    $('#amountDueDisplay').text('$' + loanData.amountDue.toFixed(2)).removeClass('text-success').addClass('text-danger');
-                    $('#dueDateDisplay').text(loanData.dueDate);
-                    $('#paymentAmount').val(loanData.amountDue.toFixed(2)); // Pre-fill with amount due
-                    $('#paymentForm').show();
-                    $('#proceedToPayButton').removeClass('d-none').prop('disabled', false);
-                    $('#paymentCompletedButton').addClass('d-none');
-                    $('#noPaymentDueMessage').addClass('d-none');
-                    $('#paymentSuccessMessage').addClass('d-none');
-                    $('#paymentPageSubtitle').text('Securely pay your outstanding loan amount.');
-
-                    if (loanData.isOverdue) {
-                        $('#overdueInfoSection').removeClass('d-none');
-                        $('#overdueMonthsDisplay').text(loanData.overdueMonths);
-                        $('#currentOverdueAmountDisplay').text('$' + loanData.currentOverdueAmount.toFixed(2));
-                    } else {
-                        $('#overdueInfoSection').addClass('d-none'); // Hide overdue section if not overdue
-                    }
-                } else { // No payment due (e.g., future due date, or loan just disbursed and next due date is future)
-                    $('#amountDueDisplay').text('$0.00').removeClass('text-danger').addClass('text-success');
-                    $('#dueDateDisplay').text(loanData.dueDate);
-                    $('#overdueInfoSection').addClass('d-none');
-                    $('#paymentForm').hide();
-                    $('#noPaymentDueMessage').removeClass('d-none').html('<i class="fas fa-info-circle me-2"></i>No payment is currently due for this loan. Your next payment is on <strong>' + loanData.dueDate + '</strong>.');
-                    $('#paymentSuccessMessage').addClass('d-none');
-                    $('#proceedToPayButton').addClass('d-none').prop('disabled', true);
-                    $('#paymentCompletedButton').addClass('d-none');
-                    $('#paymentPageSubtitle').text('View your loan summary.');
-                }
-            }
-
-            populateLoanDetails(); // Call this function on page load to display initial data
-
-            // --- Handle Payment Method Change (if you re-add new payment method fields) ---
-            // $('#paymentMethod').on('change', function () {
-            //     if ($(this).val() === 'new_bank' || $(this).val() === 'new_card') {
-            //         $('#newPaymentMethodFields').removeClass('d-none');
-            //     } else {
-            //         $('#newPaymentMethodFields').addClass('d-none');
-            //     }
-            // });
-
-            // --- Handle Form Submission (Proceed to Pay) ---
-            $('#paymentForm').on('submit', function (e) {
+            paymentForm.on('submit', function (e) {
                 e.preventDefault();
-                $('#paymentAmountError').hide(); // Hide previous errors
-
                 if (!this.checkValidity()) {
                     e.stopPropagation();
                     $(this).addClass('was-validated');
@@ -515,144 +389,137 @@
                 }
                 $(this).removeClass('was-validated');
 
-                const paymentAmount = parseFloat($('#paymentAmount').val());
-                const paymentMethodText = $('#paymentMethod option:selected').text();
+                proceedButton.prop('disabled', true).addClass('d-none');
+                processingLoader.removeClass('d-none'); // Show loader under button
 
-                // Client-side validation for amount:
-                if (loanData.isPaymentDue && paymentAmount < loanData.minPayment) {
-                    $('#paymentAmountError').text(`Minimum payment amount is $${loanData.minPayment.toFixed(2)}.`).show();
-                    $('#paymentAmount').addClass('is-invalid');
-                    return;
-                }
-
-                if (paymentAmount > loanData.outstandingBalance) {
-                    $('#paymentAmountError').text(`Payment amount cannot exceed the outstanding balance of $${loanData.outstandingBalance.toFixed(2)}.`).show();
-                    $('#paymentAmount').addClass('is-invalid');
-                    return;
-                }
-
-                $('#paymentAmount').removeClass('is-invalid'); // Clear invalid state if valid
-
-                $('#confirmLoanName').text(loanData.productName);
-                $('#confirmPaymentAmount').text('$' + paymentAmount.toFixed(2));
-                $('#confirmPaymentMethod').text(paymentMethodText);
-
-                confirmationModal.show();
-            });
-
-            // --- Handle Actual Payment Confirmation (AJAX Call to Backend) ---
-            $('#confirmPayButton').on('click', function () {
-                confirmationModal.hide();
-
-                // Show processing modal
-                $('#paymentStatusModalLabel').text('Processing Payment...');
-                $('#paymentStatusModalHeader').removeClass('bg-success bg-danger text-white').addClass('bg-primary text-white');
-                $('#paymentProcessingSpinner').removeClass('d-none');
-                $('#paymentStatusResult').addClass('d-none');
-                $('#paymentStatusModalFooter').addClass('d-none');
+                // Prepare for status modal
+                modalLabel.text('Processing Payment...');
+                modalHeader.removeClass('bg-success bg-danger').addClass('bg-primary'); // Reset header
+                modalSpinner.removeClass('d-none');
+                modalResultDiv.addClass('d-none').html('');
+                modalFooter.addClass('d-none');
                 statusModal.show();
 
-                const paymentAmount = parseFloat($('#paymentAmount').val());
-                const paymentMethod = $('#paymentMethod').val(); // Get the actual value for backend
 
-
-                // Make AJAX call to your backend
                 $.ajax({
-                    url: '/Customer/ProcessPayment', // Adjust to your actual controller/action path
-                    type: 'POST',
-                    contentType: 'application/json', // Indicate sending JSON
-                    headers: {
-                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() // Include anti-forgery token
-                    },
-                    data: JSON.stringify({ // Stringify the JavaScript object to JSON
-                        loanId: loanData.loanId, // Send the loan ID from your initial data
-                        paymentAmount: paymentAmount,
-                        paymentMethod: paymentMethod
-                    }),
+                    type: "POST",
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(), // Sends form data including AntiForgeryToken
+                    dataType: "json",
                     success: function (response) {
-                        $('#paymentProcessingSpinner').addClass('d-none');
-                        $('#paymentStatusResult').removeClass('d-none');
-                        $('#paymentStatusModalFooter').removeClass('d-none');
+                        modalSpinner.addClass('d-none');
+                        modalResultDiv.removeClass('d-none');
+                        modalFooter.removeClass('d-none');
 
                         if (response.success) {
-                            $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-success text-white');
-                            $('#paymentStatusModalLabel').text('Payment Successful!');
-                            $('#paymentStatusResult').html(`
-                                <div class="text-success"><i class="fas fa-check-circle status-icon"></i></div>
-                                <p class="fs-5">Your payment of <strong>$${paymentAmount.toFixed(2)}</strong> has been processed successfully.</p>
-                                <p>Transaction ID: ${response.transactionId}</p>
-                            `);
-                            $('#paymentStatusCloseButton').removeClass('btn-danger').addClass('btn-primary');
-                            $('#paymentStatusCloseButton').on("click",function(){
-                                window.location.href = '@Url.Action("AcceptedLoans", "Customer")';
-                            })
-                            // --- Update local loanData based on successful payment ---
-                            loanData.outstandingBalance = response.newOutstandingBalance;
-                            loanData.amountDue = response.newAmountDue;
-                            loanData.dueDate = response.newNextDueDate; // Server sends formatted string
-                            loanData.overdueMonths = response.newOverdueMonths;
-                            loanData.currentOverdueAmount = response.newCurrentOverdueAmount;
-                            loanData.isOverdue = (loanData.currentOverdueAmount > 0); // Re-evaluate isOverdue
-                            loanData.loanStatus = response.newLoanStatus; // Update loan status
+                            modalHeader.removeClass('bg-primary').addClass('bg-success text-white');
+                            modalLabel.text('Payment Successful!');
+                            modalResultDiv.html(
+                                `<div class="text-success"><i class="fas fa-check-circle status-icon"></i></div>
+                                 <p class="fs-5">${response.message}</p>
+                                 <p>New Outstanding Balance: INR ${parseFloat(response.outstandingBalance).toFixed(2)}</p>`
+                            );
+                            modalCloseButton.removeClass('btn-danger btn-primary').addClass('btn-primary'); // Ensure correct button color
 
-                            loanData.isPaymentDue = (loanData.amountDue > 0); // Re-evaluate if payment is still due
+                            // Update page elements
+                            $('#amountDueDisplay').text('INR ' + parseFloat(response.amountDue).toFixed(2));
+                             if(parseFloat(response.amountDue) > 0) {
+                                $('#amountDueDisplay').removeClass('text-success').addClass('text-danger');
+                            } else {
+                                $('#amountDueDisplay').removeClass('text-danger').addClass('text-success');
+                            }
+                            $('#dueDateDisplay').text(response.nextDueDate ? new Date(response.nextDueDate).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) : "N/A");
+                            $('#outstandingBalanceDisplay').text('INR ' + parseFloat(response.outstandingBalance).toFixed(2));
 
-                            populateLoanDetails();
-        // Re-render the summary card with updated data
-                            // The populateLoanDetails will handle hiding/showing form/buttons based on updated loanData.loanStatus and amountDue
+                            $('#loanShortDescription').find('span').text(response.loanStatus)
+                                .removeClass('text-danger text-info text-success')
+                                .addClass(response.loanStatus === "Overdue" ? "text-danger" : (response.loanStatus === "Closed" ? "text-success" : "text-info"));
+
+
+                            if (response.loanStatus === "Closed" || response.outstandingBalance <= 0) {
+                                paymentForm.hide();
+                                $('#paymentSuccessPageMessage').addClass('d-none'); // Hide if shown before
+                                $('#noPaymentDuePageMessage').html('<i class="fas fa-info-circle me-2"></i>No payment is due as this loan is fully paid and closed.').removeClass('d-none');
+                                $('#paymentPageSubtitle').text(`This loan (${$('#loanProductName').text()}) is closed.`);
+                            } else {
+                                $('#paymentSuccessPageMessage').removeClass('d-none');
+                                // Update paymentAmount input to new amount due or a default
+                                $('#paymentAmount').val(parseFloat(response.amountDue > 0 ? response.amountDue : "100.00").toFixed(2));
+                            }
+                             // Reset form and button for potential next attempt if not closed
+                            if (response.loanStatus !== "Closed") {
+                                paymentForm[0].reset(); // Reset form fields
+                                $('#termsAndConditions').prop('checked', false); // Uncheck terms
+                                proceedButton.prop('disabled', false).removeClass('d-none');
+                                processingLoader.addClass('d-none');
+                            }
+
+
                         } else {
-                            $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-danger text-white');
-                            $('#paymentStatusModalLabel').text('Payment Failed');
-                            $('#paymentStatusResult').html(`
-                                <div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
-                                <p class="fs-5">Your payment of <strong>$${paymentAmount.toFixed(2)}</strong> could not be processed.</p>
-                                <p>Reason: ${response.message || 'An unknown error occurred.'}</p>
-                                <p>${response.reason || 'Please try again or contact support.'}</p>
-                            `);
-                            $('#paymentStatusCloseButton').removeClass('btn-primary').addClass('btn-danger');
+                            modalHeader.removeClass('bg-primary').addClass('bg-danger text-white');
+                            modalLabel.text('Payment Failed');
+                            modalResultDiv.html(
+                                `<div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
+                                 <p class="fs-5">Your payment could not be processed.</p>
+                                 <p>Reason: ${response.message}</p>`
+                            );
+                             modalCloseButton.removeClass('btn-primary btn-success').addClass('btn-danger');
+                             // Re-enable form for another attempt
+                            proceedButton.prop('disabled', false).removeClass('d-none');
+                            processingLoader.addClass('d-none');
                         }
                     },
                     error: function (xhr, status, error) {
-                        $('#paymentProcessingSpinner').addClass('d-none');
-                        $('#paymentStatusResult').removeClass('d-none');
-                        $('#paymentStatusModalFooter').removeClass('d-none');
+                        modalSpinner.addClass('d-none');
+                        modalResultDiv.removeClass('d-none');
+                        modalFooter.removeClass('d-none');
 
-                        let errorMessage = "An unexpected error occurred.";
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        } else if (xhr.responseText) {
-                            try {
-                                let res = JSON.parse(xhr.responseText);
-                                errorMessage = res.message || errorMessage;
-                            } catch (e) {
-                                errorMessage = xhr.responseText;
-                            }
-                        }
-
-                        $('#paymentStatusModalHeader').removeClass('bg-primary').addClass('bg-danger text-white');
-                        $('#paymentStatusModalLabel').text('Payment Error');
-                        $('#paymentStatusResult').html(`
-                            <div class="text-danger"><i class="fas fa-times-circle status-icon"></i></div>
-                            <p class="fs-5">There was an issue processing your payment.</p>
-                            <p>Error: ${errorMessage}</p>
-                            <p>Please try again or contact support.</p>
-                        `);
-                        $('#paymentStatusCloseButton').removeClass('btn-primary').addClass('btn-danger');
+                        modalHeader.removeClass('bg-primary').addClass('bg-danger text-white');
+                        modalLabel.text('Payment Error');
+                        modalResultDiv.html(
+                            `<div class="text-danger"><i class="fas fa-exclamation-triangle status-icon"></i></div>
+                             <p class="fs-5">An unexpected error occurred.</p>
+                             <p>Please try again later or contact support.</p>
+                             <p class="small text-muted">Error: ${xhr.status} ${error}</p>`
+                        );
+                        modalCloseButton.removeClass('btn-primary btn-success').addClass('btn-danger');
+                        // Re-enable form for another attempt
+                        proceedButton.prop('disabled', false).removeClass('d-none');
+                        processingLoader.addClass('d-none');
                     }
                 });
             });
 
-            // Clear validation on input
-            $('#paymentAmount').on('input', function () {
+            // Reset validation on input/change
+            $('#paymentForm input, #paymentForm select').on('input change', function () {
                 $(this).removeClass('is-invalid');
-                $('#paymentAmountError').hide(); // Hide error message on input
+                if ($(this).closest('form').hasClass('was-validated')) {
+                    // If main form was validated, recheck validity silently on field change
+                    if (!$(this).closest('form')[0].checkValidity()) {
+                        // If this field made it invalid, mark it (optional)
+                    } else {
+                         // Check if all fields are now valid to remove global 'was-validated'
+                        if ($(this).closest('form')[0].checkValidity()) {
+                           // $(this).closest('form').removeClass('was-validated');
+                        }
+                    }
+                }
             });
-            $('#paymentForm select, #paymentForm input[type="checkbox"]').on('change', function () {
-                $(this).removeClass('is-invalid');
-                $('#paymentForm').removeClass('was-validated'); // Reset overall form validation state on interaction
+
+             // Handle modal close event to potentially reload page or update further
+            statusModalElement.addEventListener('hidden.bs.modal', function () {
+                // If payment was successful and loan is now closed, might redirect
+                // if ($('#loanShortDescription').find('span').text() === "Closed") {
+                //    // window.location.reload(); // or redirect to a summary page
+                // }
+                // Ensure the button and loader under it are reset if modal closed prematurely
+                if (!proceedButton.is(':visible')) {
+                     proceedButton.prop('disabled', false).removeClass('d-none');
+                     processingLoader.addClass('d-none');
+                }
             });
+
         });
     </script>
 </body>
-
 </html>

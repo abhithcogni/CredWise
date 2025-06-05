@@ -457,414 +457,304 @@ namespace CredWise_Trail.Controllers
         }
 
         // This action displays the list of accepted loans and simulates their disbursement
+        [HttpGet]
+        public async Task<IActionResult> MakePayment(int loanApplicationId)
+        {
+            // IMPORTANT: Ensure this loan belongs to the logged-in customer.
+            // Example:
+            // var customerIdClaim = User.FindFirst("CustomerId"); // Or ClaimTypes.NameIdentifier
+            // if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId)) {
+            //     TempData["ErrorMessage"] = "Authentication error.";
+            //     return RedirectToAction("Login", "Account"); // Or an appropriate error/access denied page
+            // }
+
+            var customerIdClaim = User.FindFirst("CustomerId"); // Ensure "CustomerId" claim is correctly set during login
+                                                                // Alternatively, use ClaimTypes.NameIdentifier if that stores your numeric Customer ID
+            Console.WriteLine("loanID:",loanApplicationId);
+            Console.WriteLine("customerId:",customerIdClaim);
+            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+            {
+                TempData["ErrorMessage"] = "Authentication error: Unable to identify customer.";
+                // Redirect to login or an appropriate error page.
+                // Assuming you have a Login action in an Account controller:
+                return RedirectToAction("Login", "Account");
+            }
+            // 2. Fetch the specific loan application for the authenticated customer
+            var loanApplication = await _context.LoanApplications
+                                        .Include(la => la.LoanProduct) // Needed to display product name
+                                                                       // .Include(la => la.Customer) // Include if other customer details are needed on this page
+                                        .FirstOrDefaultAsync(la => la.ApplicationId == loanApplicationId && la.CustomerId == customerId);
+
+            
+
+            if (loanApplication == null)
+            {
+                TempData["ErrorMessage"] = "Loan application not found.";
+                return RedirectToAction("AcceptedLoans"); // Redirect to list of customer's active loans
+            }
+
+            if (loanApplication.LoanStatus == "Closed" || loanApplication.OutstandingBalance <= 0)
+            {
+                ViewBag.NoPaymentDueMessage = "This loan is fully paid and closed.";
+            }
+            else if (loanApplication.LoanStatus == "Pending Disbursement" || loanApplication.LoanStatus == "Pending")
+            {
+                ViewBag.NoPaymentDueMessage = "This loan is not yet active for payments.";
+            }
+
+            return View("~/Views/CustomerPortal/MakePayment.cshtml", loanApplication);
+        }
+
+        // POST: /Customer/ProcessPayment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ProcessPayment(int loanId, decimal paidAmount, string paymentMethod)
+        {
+            // IMPORTANT: Validate that loanId belongs to the currently authenticated customer.
+            // Example:
+            // var customerIdClaim = User.FindFirst("CustomerId");
+            // if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int currentCustomerId)) {
+            //     return Json(new { success = false, message = "User not authenticated." });
+            // }
+
+            if (paidAmount <= 0)
+            {
+                return Json(new { success = false, message = "Payment amount must be positive." });
+            }
+
+            var loanApplication = await _context.LoanApplications
+                                          .Include(la => la.Repayments.Where(r => r.PaymentStatus == "PENDING").OrderBy(r => r.DueDate)) // Eager load pending repayments
+                                          .FirstOrDefaultAsync(la => la.ApplicationId == loanId /* && la.CustomerId == currentCustomerId */); // Uncomment customerId check
+
+            if (loanApplication == null)
+            {
+                return Json(new { success = false, message = "Loan application not found." });
+            }
+
+            if (loanApplication.LoanStatus == "Closed")
+            {
+                return Json(new { success = false, message = "This loan is already closed." });
+            }
+            if (loanApplication.LoanStatus == "Pending Disbursement" || loanApplication.LoanStatus == "Pending")
+            {
+                return Json(new { success = false, message = "This loan is not yet active for payments." });
+            }
+
+            // --- 1. Record the Payment Transaction ---
+            var payment = new LoanPayment
+            {
+                LoanId = loanApplication.ApplicationId, // FK to LoanApplication's PK
+                CustomerId = loanApplication.CustomerId,
+                PaidAmount = paidAmount,
+                PaymentDate = DateTime.Now,
+                PaymentMethod = paymentMethod,
+                TransactionId = $"MOCKTRX{DateTime.Now.Ticks}", // Placeholder: Generate a real transaction ID
+                Status = "Success" // Placeholder: Set based on actual payment gateway response
+            };
+            _context.LoanPayments.Add(payment);
+            // Ensure LoanPayment.LoanId ForeignKey attribute correctly maps to LoanApplication.ApplicationId.
+
+            // --- 2. Apply Payment to Repayments and Update Loan Application ---
+            decimal remainingAmountToAllocate = paidAmount;
+            bool duesClearedThisTransaction = false;
+
+            // Handle overdue payments first
+            if (loanApplication.LoanStatus == "Overdue")
+            {
+                var pendingOverdueRepayments = loanApplication.Repayments.ToList(); // Already filtered for PENDING, ordered by DueDate
+
+                foreach (var repayment in pendingOverdueRepayments)
+                {
+                    if (remainingAmountToAllocate <= 0) break;
+
+                    decimal amountToApplyToThisRepayment = Math.Min(remainingAmountToAllocate, repayment.AmountDue);
+                    // Interest calculation for each overdue EMI should follow specific business rules.
+                    // This example calculates simple interest on the outstanding balance before this EMI's principal reduction.
+                    decimal interestForThisEmiPeriod = CalculateInterestForPeriod(loanApplication.OutstandingBalance, loanApplication.InterestRate);
+                    decimal principalFromThisEmi = Math.Max(0, amountToApplyToThisRepayment - interestForThisEmiPeriod);
+                    principalFromThisEmi = Math.Min(principalFromThisEmi, loanApplication.OutstandingBalance); // Cannot pay more principal than available
+
+                    loanApplication.OutstandingBalance -= principalFromThisEmi;
+                    repayment.PaymentDate = DateTime.Now;
+                    repayment.PaymentStatus = "COMPLETED";
+                    _context.Repayments.Update(repayment);
+                    remainingAmountToAllocate -= amountToApplyToThisRepayment;
+                }
+                if (loanApplication.OutstandingBalance < 0) loanApplication.OutstandingBalance = 0;
+
+                // Check if all past dues are now cleared
+                var stillOverdueRepayments = await _context.Repayments
+                                                .Where(r => r.ApplicationId == loanApplication.ApplicationId &&
+                                                            r.PaymentStatus == "PENDING" &&
+                                                            r.DueDate.Date < DateTime.Now.Date)
+                                                .ToListAsync();
+                if (!stillOverdueRepayments.Any())
+                {
+                    loanApplication.LoanStatus = "Active";
+                    loanApplication.OverdueMonths = 0;
+                    loanApplication.CurrentOverdueAmount = 0;
+                    duesClearedThisTransaction = true;
+                }
+                else
+                { // Still overdue, update overdue details
+                    loanApplication.CurrentOverdueAmount = stillOverdueRepayments.Sum(r => r.AmountDue);
+                    loanApplication.OverdueMonths = stillOverdueRepayments.Count(); // Number of overdue EMIs
+                }
+            }
+
+            // Apply to current/future EMIs if loan is Active or dues were just cleared, and funds remain
+            if ((loanApplication.LoanStatus == "Active" || duesClearedThisTransaction) && remainingAmountToAllocate > 0)
+            {
+                var nextPendingRepayments = await _context.Repayments
+                                .Where(r => r.ApplicationId == loanApplication.ApplicationId && r.PaymentStatus == "PENDING")
+                                .OrderBy(r => r.DueDate)
+                                .ToListAsync();
+
+                foreach (var repayment in nextPendingRepayments)
+                {
+                    if (remainingAmountToAllocate <= 0) break;
+                    // Assumes payment covers full EMIs. Partial payment of a single EMI needs more complex logic.
+                    decimal amountToApplyToThisRepayment = Math.Min(remainingAmountToAllocate, repayment.AmountDue);
+                    decimal interestForThisEmiPeriod = CalculateInterestForPeriod(loanApplication.OutstandingBalance, loanApplication.InterestRate);
+                    decimal principalFromThisEmi = Math.Max(0, amountToApplyToThisRepayment - interestForThisEmiPeriod);
+                    principalFromThisEmi = Math.Min(principalFromThisEmi, loanApplication.OutstandingBalance);
+
+                    loanApplication.OutstandingBalance -= principalFromThisEmi;
+                    repayment.PaymentDate = DateTime.Now;
+                    repayment.PaymentStatus = "COMPLETED";
+                    _context.Repayments.Update(repayment);
+                    remainingAmountToAllocate -= amountToApplyToThisRepayment;
+                }
+                if (loanApplication.OutstandingBalance < 0) loanApplication.OutstandingBalance = 0;
+            }
+
+            loanApplication.LastPaymentDate = DateTime.Now;
+
+            // --- 3. Update Loan Application's Next Due Date and Amount Due ---
+            var nextScheduledRepayment = await _context.Repayments
+                                    .Where(r => r.ApplicationId == loanApplication.ApplicationId && r.PaymentStatus == "PENDING")
+                                    .OrderBy(r => r.DueDate)
+                                    .FirstOrDefaultAsync();
+
+            if (nextScheduledRepayment != null)
+            {
+                loanApplication.NextDueDate = nextScheduledRepayment.DueDate;
+                loanApplication.AmountDue = nextScheduledRepayment.AmountDue;
+            }
+            else // No more pending repayments
+            {
+                loanApplication.NextDueDate = null;
+                loanApplication.AmountDue = 0;
+                if (loanApplication.OutstandingBalance <= 0.01m) // Using a small threshold for decimal precision
+                {
+                    loanApplication.OutstandingBalance = 0; // Ensure exact zero
+                    loanApplication.LoanStatus = "Closed"; // Loan Closure
+                    loanApplication.CurrentOverdueAmount = 0;
+                    loanApplication.OverdueMonths = 0;
+                }
+            }
+
+            // --- 4. Update Overdue Status (Conceptual: Typically handled by a separate batch job) ---
+            // This section simulates a check that a nightly batch job might perform.
+            if (loanApplication.LoanStatus != "Closed" && loanApplication.LoanStatus != "Overdue")
+            { // If not already closed or marked overdue by payment logic
+                var firstPendingPastDueInstallment = await _context.Repayments
+                    .Where(r => r.ApplicationId == loanApplication.ApplicationId &&
+                                 r.PaymentStatus == "PENDING" &&
+                                 r.DueDate.Date < DateTime.Now.Date)
+                    .OrderBy(r => r.DueDate)
+                    .FirstOrDefaultAsync();
+
+                if (firstPendingPastDueInstallment != null)
+                {
+                    loanApplication.LoanStatus = "Overdue";
+                    var allPendingPastDues = await _context.Repayments
+                        .Where(r => r.ApplicationId == loanApplication.ApplicationId &&
+                                     r.PaymentStatus == "PENDING" &&
+                                     r.DueDate.Date < DateTime.Now.Date)
+                        .ToListAsync();
+                    loanApplication.OverdueMonths = allPendingPastDues.Count();
+                    loanApplication.CurrentOverdueAmount = allPendingPastDues.Sum(r => r.AmountDue);
+                    // Adjust overall AmountDue on LoanApplication based on overdue status
+                    loanApplication.AmountDue = loanApplication.CurrentOverdueAmount;
+                    if (nextScheduledRepayment != null && nextScheduledRepayment.DueDate.Date >= DateTime.Now.Date)
+                    {
+                        loanApplication.AmountDue += nextScheduledRepayment.AmountDue; // Add current month's EMI if applicable
+                    }
+                }
+            }
+            // --- End of Conceptual Overdue Check ---
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Json(new
+                {
+                    success = true,
+                    message = $"Payment of INR {paidAmount:N2} processed successfully.",
+                    loanStatus = loanApplication.LoanStatus,
+                    outstandingBalance = loanApplication.OutstandingBalance,
+                    nextDueDate = loanApplication.NextDueDate?.ToString("yyyy-MM-dd"),
+                    amountDue = loanApplication.AmountDue
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log ex for detailed error diagnosis
+                Console.WriteLine($"Error processing payment for LoanId {loanId}: {ex.Message} {ex.StackTrace}");
+                return Json(new { success = false, message = "An error occurred while processing the payment." });
+            }
+        }
+
+        // Helper method to calculate interest for one month based on current balance and annual rate.
+        private decimal CalculateInterestForPeriod(decimal currentOutstandingBalance, decimal annualInterestRatePercentage)
+        {
+            if (currentOutstandingBalance <= 0) return 0;
+            decimal monthlyInterestRate = annualInterestRatePercentage / 12 / 100;
+            return Math.Round(currentOutstandingBalance * monthlyInterestRate, 2);
+        }
+
+        // GET: /Customer/AcceptedLoans
+        // Displays loans that are approved and not yet closed for the authenticated customer.
         public async Task<IActionResult> AcceptedLoans()
         {
-            var customerIdClaim = User.FindFirst("CustomerId");
+            var customerIdClaim = User.FindFirst("CustomerId"); // Assumes "CustomerId" claim is set during login
             if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
             {
                 TempData["ErrorMessage"] = "Authentication error: Customer ID not found.";
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Login", "Account"); // Redirect to login if not authenticated
             }
 
             var approvedLoans = await _context.LoanApplications
-                                                .Include(l => l.LoanProduct)
-                                                .Where(l => l.CustomerId == customerId && l.ApprovalStatus == "Approved")
-                                                .Where(l => l.LoanStatus != "Closed") // NEW: Filter out closed loans
-                                                .ToListAsync();
+                                            .Include(l => l.LoanProduct) // To display product details
+                                            .Where(l => l.CustomerId == customerId && l.ApprovalStatus == "Approved")
+                                            .Where(l => l.LoanStatus != "Closed") // Filter out already closed loans
+                                            .ToListAsync();
 
-            // Simulate loan disbursement for approved loans if they haven't been disbursed yet
+            // This section simulates a disbursement check if your workflow includes 'Pending Disbursement' status
+            // and needs to transition to 'Active' upon viewing or a similar trigger.
+            // In a real system, disbursement might be an explicit admin action or automated process.
+            bool hasChanges = false;
             foreach (var loan in approvedLoans)
             {
-                if (loan.LoanStatus == "Pending Disbursement")
+                if (loan.LoanStatus == "Pending Disbursement") // A status indicating approved but funds not yet released
                 {
-                    await SimulateLoanDisbursement(loan);
+                    // await SimulateLoanDisbursement(loan); // Your custom logic for disbursement
+                    // Example: Update status and outstanding balance if disbursement logic is here
+                    // loan.LoanStatus = "Active";
+                    // loan.OutstandingBalance = loan.LoanAmount; // If not set already
+                    // loan.NextDueDate = ... // Set first due date if not set during approval
+                    // hasChanges = true;
+                    // This is a placeholder for your disbursement logic which might also generate the schedule
+                    // if not done directly in UpdateLoanStatus. For this flow, schedule is in UpdateLoanStatus.
                 }
             }
-            await _context.SaveChangesAsync(); // Save changes after potential disbursements
-
-            return View(approvedLoans);
-        }
-
-        // GET: Customer/MakePayment/5
-        [HttpGet]
-        public async Task<IActionResult> MakePayment(int loanId)
-        {
-            var customerIdClaim = User.FindFirst("CustomerId");
-            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int currentCustomerId))
+            if (hasChanges)
             {
-                TempData["ErrorMessage"] = "Authentication error: Customer ID not found.";
-                return RedirectToAction("Login", "Account"); // Assuming your login action is in Account controller
+                await _context.SaveChangesAsync(); // Save changes if any loan statuses were updated
             }
 
-            var loan = await _context.LoanApplications
-                                     .Include(l => l.LoanProduct) // Include LoanProduct for product name
-                                     .FirstOrDefaultAsync(l => l.ApplicationId == loanId && l.CustomerId == currentCustomerId);
-
-            if (loan == null)
-            {
-                TempData["ErrorMessage"] = "Loan not found or you do not have permission to access it.";
-                return RedirectToAction("AcceptedLoans"); // Redirect to a relevant loan list page
-            }
-
-            // --- Core Logic: Calculate Overdue Status and Amount Due ---
-            DateTime today = DateTime.Today;
-            bool loanStateChanged = false;
-
-            // Handle closed loans first
-            if (loan.LoanStatus == "Closed" && loan.OutstandingBalance <= 0)
-            {
-                loan.AmountDue = 0;
-                loan.OverdueMonths = 0;
-                loan.CurrentOverdueAmount = 0;
-                loan.NextDueDate = null;
-                loanStateChanged = true;
-            }
-            else // Loan is active or potentially overdue
-            {
-                // Ensure NextDueDate is set if it's null (e.g., after initial disbursement)
-                if (!loan.NextDueDate.HasValue)
-                {
-                    // Default to 1st of next month, or current month if today is past 1st
-                    loan.NextDueDate = new DateTime(today.Year, today.Month, 1).AddMonths(1);
-                    loanStateChanged = true;
-                }
-
-                int calculatedOverdueMonths = 0;
-                decimal calculatedOverdueAmount = 0;
-
-                // Only calculate overdue if the loan is active/overdue and not fully paid
-                if ((loan.LoanStatus == "Active" || loan.LoanStatus == "Overdue") && loan.OutstandingBalance > 0)
-                {
-                    DateTime tempDueDate = loan.NextDueDate.Value.Date;
-
-                    // Loop to count full months that have passed since the last due date
-                    // and accumulate overdue amounts, capping at outstanding balance.
-                    while (tempDueDate < today) // Only count full overdue months
-                    {
-                        decimal potentialAccrual = loan.EMI;
-                        decimal remainingBalanceAfterCurrentAccruals = loan.OutstandingBalance - calculatedOverdueAmount;
-
-                        if (potentialAccrual > remainingBalanceAfterCurrentAccruals)
-                        {
-                            potentialAccrual = remainingBalanceAfterCurrentAccruals;
-                        }
-
-                        if (potentialAccrual > 0)
-                        {
-                            calculatedOverdueAmount += potentialAccrual;
-                            calculatedOverdueMonths++;
-                        }
-                        else
-                        {
-                            // If no more outstanding balance to accrue, stop.
-                            break;
-                        }
-                        tempDueDate = tempDueDate.AddMonths(1); // Move to the next potential due date
-                    }
-                }
-
-                // Update loan object with calculated overdue values if they changed
-                if (loan.OverdueMonths != calculatedOverdueMonths || loan.CurrentOverdueAmount != calculatedOverdueAmount)
-                {
-                    loan.OverdueMonths = calculatedOverdueMonths;
-                    loan.CurrentOverdueAmount = calculatedOverdueAmount;
-                    loan.LoanStatus = (calculatedOverdueMonths > 0) ? "Overdue" : "Active";
-                    loanStateChanged = true;
-                }
-                else if (loan.OverdueMonths == 0 && loan.LoanStatus == "Overdue")
-                {
-                    // If it was overdue but now isn't (e.g., due to a recent payment), reset status
-                    loan.LoanStatus = "Active";
-                    loanStateChanged = true;
-                }
-
-                // Calculate the total AmountDue for the current payment cycle
-                // This is the current EMI + any accumulated overdue amount, capped by outstanding balance.
-                decimal totalAmountExpected = loan.EMI + loan.CurrentOverdueAmount;
-
-                if (loan.OutstandingBalance <= 0)
-                {
-                    loan.AmountDue = 0;
-                }
-                else if (loan.OutstandingBalance < totalAmountExpected)
-                {
-                    loan.AmountDue = loan.OutstandingBalance; // Amount due cannot exceed outstanding balance
-                }
-                else
-                {
-                    loan.AmountDue = totalAmountExpected;
-                }
-            }
-
-            if (loanStateChanged)
-            {
-                await _context.SaveChangesAsync();
-            }
-
-            // Prepare ViewModel
-            var model = new MakePaymentViewModel
-            {
-                LoanId = loan.ApplicationId,
-                ProductName = loan.LoanProduct?.ProductName,
-                ShortDescription = $"Your monthly installment for loan number {loan.LoanNumber}.",
-                MonthlyInstallmentAmount = loan.EMI,
-                AmountDue = loan.AmountDue, // This now includes overdue amounts and is capped
-                DueDate = loan.NextDueDate,
-                OutstandingBalance = loan.OutstandingBalance,
-                MinPayment = loan.EMI, // EMI is typically the minimum payment
-                IsPaymentDue = loan.NextDueDate.HasValue && loan.NextDueDate.Value.Date <= today && loan.AmountDue > 0, // Payment is due if date is past/today AND there's an amount due
-                OverdueMonths = loan.OverdueMonths,
-                CurrentOverdueAmount = loan.CurrentOverdueAmount,
-                IsOverdue = loan.CurrentOverdueAmount > 0, // IsOverdue is true only if CurrentOverdueAmount > 0
-                LoanStatus = loan.LoanStatus // Pass loan status to view
-            };
-
-            return View("makepayment", model);
-        }
-
-        // POST: /Loan/ProcessPayment (This will be called via AJAX)
-        [HttpPost]
-        public async Task<IActionResult> ProcessPayment([FromBody] PaymentRequestDto request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var customerIdClaim = User.FindFirst("CustomerId");
-            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int currentCustomerId))
-            {
-                return Unauthorized(new { success = false, message = "Authentication error: Customer ID not found." });
-            }
-
-            var loan = await _context.LoanApplications
-                                     .FirstOrDefaultAsync(l => l.ApplicationId == request.LoanId && l.CustomerId == currentCustomerId);
-
-            if (loan == null)
-            {
-                return NotFound(new { success = false, message = "Loan not found or does not belong to the customer." });
-            }
-
-            if (request.PaymentAmount <= 0)
-            {
-                return BadRequest(new { success = false, message = "Payment amount must be positive." });
-            }
-
-            // General check: payment amount cannot exceed outstanding balance
-            if (request.PaymentAmount > loan.OutstandingBalance)
-            {
-                return BadRequest(new { success = false, message = $"Payment amount cannot exceed the outstanding balance of ${loan.OutstandingBalance:F2}." });
-            }
-
-            // --- Simulate Payment Gateway Integration ---
-            bool paymentGatewaySuccess = SimulatePaymentGateway(request.PaymentAmount, request.PaymentMethod);
-
-            if (paymentGatewaySuccess)
-            {
-                var newPayment = new LoanPayment
-                {
-                    LoanId = loan.ApplicationId,
-                    CustomerId = currentCustomerId,
-                    PaidAmount = request.PaymentAmount,
-                    PaymentDate = DateTime.Now,
-                    PaymentMethod = request.PaymentMethod,
-                    TransactionId = "TRX" + Guid.NewGuid().ToString().Substring(0, 8),
-                    Status = "Success"
-                };
-                _context.LoanPayments.Add(newPayment);
-
-                using (var transaction = _context.Database.BeginTransaction())
-                {
-                    try
-                    {
-                        decimal paymentToApply = request.PaymentAmount;
-                        bool overdueClearedInThisPayment = false;
-                        bool currentEMICoveredInThisPayment = false;
-
-                        // 1. Apply payment to CurrentOverdueAmount first
-                        if (loan.CurrentOverdueAmount > 0)
-                        {
-                            if (paymentToApply >= loan.CurrentOverdueAmount)
-                            {
-                                paymentToApply -= loan.CurrentOverdueAmount;
-                                loan.CurrentOverdueAmount = 0;
-                                loan.OverdueMonths = 0; // Clear overdue status
-                                loan.LoanStatus = "Active"; // Reset status to active
-                                overdueClearedInThisPayment = true;
-                            }
-                            else
-                            {
-                                loan.CurrentOverdueAmount -= paymentToApply;
-                                paymentToApply = 0; // Payment fully used for overdue
-                                overdueClearedInThisPayment = false; // Overdue not fully cleared
-                            }
-                        }
-
-                        // 2. Apply remaining payment towards the current EMI
-                        // This applies if there's payment left and the loan is now active or was just cleared from overdue.
-                        if (paymentToApply > 0 && (loan.LoanStatus == "Active" || overdueClearedInThisPayment))
-                        {
-                            decimal amountToCoverForCurrentEMI = loan.EMI;
-
-                            if (paymentToApply >= amountToCoverForCurrentEMI)
-                            {
-                                paymentToApply -= amountToCoverForCurrentEMI;
-                                currentEMICoveredInThisPayment = true;
-                            }
-                            else
-                            {
-                                // Partial payment for the current EMI
-                                currentEMICoveredInThisPayment = false;
-                            }
-                        }
-
-                        // 3. Update OutstandingBalance directly with the total payment received
-                        loan.OutstandingBalance -= request.PaymentAmount;
-
-                        // 4. Determine new NextDueDate and AmountDue based on payment impact
-                        if (loan.OutstandingBalance <= 0)
-                        {
-                            // Loan fully paid
-                            loan.OutstandingBalance = 0;
-                            loan.LoanStatus = "Closed";
-                            loan.EMI = 0;
-                            loan.AmountDue = 0;
-                            loan.NextDueDate = null;
-                            loan.OverdueMonths = 0;
-                            loan.CurrentOverdueAmount = 0;
-                        }
-                        else
-                        {
-                            // If overdue was cleared AND current EMI was covered, advance NextDueDate.
-                            if (overdueClearedInThisPayment && currentEMICoveredInThisPayment)
-                            {
-                                // Advance to the 1st of the next month from TODAY
-                                loan.NextDueDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
-                                loan.AmountDue = loan.EMI; // Set AmountDue for the newly advanced month
-                            }
-                            else if (loan.CurrentOverdueAmount == 0 && loan.OutstandingBalance > 0 && loan.NextDueDate.HasValue && loan.NextDueDate.Value.Date < DateTime.Today)
-                            {
-                                // This handles the case where overdue was cleared, but the current month's EMI wasn't fully paid.
-                                // Or it's a new month and EMI is due.
-                                // If NextDueDate is in the past, but no longer overdue (meaning the payment took care of previous EMIs)
-                                // Then, advance NextDueDate to the 1st of the current month (if it's not already) or next month.
-                                // This ensures NextDueDate is always relevant and moves forward.
-                                if (loan.NextDueDate.Value.Month != DateTime.Today.Month || loan.NextDueDate.Value.Year != DateTime.Today.Year)
-                                {
-                                    loan.NextDueDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
-                                }
-                                // If today is past the 1st of the current month and the due date is still for this month's start or earlier,
-                                // we should consider it due for this month.
-                                if (loan.NextDueDate.Value.Date < DateTime.Today)
-                                {
-                                    loan.NextDueDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
-                                }
-
-                                loan.AmountDue = loan.EMI; // The EMI for the next cycle
-                            }
-                            else
-                            {
-                                // If overdue was not fully cleared, or current EMI was only partially covered,
-                                // NextDueDate should not advance. AmountDue will be re-calculated on the next GET.
-                                // But let's ensure AmountDue is updated to reflect any remaining for the current cycle.
-                                decimal calculatedAmountDueForNextDisplay = loan.EMI + loan.CurrentOverdueAmount;
-                                if (calculatedAmountDueForNextDisplay > loan.OutstandingBalance)
-                                {
-                                    calculatedAmountDueForNextDisplay = loan.OutstandingBalance;
-                                }
-                                loan.AmountDue = calculatedAmountDueForNextDisplay;
-                            }
-                        }
-
-                        loan.LastPaymentDate = DateTime.Now; // Update last payment date
-
-                        await _context.SaveChangesAsync();
-                        transaction.Commit();
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        Console.WriteLine($"Error processing payment: {ex.Message}");
-                        return StatusCode(500, new { success = false, message = "An error occurred while updating loan details.", reason = ex.Message });
-                    }
-                }
-
-                // Return updated values for frontend to refresh UI
-                return Ok(new { success = true, message = "Payment successful!", transactionId = newPayment.TransactionId, newOutstandingBalance = loan.OutstandingBalance, newAmountDue = loan.AmountDue, newNextDueDate = loan.NextDueDate?.ToShortDateString(), newOverdueMonths = loan.OverdueMonths, newCurrentOverdueAmount = loan.CurrentOverdueAmount, newLoanStatus = loan.LoanStatus });
-            }
-            else
-            {
-                var failedPayment = new LoanPayment
-                {
-                    LoanId = loan.ApplicationId,
-                    CustomerId = currentCustomerId,
-                    PaidAmount = request.PaymentAmount,
-                    PaymentDate = DateTime.Now,
-                    PaymentMethod = request.PaymentMethod,
-                    TransactionId = "FAILTRX" + Guid.NewGuid().ToString().Substring(0, 8),
-                    Status = "Failed"
-                };
-                _context.LoanPayments.Add(failedPayment);
-                await _context.SaveChangesAsync();
-
-                return StatusCode(500, new { success = false, message = "Payment failed at gateway. Please try again.", reason = "Simulated insufficient funds." });
-            }
-        }
-        // Helper method to simulate a payment gateway response
-        private bool SimulatePaymentGateway(decimal amount, string method)
-        {
-            System.Threading.Thread.Sleep(500); // Simulate a short delay
-            return new Random().NextDouble() < 0.85; // 85% success rate
-        }
-
-        /// <summary>
-        /// Calculates the Equated Monthly Installment (EMI) for a loan.
-        /// Formula: EMI = P * r * (1 + r)^n / ((1 + r)^n - 1)
-        /// Where:
-        /// P = Principal Loan Amount
-        /// r = Monthly Interest Rate (Annual Rate / 12 / 100)
-        /// n = Loan Tenure in Months
-        /// </summary>
-        /// <param name="principal">The principal loan amount.</param>
-        /// <param name="annualInterestRate">The annual interest rate (e.g., 8.5 for 8.5%).</param>
-        /// <param name="tenureMonths">The loan tenure in months.</param>
-        /// <returns>The calculated EMI.</returns>
-        private decimal CalculateEMI(decimal principal, decimal annualInterestRate, int tenureMonths)
-        {
-            if (tenureMonths <= 0) return principal; // Handle zero or negative tenure
-            if (annualInterestRate <= 0) return principal / tenureMonths; // Simple division if no interest
-
-            decimal monthlyInterestRate = (annualInterestRate / 100) / 12;
-
-            double powerFactor = Math.Pow((double)(1 + monthlyInterestRate), tenureMonths);
-            decimal emi = principal * monthlyInterestRate * (decimal)powerFactor / ((decimal)powerFactor - 1);
-
-            return Math.Round(emi, 2); // Round to 2 decimal places for currency
-        }
-
-        /// <summary>
-        /// Simulates the disbursement of an approved loan, setting initial financial details.
-        /// In a real application, this would be triggered by an admin action.
-        /// </summary>
-        /// <param name="loan">The LoanApplication object to disburse.</param>
-        private async Task SimulateLoanDisbursement(LoanApplication loan)
-        {
-            if (loan.ApprovalStatus == "Approved" && loan.LoanStatus == "Pending Disbursement")
-            {
-                loan.EMI = CalculateEMI(loan.LoanAmount, loan.InterestRate, loan.TenureMonths);
-                loan.OutstandingBalance = loan.LoanAmount;
-                // Set first due date to the 1st of the next month
-                loan.NextDueDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
-                loan.AmountDue = loan.EMI; // Initial amount due is the first EMI
-                loan.LoanStatus = "Active";
-                loan.ApprovalDate = DateTime.Now; // Set approval date upon disbursement simulation
-                loan.LastPaymentDate = null; // No payments made yet
-                loan.OverdueMonths = 0;
-                loan.CurrentOverdueAmount = 0;
-
-                _context.LoanApplications.Update(loan);
-                // No SaveChangesAsync here, it will be called by the calling action (e.g., AcceptedLoans)
-            }
+            return View(approvedLoans); // Pass the list of loans to an AcceptedLoans.cshtml view
         }
     }
 }

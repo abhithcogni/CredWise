@@ -70,7 +70,8 @@ namespace CredWise_Trail.Models // Ensure this namespace matches your project st
         // --- NEW NAVIGATION PROPERTIES ---
 
         // This will be for the individual payment records associated with this loan
-        public ICollection<LoanPayment> Payments { get; set; } // Changed from Repayments to Payments for consistency with LoanPayment model
+        public ICollection<LoanPayment> Payments { get; set; }
+        public ICollection<Repayment> Repayments { get; set; }// Changed from Repayments to Payments for consistency with LoanPayment model
     }
 
     // You might want to define enums for ApprovalStatus and LoanStatus for strong typing in C#.

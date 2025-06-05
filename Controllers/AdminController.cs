@@ -289,6 +289,7 @@ namespace CredWise_Trail.Controllers
 
         // POST: Admin/UpdateLoanStatus (for AJAX calls to update status)
         [HttpPost]
+        [HttpPost]
         public async Task<IActionResult> UpdateLoanStatus(int loanId, string status)
         {
             var loanApplication = await _context.LoanApplications.FindAsync(loanId);
@@ -298,95 +299,139 @@ namespace CredWise_Trail.Controllers
                 return NotFound(new { success = false, message = "Loan application not found." });
             }
 
-            // Validate status input to prevent invalid values
-            if (status != "Approved" && status != "Rejected" && status != "Pending")
+            // Validate status input
+            var validStatuses = new List<string> { "Approved", "Rejected", "Pending" };
+            if (!validStatuses.Contains(status))
             {
                 return BadRequest(new { success = false, message = "Invalid status provided." });
             }
 
             loanApplication.ApprovalStatus = status;
 
-            // --- Logic for setting loan details based on status ---
-            if (status == "Approved")
+            if (status == "Approved") // Based on 'APPROVED' ENUM value
             {
                 loanApplication.ApprovalDate = DateTime.Now;
-                loanApplication.LoanStatus = "Active"; // Set a general loan status to indicate it's now active
+                loanApplication.LoanStatus = "Active"; // Loan becomes active upon approval
 
-                // 1. Calculate EMI (Equated Monthly Installment)
-                // Ensure LoanAmount, InterestRate, LoanTenureMonths are correctly set on the loanApplication model.
+                // Ensure LoanAmount, InterestRate (annual %), TenureMonths, EMI (regular amount) are pre-set.
                 decimal principal = loanApplication.LoanAmount;
-                decimal annualInterestRate = loanApplication.InterestRate / 100; // Convert percentage to decimal
-                int numberOfMonths = loanApplication.TenureMonths;
+                decimal annualInterestRate = loanApplication.InterestRate; // e.g., 10 for 10%
+                int tenureInMonths = loanApplication.TenureMonths;
+                decimal regularEmiAmount = loanApplication.EMI; // Fixed regular EMI
 
-                decimal monthlyInterestRate = annualInterestRate / 12;
+                // Set initial financial details
+                loanApplication.OutstandingBalance = principal;
+                var approvalDate = loanApplication.ApprovalDate ?? DateTime.Now; // ApprovalDate should be set here
+                loanApplication.NextDueDate = new DateTime(approvalDate.Year, approvalDate.Month, approvalDate.Day).AddMonths(1);
+                // loanApplication.AmountDue is set after schedule generation from the first installment.
 
-                decimal calculatedEmi;
+                // --- Generate Repayment Schedule ---
+                // Clear existing schedule if any (e.g., for re-approval)
+                var existingRepayments = _context.Repayments.Where(r => r.ApplicationId == loanApplication.ApplicationId);
+                _context.Repayments.RemoveRange(existingRepayments);
 
-                // Handle case where interest rate is 0 (e.g., 0% APR loan)
-                if (monthlyInterestRate > 0)
+                List<Repayment> repayments = new List<Repayment>();
+                decimal currentBalanceForSchedule = principal;
+                decimal monthlyInterestRateDecimal = annualInterestRate / 12 / 100;
+
+                for (int i = 1; i <= tenureInMonths; i++)
                 {
-                    // EMI = P * R * (1 + R)^N / ((1 + R)^N - 1)
-                    // Using Math.Pow for exponentiation requires double, then cast back to decimal
-                    calculatedEmi = principal * monthlyInterestRate *
-                                    ((decimal)Math.Pow((double)(1 + monthlyInterestRate), numberOfMonths) /
-                                     ((decimal)Math.Pow((double)(1 + monthlyInterestRate), numberOfMonths) - 1));
-                }
-                else // No interest, just divide principal by tenure
-                {
-                    if (numberOfMonths > 0)
-                    {
-                        calculatedEmi = principal / numberOfMonths;
-                    }
-                    else // Edge case: 0 tenure, whole amount due immediately
-                    {
-                        calculatedEmi = principal;
-                    }
-                }
-                calculatedEmi = Math.Round(calculatedEmi, 2); // Round EMI to two decimal places
+                    DateTime dueDate = (loanApplication.NextDueDate ?? DateTime.Now.Date).AddMonths(i - 1);
 
-                // 2. Set the initial financial details for the active loan
-                loanApplication.EMI = calculatedEmi; // Store the calculated EMI
-                loanApplication.AmountDue = calculatedEmi; // The first EMI is the initial amount due
-                loanApplication.OutstandingBalance = principal; // The entire loan amount is outstanding initially
-                loanApplication.NextDueDate = DateTime.Now.Date.AddMonths(1); // First payment due one month from approval
-                // You might also capture who approved it: loanApplication.ApprovedByAdminId = GetCurrentAdminId();
+                    decimal interestComponent = Math.Round(currentBalanceForSchedule * monthlyInterestRateDecimal, 2);
+                    decimal principalComponent;
+                    decimal actualEmiForThisMonth;
+
+                    if (i < tenureInMonths) // For all regular EMIs
+                    {
+                        actualEmiForThisMonth = regularEmiAmount;
+                        principalComponent = actualEmiForThisMonth - interestComponent;
+                        if (principalComponent < 0) principalComponent = 0; // Prevent negative principal component
+                                                                            // Adjust if pre-defined EMI is too high for remaining balance before the second to last EMI
+                        if (currentBalanceForSchedule - principalComponent < 0 && (i < tenureInMonths - 1))
+                        {
+                            principalComponent = currentBalanceForSchedule;
+                            actualEmiForThisMonth = principalComponent + interestComponent;
+                        }
+                    }
+                    else // For the last EMI
+                    {
+                        // Last EMI clears the remaining balance plus its interest
+                        principalComponent = currentBalanceForSchedule;
+                        actualEmiForThisMonth = principalComponent + interestComponent;
+                    }
+                    actualEmiForThisMonth = Math.Round(actualEmiForThisMonth, 2);
+
+                    repayments.Add(new Repayment
+                    {
+                        ApplicationId = loanApplication.ApplicationId,
+                        DueDate = dueDate,
+                        AmountDue = actualEmiForThisMonth,
+                        PaymentStatus = "PENDING", // Corresponds to 'PENDING' ENUM
+                        PaymentDate = null
+                    });
+
+                    currentBalanceForSchedule -= principalComponent;
+                    if (currentBalanceForSchedule < 0) currentBalanceForSchedule = 0; // Prevent negative balance
+                }
+
+                // Set LoanApplication.AmountDue to the first installment's amount
+                if (repayments.Any())
+                {
+                    loanApplication.AmountDue = repayments.First().AmountDue;
+                }
+                else if (tenureInMonths == 0) // Edge case: 0 tenure
+                {
+                    loanApplication.AmountDue = principal;
+                }
+
+                await _context.Repayments.AddRangeAsync(repayments);
+                // --- End of Repayment Schedule Generation ---
+
+                // Set a unique LoanNumber if not already set
+                if (string.IsNullOrEmpty(loanApplication.LoanNumber))
+                {
+                    loanApplication.LoanNumber = $"LN{DateTime.Now:yyyyMMdd}-{loanApplication.ApplicationId % 1000:D3}";
+                }
             }
-            else if (status == "Rejected")
+            else if (status == "Rejected") // Based on 'REJECTED' ENUM value
             {
                 loanApplication.ApprovalDate = DateTime.Now;
-                loanApplication.LoanStatus = "Closed"; // Mark as closed/rejected
-                // Clear out payment-related fields for rejected loans
+                loanApplication.LoanStatus = "Closed";
                 loanApplication.EMI = 0;
                 loanApplication.AmountDue = 0;
                 loanApplication.OutstandingBalance = 0;
                 loanApplication.NextDueDate = null;
+                loanApplication.TenureMonths = 0;
+                loanApplication.InterestRate = 0; // Clear any tentatively set interest
             }
-            else // status == "Pending" or any other non-approved/rejected status
+            else // "Pending"
             {
-                loanApplication.ApprovalDate = null; // Clear approval date if status is not final
-                loanApplication.LoanStatus = "Pending"; // Set general loan status back to pending
-                // Clear financial details if the loan is back to pending state
+                loanApplication.ApprovalDate = null;
+                loanApplication.LoanStatus = "Pending";
+                // Clear financial details if loan is reverted to pending
                 loanApplication.EMI = 0;
                 loanApplication.AmountDue = 0;
                 loanApplication.OutstandingBalance = 0;
                 loanApplication.NextDueDate = null;
+                // TenureMonths and InterestRate are typically part of application, so not reset here.
             }
-            // --- End of status-based logic ---
 
             try
             {
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, newStatus = loanApplication.ApprovalStatus, loanId = loanApplication.ApplicationId });
+                return Json(new { success = true, newStatus = loanApplication.ApprovalStatus, loanId = loanApplication.ApplicationId, message = $"Loan status updated to {status} and repayment schedule generated if approved." });
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                // Handle concurrency conflicts if multiple admins try to update at once
+                // Log ex for diagnostics
+                Console.WriteLine($"Concurrency conflict for LoanId {loanId}: {ex.Message}");
                 return StatusCode(409, new { success = false, message = "Concurrency conflict: Loan was already updated. Please refresh." });
             }
             catch (Exception ex)
             {
-                // Log the exception (e.g., using a logger)
-                Console.WriteLine($"Error updating loan status: {ex.Message}");
+                // Log ex for diagnostics
+                Console.WriteLine($"Error updating loan status for LoanId {loanId}: {ex.Message} {ex.StackTrace}");
                 return StatusCode(500, new { success = false, message = "An error occurred while updating the loan status." });
             }
         }
