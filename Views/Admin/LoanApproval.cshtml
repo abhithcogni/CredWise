@@ -167,17 +167,33 @@
             justify-content: center;
             align-items: center;
             padding: 1rem 0;
+
         }
 
         .pagination .page-item.disabled .page-link {
             background-color: #e9ecef;
             border-color: #dee2e6;
+
+        }
+
+        :root {
+            --primary-brand-color: #0A2463;
+            --secondary-accent-color: #3E92CC;
         }
 
         .pagination .page-item.active .page-link {
-            background-color: #0A2463;
-            border-color: #0A2463;
+            background-color: var(--primary-brand-color); /* Applied */
+            border-color: var(--primary-brand-color); /* Applied */
+            color: white;
         }
+
+        .pagination .page-link {
+            color: var(--secondary-accent-color); /* Applied */
+        }
+
+            .pagination .page-link:hover {
+                color: var(--primary-brand-color); /* Applied */
+            }
 
     </style>
 </head>

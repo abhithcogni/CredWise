@@ -16,7 +16,64 @@ namespace CredWise_Trail.Controllers
             _context = context;
             _logger = logger;
         }// Initialize logger
+        public IActionResult CustomerDetails()
+        {
+            return View();
+        }
 
+        // API endpoint to get all customers with their loan application count
+        [HttpGet]
+        public async Task<IActionResult> GetAllCustomers()
+        {
+            var customers = await _context.Customers
+                .Select(c => new CustomerViewModel
+                {
+                    CustomerId = c.CustomerId,
+                    Name = c.Name,
+                    Email = c.Email,
+                    PhoneNumber = c.PhoneNumber,
+                    LoanApplicationCount = c.LoanApplications.Count()
+                })
+                .ToListAsync();
+
+            return Json(customers);
+        }
+
+        // API endpoint to get detailed information for a single customer
+        [HttpGet]
+        public async Task<IActionResult> GetCustomerDetails(int customerId)
+        {
+            var customer = await _context.Customers
+                .Where(c => c.CustomerId == customerId)
+                .Include(c => c.LoanApplications)
+                    .ThenInclude(la => la.LoanProduct)
+                .Select(c => new CustomerDetailViewModel
+                {
+                    CustomerId = c.CustomerId,
+                    Name = c.Name,
+                    Email = c.Email,
+                    PhoneNumber = c.PhoneNumber,
+                    Address = c.Address,
+                    AccountNumber = c.AccountNumber,
+                    CreatedDate = c.CreatedDate,
+                    LoanApplications = c.LoanApplications.Select(la => new LoanApplicationSummaryViewModel
+                    {
+                        ApplicationId = la.ApplicationId,
+                        ProductName = la.LoanProduct.ProductName,
+                        LoanAmount = la.LoanAmount,
+                        ApplicationDate = la.ApplicationDate,
+                        ApprovalStatus = la.ApprovalStatus
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (customer == null)
+            {
+                return NotFound(new { success = false, message = "Customer not found." });
+            }
+
+            return Json(customer);
+        }
         public async Task<IActionResult> AdminDashboard()
         {
             var viewModel = new AdminDashboardViewModel();
@@ -132,25 +189,46 @@ namespace CredWise_Trail.Controllers
             return View(viewModel);
         }
 
-        public async Task<IActionResult> KycApproval()
+        public async Task<IActionResult> KycApproval(string status, int? pageNumber)
         {
+            // Pass the current filter to the view so we can keep it when changing pages
+            ViewData["CurrentFilter"] = status;
+
+            // 1. Declare the model variable that we will return at the end.
+            PaginatedList<KycApproval> paginatedModel;
+
             try
             {
-                // Fetch KYC data from the database, including the related Customer information
-                // Ensure you have a 'Customers' DbSet in YourDbContext or similar
-                var kycApprovals = await _context.KycApprovals
-                                                 .Include(k => k.Customer) // Eager load Customer data
-                                                 .ToListAsync();
+                int pageSize = 5;
+                IQueryable<KycApproval> source = _context.KycApprovals
+                                                        .Include(k => k.Customer)
+                                                        .OrderBy(k => k.KycID);
 
-                // Pass the data to the view
-                return View(kycApprovals);
+                // If a status filter is provided, add a WHERE clause to the query
+                if (!String.IsNullOrEmpty(status) && status != "All")
+                {
+                    source = source.Where(k => k.Status == status);
+                }
+
+                // 2. Populate the model inside the 'try' block on success.
+                paginatedModel = await PaginatedList<KycApproval>.CreateAsync(source, pageNumber ?? 1, pageSize);
             }
             catch (Exception ex)
             {
+                // Log the error as before
                 _logger.LogError(ex, "Error fetching KYC approvals for display.");
-                // Optionally return an error view or an empty list
-                return View(new List<KycApproval>());
+
+                // 3. Populate the model with an empty list inside the 'catch' block on failure.
+                // This ensures the view still receives a valid model and doesn't crash.
+                var emptySource = new List<KycApproval>().AsQueryable();
+                paginatedModel = await PaginatedList<KycApproval>.CreateAsync(emptySource, 1, 10);
+
+                // Optionally, add a model error to display a friendly message to the user on the view.
+                ModelState.AddModelError(string.Empty, "An error occurred while retrieving KYC applications. Please try again later.");
             }
+
+            // 4. Return the model. This return statement is now guaranteed to be hit on all code paths.
+            return View(paginatedModel);
         }
         [HttpPost]
         public async Task<IActionResult> UpdateKycStatus(int kycId, string status)

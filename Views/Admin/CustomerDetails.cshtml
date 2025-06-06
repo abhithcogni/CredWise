@@ -1,0 +1,373 @@
+﻿@model IEnumerable<CredWise_Trail.Models.ViewModels.CustomerViewModel>
+
+@{
+    Layout = "~/Views/Shared/AdminUtility.cshtml";
+    ViewData["Title"] = "Customer Management";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - MyBank Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Color Palette Variables */
+        :root {
+            --primary-brand-color: #0A2463;
+            --secondary-accent-color: #3E92CC;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .card {
+            border: 1px solid #e9ecef;
+            border-radius: 0.75rem;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            color: var(--primary-brand-color); /* Applied */
+            padding: 1rem 1.5rem;
+        }
+
+        .page-header h2, .page-header .h3 {
+            color: var(--primary-brand-color); /* Applied */
+            font-weight: 700;
+        }
+
+        /* Table styles */
+        .table thead th {
+            background-color: var(--primary-brand-color); /* Applied */
+            color: #ffffff; /* White text for contrast */
+            font-weight: 600;
+            border-bottom-width: 1px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+            text-align: center;
+            padding: 0.9rem 0.75rem;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #eef2f7;
+        }
+
+        /* Modal styling */
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .modal-title {
+            color: var(--primary-brand-color); /* Applied */
+            font-weight: 600;
+        }
+
+            .modal-title i {
+                color: var(--secondary-accent-color); /* Applied */
+                margin-right: 0.5rem;
+            }
+
+        /* Custom Button Style */
+        .btn-view-details {
+            background-color: #ffffff;
+            border-color: var(--secondary-accent-color); /* Applied */
+            color: var(--secondary-accent-color); /* Applied */
+            transition: all 0.2s ease-in-out;
+        }
+
+            .btn-view-details:hover {
+                background-color: var(--primary-brand-color); /* Applied */
+                border-color: var(--primary-brand-color); /* Applied */
+                color: #ffffff;
+            }
+
+        /* Pagination Style */
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-brand-color); /* Applied */
+            border-color: var(--primary-brand-color); /* Applied */
+            color:white;
+        }
+
+        .pagination .page-link {
+            color: var(--secondary-accent-color); /* Applied */
+        }
+
+            .pagination .page-link:hover {
+                color: var(--primary-brand-color); /* Applied */
+            }
+
+    </style>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <div id="page-content-wrapper" class="container">
+            <div class="container-fluid p-4">
+                <div class="page-header mb-4">
+                    <h2 class="h3"><i class="fas fa-users me-2"></i>Customer Management</h2>
+                    <p class="text-muted">View, search, and inspect customer details and their loan history.</p>
+                </div>
+
+                <div class="card shadow">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-list-ul me-2"></i>Registered Customers</span>
+                        <div class="input-group" style="width: 300px;">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search by ID or name...">
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0" id="customersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Customer ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone Number</th>
+                                        <th>Loan Apps</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @* Data will be loaded here via JavaScript *@
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center">
+                        <span class="text-muted small" id="tableInfo">Loading customers...</span>
+                        <nav id="pagination" aria-label="Page navigation">
+                            <ul class="pagination pagination-sm mb-0">
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="viewCustomerModal" tabindex="-1" aria-labelledby="viewCustomerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewCustomerModalLabel"><i class="fas fa-user-circle"></i>Customer Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="customerDetailsBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            let allCustomers = [];
+            let currentPage = 1;
+            const rowsPerPage = 5;
+
+            function displayTablePage() {
+                const query = $('#searchInput').val().toLowerCase();
+
+                // MODIFIED: Search logic to include customer ID and name
+                const filteredCustomers = allCustomers.filter(c => {
+                    const customerIdString = c.customerId.toString();
+                    const customerName = c.name.toLowerCase();
+                    return customerName.includes(query) || customerIdString.includes(query);
+                });
+
+                const tbody = $('#customersTable tbody');
+                tbody.empty();
+
+                if (filteredCustomers.length === 0) {
+                    tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">No customers found.</td></tr>');
+                    $('#tableInfo').text('No customers found.');
+                    $('#pagination .pagination').empty();
+                    return;
+                }
+
+                const startIndex = (currentPage - 1) * rowsPerPage;
+                const endIndex = startIndex + rowsPerPage;
+                const paginatedCustomers = filteredCustomers.slice(startIndex, endIndex);
+
+                paginatedCustomers.forEach(customer => {
+                    const row = `
+                        <tr>
+                            <td>${customer.customerId}</td>
+                            <td>${customer.name}</td>
+                            <td>${customer.email}</td>
+                            <td>${customer.phoneNumber || 'N/A'}</td>
+                            <td><span class="badge bg-secondary">${customer.loanApplicationCount}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-view-details view-details-btn" data-customer-id="${customer.customerId}" title="View Details">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </button>
+                            </td>
+                        </tr>`;
+                    tbody.append(row);
+                });
+
+                updatePagination(filteredCustomers.length);
+                $('#tableInfo').text(`Showing ${startIndex + 1} to ${Math.min(endIndex, filteredCustomers.length)} of ${filteredCustomers.length} customers.`);
+            }
+
+            function updatePagination(totalItems) {
+                const pageCount = Math.ceil(totalItems / rowsPerPage);
+                const paginationUl = $('#pagination .pagination');
+                paginationUl.empty();
+
+                // Add previous button
+                if(currentPage > 1) {
+                    paginationUl.append('<li class="page-item"><a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>');
+                }
+
+                for (let i = 1; i <= pageCount; i++) {
+                    const liClass = (i === currentPage) ? 'page-item active' : 'page-item';
+                    const pageLink = `<li class="${liClass}"><a class="page-link" href="#">${i}</a></li>`;
+                    paginationUl.append(pageLink);
+                }
+
+                // Add next button
+                if(currentPage < pageCount) {
+                     paginationUl.append('<li class="page-item"><a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>');
+                }
+            }
+
+            // NEW: Function to get badge color based on status
+            function getStatusBadge(status) {
+                let badgeClass = 'bg-secondary'; // Default
+                if (status) {
+                    const statusLower = status.toLowerCase();
+                    if (statusLower === 'approved') {
+                        badgeClass = 'bg-success'; // Green
+                    } else if (statusLower === 'rejected') {
+                        badgeClass = 'bg-danger'; // Red
+                    } else if (statusLower === 'pending') {
+                        badgeClass = 'bg-warning text-dark'; // Yellow
+                    }
+                }
+                return `<span class="badge ${badgeClass}">${status}</span>`;
+            }
+
+            function fetchAllCustomers() {
+                $.ajax({
+                    url: '@Url.Action("GetAllCustomers", "Admin")',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        allCustomers = data;
+                        currentPage = 1;
+                        displayTablePage();
+                    },
+                    error: function () {
+                        $('#tableInfo').text('Error loading customer data.');
+                        $('#customersTable tbody').empty().append('<tr><td colspan="6" class="text-center text-danger py-4">Failed to load data.</td></tr>');
+                    }
+                });
+            }
+
+            fetchAllCustomers();
+
+            $('#searchInput').on('keyup', function () {
+                currentPage = 1;
+                displayTablePage();
+            });
+
+            $('#pagination').on('click', '.page-link', function (e) {
+                e.preventDefault();
+                const selectedPage = $(this).text();
+
+                if ($(this).attr('aria-label') === 'Previous') {
+                    currentPage--;
+                } else if ($(this).attr('aria-label') === 'Next') {
+                    currentPage++;
+                } else {
+                    currentPage = parseInt(selectedPage);
+                }
+
+                displayTablePage();
+            });
+
+            $('#customersTable').on('click', '.view-details-btn', function () {
+                const customerId = $(this).data('customer-id');
+                const modalBody = $('#customerDetailsBody');
+                modalBody.html('<div class="text-center p-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Loading details...</p></div>');
+
+                $.ajax({
+                    url: '@Url.Action("GetCustomerDetails", "Admin")',
+                    type: 'GET',
+                    data: { customerId: customerId },
+                    success: function (customer) {
+                        let loanAppsHtml = '<p class="text-muted">No loan applications found for this customer.</p>';
+                        if (customer.loanApplications && customer.loanApplications.length > 0) {
+                            loanAppsHtml = `
+                                <table class="table table-sm table-bordered mt-2">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>App ID</th>
+                                            <th>Product</th>
+                                            <th>Amount</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${customer.loanApplications.map(app => `
+                                            <tr>
+                                                <td>${app.applicationId}</td>
+                                                <td>${app.productName}</td>
+                                                <td>₹${app.loanAmount.toLocaleString('en-IN')}</td>
+                                                <td>${new Date(app.applicationDate).toLocaleDateString()}</td>
+                                                <td>${getStatusBadge(app.approvalStatus)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>`;
+                        }
+
+                        const detailsHtml = `
+                            <h6><strong>Personal Information</strong></h6>
+                            <p><strong>Name:</strong> ${customer.name}</p>
+                            <p><strong>Email:</strong> ${customer.email}</p>
+                            <p><strong>Phone:</strong> ${customer.phoneNumber || 'N/A'}</p>
+                            <p><strong>Address:</strong> ${customer.address || 'N/A'}</p>
+                            <hr>
+                            <h6><strong>Account Information</strong></h6>
+                            <p><strong>Account Number:</strong> ${customer.accountNumber || 'N/A'}</p>
+                            <p><strong>Customer Since:</strong> ${new Date(customer.createdDate).toLocaleDateString()}</p>
+                            <hr>
+                            <h6><strong>Loan Application History (${customer.loanApplications.length})</strong></h6>
+                            ${loanAppsHtml}
+                        `;
+                        modalBody.html(detailsHtml);
+                        const viewModal = new bootstrap.Modal($('#viewCustomerModal')[0]);
+                        viewModal.show();
+                    },
+                    error: function () {
+                        modalBody.html('<p class="text-danger">Failed to load customer details. Please try again.</p>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

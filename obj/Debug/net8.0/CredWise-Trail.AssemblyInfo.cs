@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CredWise-Trail")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f5f5910c0a2c41f15b9a865a33fc69e591057a07")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a908c91a8428348b046cfa48067c082ebdab0fbc")]
 [assembly: System.Reflection.AssemblyProductAttribute("CredWise-Trail")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CredWise-Trail")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

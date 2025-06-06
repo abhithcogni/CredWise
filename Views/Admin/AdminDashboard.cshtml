@@ -29,10 +29,6 @@
             color: #0A2463 !important;
         }
 
-        .bg-primary-custom {
-            background-color: #0A2463 !important;
-        }
-
         .btn-outline-primary-custom {
             color: #0A2463;
             border-color: #0A2463;
@@ -43,26 +39,6 @@
                 color: #fff;
                 border-color: #0A2463;
             }
-
-        .text-secondary-custom {
-            color: #3E92CC !important;
-        }
-
-        .bg-secondary-custom {
-            background-color: #3E92CC !important;
-        }
-
-        .btn-outline-secondary-custom {
-            color: #3E92CC;
-            border-color: #3E92CC;
-        }
-
-            .btn-outline-secondary-custom:hover {
-                background-color: #3E92CC;
-                color: #fff;
-                border-color: #3E92CC;
-            }
-
 
         /* Card Styles */
         .card {
@@ -114,36 +90,11 @@
             background-color: #e9ecef;
         }
 
-        /* Status Badges */
-        .badge.bg-success-subtle { /* For APPROVED */
-            background-color: #d1e7dd !important;
-            color: #0f5132 !important;
+        /* Make badge text more readable on yellow bg */
+        .badge.bg-warning {
+             color: #000 !important;
         }
 
-        .badge.bg-warning-subtle { /* For PENDING */
-            background-color: #fff3cd !important;
-            color: #664d03 !important;
-        }
-
-        .badge.bg-danger-subtle { /* For REJECTED */
-            background-color: #f8d7da !important;
-            color: #58151c !important;
-        }
-
-        .badge.bg-info-subtle { /* For LoanStatus: PENDING_DISBURSEMENT */
-            background-color: #cff4fc !important;
-            color: #055160 !important;
-        }
-
-        .badge.bg-primary-subtle { /* For LoanStatus: CLOSED (Paid Off) */
-            background-color: #cfe2ff !important;
-            color: #084298 !important;
-        }
-
-        .badge.bg-secondary-subtle { /* For other/default LoanStatus */
-            background-color: #e2e3e5 !important;
-            color: #495057 !important;
-        }
     </style>
 </head>
 <body>
@@ -260,7 +211,7 @@
                                         <th scope="col">Date Submitted</th>
                                         <th scope="col">Approval Status</th>
                                         <th scope="col">Loan Status</th>
-                                        <th scope="col">Progress</th>
+                                        @* MODIFIED: Removed Progress Header *@
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -270,126 +221,60 @@
                                         foreach (var application in Model.RecentLoanApplications)
                                         {
                                             <tr>
-                                                <td>@application.LoanNumber</td> @* Displays the unique Loan Number *@
-                                                <td>@application.Customer?.Name</td> @* Displays the customer's name, safely handling null Customer object *@
-                                                <td>@application.LoanProduct?.ProductName</td> @* Displays the loan product name, safely handling null LoanProduct object *@
-                                                <td>₹@application.LoanAmount.ToString("N0")</td> @* Displays the loan amount, formatted as currency *@
-                                                <td>@application.ApplicationDate.ToString("yyyy-MM-dd")</td> @* Displays the application date in YYYY-MM-DD format *@
+                                                <td>@application.LoanNumber</td>
+                                                <td>@application.Customer?.Name</td>
+                                                <td>@application.LoanProduct?.ProductName</td>
+                                                <td>₹@application.LoanAmount.ToString("N0")</td>
+                                                <td>@application.ApplicationDate.ToString("yyyy-MM-dd")</td>
                                                 <td>
                                                     @{
-                                                        string approvalBadgeClass = "";
-                                                        // Conditional logic to apply Bootstrap subtle badge classes based on ApprovalStatus.
-                                                        if (application.ApprovalStatus == "APPROVED")
+                                                        string approvalBadgeClass = "bg-secondary"; // Default
+                                                        if (application.ApprovalStatus?.ToUpper() == "APPROVED")
                                                         {
-                                                            approvalBadgeClass = "bg-success-subtle"; // Soft green for approved
+                                                            approvalBadgeClass = "bg-success"; // MODIFIED: Solid Green
                                                         }
-                                                        else if (application.ApprovalStatus == "PENDING")
+                                                        else if (application.ApprovalStatus?.ToUpper() == "PENDING")
                                                         {
-                                                            approvalBadgeClass = "bg-warning-subtle"; // Soft yellow for pending
+                                                            approvalBadgeClass = "bg-warning"; // MODIFIED: Solid Yellow
                                                         }
-                                                        else if (application.ApprovalStatus == "REJECTED")
+                                                        else if (application.ApprovalStatus?.ToUpper() == "REJECTED")
                                                         {
-                                                            approvalBadgeClass = "bg-danger-subtle"; // Soft red for rejected
-                                                        }
-                                                        // Default to a neutral badge if status is unknown or not handled
-                                                        else
-                                                        {
-                                                            approvalBadgeClass = "bg-secondary-subtle";
+                                                            approvalBadgeClass = "bg-danger"; // MODIFIED: Solid Red
                                                         }
                                                     }
-                                                    <span class="badge rounded-pill @approvalBadgeClass">@application.ApprovalStatus</span>
+                                                    <span class="badge @approvalBadgeClass">@application.ApprovalStatus</span>
                                                 </td>
                                                 <td>
                                                     @{
-                                                        string loanStatusBadgeClass = "";
-                                                        // Conditional logic to apply Bootstrap subtle badge classes based on LoanStatus.
-                                                        // These are distinct from ApprovalStatus as requested, providing different color meanings.
-                                                        if (application.LoanStatus == "ACTIVE")
+                                                        string loanStatusBadgeClass = "bg-dark"; // Default
+                                                        if (application.LoanStatus?.ToUpper() == "ACTIVE")
                                                         {
-                                                            loanStatusBadgeClass = "bg-success-subtle";
+                                                            loanStatusBadgeClass = "bg-success"; // MODIFIED: Solid Green
                                                         }
-                                                        else if (application.LoanStatus == "PENDING_DISBURSEMENT")
+                                                        else if (application.LoanStatus?.ToUpper() == "PENDING")
                                                         {
-                                                            loanStatusBadgeClass = "bg-info-subtle"; // Bootstrap info blue for awaiting disbursement
+                                                            loanStatusBadgeClass = "bg-warning"; // MODIFIED: Solid Yellow
                                                         }
                                                         else if (application.LoanStatus == "OVERDUE")
                                                         {
-                                                            loanStatusBadgeClass = "bg-danger-subtle";
+                                                            loanStatusBadgeClass = "bg-danger"; // MODIFIED: Solid Red
                                                         }
-                                                        else if (application.LoanStatus == "CLOSED")
+                                                        else if (application.LoanStatus == "CLOSED"?.ToUpper())
                                                         {
-                                                            loanStatusBadgeClass = "bg-primary-subtle"; // Bootstrap primary blue for fully paid off/closed
-                                                        }
-                                                        else
-                                                        {
-                                                            loanStatusBadgeClass = "bg-secondary-subtle"; // Default for other states
+                                                            loanStatusBadgeClass = "bg-light"; // MODIFIED: Solid Grey
                                                         }
                                                     }
-                                                    <span class="badge rounded-pill @loanStatusBadgeClass">@application.LoanStatus</span>
+                                                    <span class="badge @loanStatusBadgeClass">@application.LoanStatus?.Replace("_", " ")</span>
                                                 </td>
-                                                <td>
-                                                    @{
-                                                        // Calculate progress percentage and assign appropriate Bootstrap progress bar class.
-                                                        int progress = 0;
-                                                        string progressBarClass = "";
-
-                                                        if (application.LoanStatus == "ACTIVE")
-                                                        {
-                                                            // For active loans, calculate progress based on the proportion of loan amount repaid.
-                                                            // If OutstandingBalance is known and reliable, calculate progress from that.
-                                                            // Example: If 20% of the loan is repaid, progress is 20.
-                                                            if (application.LoanAmount > 0 && application.OutstandingBalance >= 0 && application.OutstandingBalance <= application.LoanAmount)
-                                                            {
-                                                                progress = (int)Math.Round(((application.LoanAmount - application.OutstandingBalance) / application.LoanAmount) * 100);
-                                                            }
-                                                            else
-                                                            {
-                                                                progress = 50; // Generic progress for active but no specific repayment progress data available
-                                                            }
-                                                            progressBarClass = "bg-success"; // Green for active/repaying
-                                                        }
-                                                        else if (application.LoanStatus == "CLOSED")
-                                                        {
-                                                            progress = 100; // 100% for closed/fully repaid loans
-                                                            progressBarClass = "bg-success";
-                                                        }
-                                                        else if (application.LoanStatus == "PENDING_DISBURSEMENT")
-                                                        {
-                                                            progress = 75; // Approved but not yet disbursed (high progress as approval is key)
-                                                            progressBarClass = "bg-info"; // Info blue
-                                                        }
-                                                        else if (application.ApprovalStatus == "PENDING") // If application is still pending initial approval
-                                                        {
-                                                            progress = 25; // Application received, awaiting review/approval
-                                                            progressBarClass = "bg-warning"; // Warning yellow
-                                                        }
-                                                        else if (application.LoanStatus == "OVERDUE")
-                                                        {
-                                                            progress = 80; // Indicates significant progress but now an issue
-                                                            progressBarClass = "bg-danger"; // Danger red
-                                                        }
-                                                        else if (application.ApprovalStatus == "REJECTED")
-                                                        {
-                                                            progress = 0; // Rejected applications have 0 progress on loan lifecycle
-                                                            progressBarClass = "bg-dark"; // Dark/grey for rejected
-                                                        }
-                                                        else
-                                                        {
-                                                            progress = 10; // Default for other undefined states
-                                                            progressBarClass = "bg-secondary";
-                                                        }
-                                                    }
-                                                    <div class="progress" style="height: 10px;">
-                                                        <div class="progress-bar @progressBarClass" role="progressbar" style="width: @(progress)%;" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100"></div>
-                                                    </div>
-                                                </td>
+                                                @* MODIFIED: Removed Progress Bar Cell *@
                                             </tr>
                                         }
                                     }
                                     else
                                     {
                                         <tr>
-                                            <td colspan="8" class="text-center">No recent loan applications found.</td>
+                                            @* MODIFIED: Colspan updated from 8 to 7 *@
+                                            <td colspan="7" class="text-center">No recent loan applications found.</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -499,14 +384,14 @@
                     datasets: [{
                         label: 'Loan Status',
                         data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.LoanStatusCounts)), // Dynamically pass data from ViewModel
-                                backgroundColor: [
-            '#198754', // Active (Changed to Green, e.g., Bootstrap success green)
-            '#ffc107', // Pending Approval
-            '#dc3545'  // Overdue
-        ],
-        borderColor: [ // Adjust if you want different border colors or based on number of segments
-            '#fff', '#fff', '#fff'
-        ],
+                        backgroundColor: [
+                            '#198754', // Active (Changed to Green, e.g., Bootstrap success green)
+                            '#ffc107', // Pending Approval
+                            '#dc3545'  // Overdue
+                        ],
+                        borderColor: [ // Adjust if you want different border colors or based on number of segments
+                            '#fff', '#fff', '#fff'
+                        ],
                         borderWidth: 2,
                         hoverOffset: 8 // Expand segment on hover
                     }]
