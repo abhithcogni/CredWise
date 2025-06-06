@@ -762,37 +762,110 @@ namespace CredWise_Trail.Controllers
         }
 
         [HttpGet]
+        [Authorize] // Ensures only logged-in users can update their profile
         public async Task<IActionResult> CustomerUpdate()
         {
-            if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
+            // 1. Get the ID of the currently logged-in user.
+            // The User's ID is stored in a "Claim" after they log in.
+            // We retrieve it here to ensure users can only edit their own profile.
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int customerId))
             {
-                return RedirectToAction("Login", "Account");
+                // If we can't find the user's ID, it's a bad request or they are not properly logged in.
+                return Unauthorized("User ID is not available or invalid.");
             }
 
-            var customerIdClaim = User.FindFirst("CustomerId");
-            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+            // 2. Find the customer in the database using their ID.
+            // We use 'FindAsync' for an efficient lookup by primary key.
+            var customer = await _context.Customers.FindAsync(customerId);
+
+            // 3. Check if the customer exists.
+            if (customer == null)
             {
-                TempData["ErrorMessage"] = "Could not identify customer for update. Please log in again.";
-                return RedirectToAction("Logout", "Account");
+                // If no customer is found with that ID, return a "Not Found" error.
+                return NotFound();
             }
 
-            var customerToUpdate = await _context.Customers.FindAsync(customerId);
-            if (customerToUpdate == null)
-            {
-                TempData["ErrorMessage"] = "Customer record not found for update. Please log in again.";
-                return RedirectToAction("Logout", "Account");
-            }
-
+            // 4. Map the data from the database model (Customer) to the ViewModel (CustomerUpdateViewModel).
+            // This is a crucial step. We only expose the data needed for the view, not the entire database object
+            // (e.g., we don't send the PasswordHash to the client).
             var viewModel = new CustomerUpdateViewModel
             {
-                CustomerId = customerToUpdate.CustomerId,
-                Name = customerToUpdate.Name,
-                Email = customerToUpdate.Email,
-                PhoneNumber = customerToUpdate.PhoneNumber,
-                Address = customerToUpdate.Address
+                CustomerId = customer.CustomerId,
+                Name = customer.Name,
+                Email = customer.Email,
+                PhoneNumber = customer.PhoneNumber,
+                Address = customer.Address
             };
 
+            // 5. Return the 'CustomerUpdate' view, passing the populated ViewModel to it.
+            // The view will use this ViewModel to pre-fill the form fields with the customer's current information.
             return View(viewModel);
+        }
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CustomerUpdate(CustomerUpdateViewModel model)
+        {
+            // 1. Check if the submitted data is valid.
+            // ModelState.IsValid checks for validation rules defined in the ViewModel (e.g., [Required], [EmailAddress]).
+            // If the model is not valid, the method will redisplay the form with validation error messages.
+            if (ModelState.IsValid)
+            {
+                // 2. Fetch the original customer record from the database.
+                // It's critical to retrieve the entity from the DB first to ensure we are updating a valid, existing record.
+                // We use the CustomerId from the submitted model to find the correct record.
+                var customerToUpdate = await _context.Customers.FindAsync(model.CustomerId);
+
+                if (customerToUpdate == null)
+                {
+                    // If, for some reason, the customer doesn't exist, return a "Not Found" error.
+                    return NotFound();
+                }
+
+                // Optional: Security check to ensure the logged-in user is the one they are trying to update.
+                var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (customerToUpdate.CustomerId.ToString() != loggedInUserId)
+                {
+                    return Forbid(); // Or Unauthorized()
+                }
+
+                // 3. Update the properties of the retrieved database entity with the new values from the ViewModel.
+                // We are deliberately NOT updating sensitive fields like PasswordHash or AccountNumber here.
+                customerToUpdate.Name = model.Name;
+                customerToUpdate.Email = model.Email;
+                customerToUpdate.PhoneNumber = model.PhoneNumber;
+                customerToUpdate.Address = model.Address;
+
+                try
+                {
+                    // 4. Save the changes to the database.
+                    // _context.Update(customerToUpdate) marks the entity as modified.
+                    // _context.SaveChangesAsync() commits the changes to the database in a single transaction.
+                    _context.Update(customerToUpdate);
+                    await _context.SaveChangesAsync();
+
+                    // (Optional) Add a success message to display on the next page.
+                    TempData["SuccessMessage"] = "Your profile has been updated successfully!";
+
+                    // 5. Redirect the user to a confirmation or details page upon successful update.
+                    // RedirectToAction is used to prevent form re-submission if the user refreshes the page.
+                    return RedirectToAction("CustomerDetails", "Customer");
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // This catch block handles rare cases where the record was modified by someone else
+                    // between the time we loaded it and the time we tried to save it.
+                    ModelState.AddModelError("", "The record you attempted to edit "
+                        + "was modified by another user after you got the original value. "
+                        + "Your edit operation was canceled.");
+                    return View(model);
+                }
+            }
+
+            // 6. If ModelState is invalid, return the view with the submitted model.
+            // This ensures the form is redisplayed with the user's entered data and the corresponding validation error messages.
+            return View(model);
         }
 
         // This action displays the list of accepted loans and simulates their disbursement
@@ -966,8 +1039,6 @@ namespace CredWise_Trail.Controllers
         // POST: /Customer/ProcessPayment
         [HttpPost]
         [ValidateAntiForgeryToken]
-        
-        
         public async Task<IActionResult> ProcessPayment(int loanId, decimal paidAmount, string paymentMethod)
         {
             // IMPORTANT: Validate that loanId belongs to the currently authenticated customer.

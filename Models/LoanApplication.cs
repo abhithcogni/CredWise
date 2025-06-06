@@ -14,7 +14,7 @@ namespace CredWise_Trail.Models // Ensure this namespace matches your project st
 
         public int CustomerId { get; set; }
 
-        public int LoanProductId { get; set; }
+        public int? LoanProductId { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")] // Changed from 10,2 to 18,2 for consistency with other financial fields
         public decimal LoanAmount { get; set; } // This is the principal amount requested

@@ -1,8 +1,11 @@
 using CredWise_Trail.Models;
+using CredWise_Trail.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<LoanUpdateOrchestratorService>();
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

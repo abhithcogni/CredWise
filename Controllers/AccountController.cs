@@ -5,17 +5,29 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
-using System; // Required for Guid
+using System;
+using System.Collections.Generic; // Required for List<Claim>
+using System.Threading.Tasks;    // Required for async Task
+using Microsoft.Extensions.Logging; // Required for ILogger
+using CredWise_Trail.Services;     // Required for the new service
 
 namespace CredWise_Trail.Controllers
 {
     public class AccountController : Controller
     {
         private readonly BankLoanManagementDbContext _context;
+        private readonly LoanUpdateOrchestratorService _loanUpdateService; // Added service
+        private readonly ILogger<AccountController> _logger;             // Added logger
 
-        public AccountController(BankLoanManagementDbContext context)
+        // Constructor updated to inject the new services
+        public AccountController(
+            BankLoanManagementDbContext context,
+            LoanUpdateOrchestratorService loanUpdateService,
+            ILogger<AccountController> logger)
         {
             _context = context;
+            _loanUpdateService = loanUpdateService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -47,7 +59,6 @@ namespace CredWise_Trail.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Check for existing customer email (case-insensitive comparison)
                 var existingCustomer = await _context.Customers.AnyAsync(c => c.Email.ToLower() == model.Email.ToLower());
                 if (existingCustomer)
                 {
@@ -55,8 +66,6 @@ namespace CredWise_Trail.Controllers
                     return View(model);
                 }
 
-                // Generate a simple unique account number
-                // For production, consider a more structured and robust generation.
                 string newAccountNumber = GenerateUniqueAccountNumber();
 
                 var customer = new Customer
@@ -66,8 +75,8 @@ namespace CredWise_Trail.Controllers
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
                     PhoneNumber = model.PhoneNumber,
                     Address = model.Address,
-                    AccountNumber = newAccountNumber, // Assign the generated account number
-                    CreatedDate = DateTime.UtcNow // Set the registration date
+                    AccountNumber = newAccountNumber,
+                    CreatedDate = DateTime.UtcNow
                 };
 
                 _context.Customers.Add(customer);
@@ -80,12 +89,9 @@ namespace CredWise_Trail.Controllers
             return View(model);
         }
 
-        // Helper method to generate a unique account number
         private string GenerateUniqueAccountNumber()
         {
-            // A simple implementation using Guid.
-            // You might want to format it, add a prefix, or ensure it's numeric for real banking.
-            return "ACC-" + Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper(); // Example: ACC-F2A4B8C1D0
+            return "ACC-" + Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
         }
 
 
@@ -95,11 +101,11 @@ namespace CredWise_Trail.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Attempt to find a customer by email (case-insensitive comparison)
                 var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Email.ToLower() == model.Email.ToLower());
 
                 if (customer != null && BCrypt.Net.BCrypt.Verify(model.Password, customer.PasswordHash))
                 {
+                    _logger.LogInformation("Customer {Email} logged in successfully.", customer.Email);
                     var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.NameIdentifier, customer.CustomerId.ToString()),
@@ -115,15 +121,22 @@ namespace CredWise_Trail.Controllers
                         Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme,
                         new ClaimsPrincipal(claimsIdentity));
 
+                    // --- TRIGGER THE BATCH PROCESS ON CUSTOMER LOGIN ---
+                    try
+                    {
+                        await _loanUpdateService.TriggerLoanStatusUpdateAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "The on-demand loan status update failed during customer login, but login process will continue.");
+                    }
+
                     return RedirectToAction("CustomerDashboard", "Customer");
                 }
 
-                
-                // If neither customer nor admin login succeeded, set an error message in TempData
                 TempData["ErrorMessage"] = "Invalid email or password.";
             }
 
-            // If ModelState is invalid or login failed, return the view with the model
             return View(model);
         }
         [HttpPost]
@@ -132,13 +145,11 @@ namespace CredWise_Trail.Controllers
         {
             if (ModelState.IsValid)
             {
-                
-
-                // If not a customer, attempt to find an admin by email (case-insensitive comparison)
                 var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email.ToLower() == model.Email.ToLower());
 
-                if (admin != null && model.PasswordHash==admin.PasswordHash)
+                if (admin != null && model.PasswordHash == admin.PasswordHash)
                 {
+                    _logger.LogInformation("Admin {Email} logged in successfully.", admin.Email);
                     var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.NameIdentifier, admin.AdminId.ToString()),
@@ -154,14 +165,22 @@ namespace CredWise_Trail.Controllers
                         Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme,
                         new ClaimsPrincipal(claimsIdentity));
 
+                    // --- TRIGGER THE BATCH PROCESS ON ADMIN LOGIN ---
+                    try
+                    {
+                        await _loanUpdateService.TriggerLoanStatusUpdateAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "The on-demand loan status update failed during admin login, but login process will continue.");
+                    }
+
                     return RedirectToAction("AdminDashboard", "Admin");
                 }
 
-                // If neither customer nor admin login succeeded, set an error message in TempData
                 TempData["ErrorMessage"] = "Invalid email or password.";
             }
 
-            // If ModelState is invalid or login failed, return the view with the model
             return View(model);
         }
         [HttpGet]

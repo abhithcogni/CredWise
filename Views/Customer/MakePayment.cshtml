@@ -455,7 +455,11 @@
             const paymentAmountInput = $('#paymentAmount');
             const paymentSuccessPageMsg = $('#paymentSuccessPageMessage');
             const noPaymentDuePageMsgDiv = $('#noPaymentDuePageMessage'); // The alert div in summary card
-
+            // Add this new event handler for the modal's close button
+        modalCloseButton.on('click', function (e) {
+            // This line redirects the browser to the Customer Dashboard page.
+            window.location.href = '@Url.Action("CustomerDashboard", "Customer")';
+        });
             paymentForm.on('submit', function (e) {
                 e.preventDefault(); // Prevent default form submission
 

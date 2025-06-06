@@ -1,8 +1,11 @@
 ﻿using CredWise_Trail.Models;
 using CredWise_Trail.Models.ViewModels;
+using CredWise_Trail.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization; // Add this using directive for CultureInfo
+using System.Globalization;
+using System.Security.Claims; // Add this using directive for CultureInfo
 
 namespace CredWise_Trail.Controllers
 {
@@ -16,6 +19,8 @@ namespace CredWise_Trail.Controllers
             _context = context;
             _logger = logger;
         }// Initialize logger
+
+        
         public IActionResult CustomerDetails()
         {
             return View();
@@ -77,48 +82,58 @@ namespace CredWise_Trail.Controllers
         public async Task<IActionResult> AdminDashboard()
         {
             var viewModel = new AdminDashboardViewModel();
+            var currentYear = DateTime.Now.Year;
 
-            // --- 1. Fetch Data for Summary Cards ---
-            // (This section remains unchanged from the previous version)
+            // --- 1. Corrected Fetch Data for Summary Cards ---
+            // This section now correctly calculates the key metrics for the dashboard's summary cards.
 
+            // Total Loan Value: The principal amount of loans that are either active or overdue.
+            // This represents the total capital that is currently deployed and outstanding.
             viewModel.TotalLoanValue = await _context.LoanApplications
-                                                .Where(la => la.LoanStatus == LoanOverallStatus.ACTIVE.ToString() ||
-                                                             la.LoanStatus == LoanOverallStatus.PENDING_DISBURSEMENT.ToString())
-                                                .SumAsync(la => la.LoanAmount);
+                .Where(la => la.ApprovalStatus == LoanApprovalStatus.APPROVED.ToString() &&
+                             (la.LoanStatus == LoanOverallStatus.ACTIVE.ToString() || la.LoanStatus == LoanOverallStatus.OVERDUE.ToString()))
+                .SumAsync(la => la.LoanAmount);
 
+            // Active Loans Count: The total number of loans that are currently in an 'ACTIVE' state.
+            // These are loans that are being repaid on schedule.
             viewModel.ActiveLoansCount = await _context.LoanApplications
-                                                   .CountAsync(la => la.LoanStatus == LoanOverallStatus.ACTIVE.ToString());
+                .CountAsync(la => la.LoanStatus == LoanOverallStatus.ACTIVE.ToString());
 
+            // Pending Applications Count: The number of loan applications that are awaiting a decision.
+            // This uses the 'PENDING' status from the LoanApprovalStatus enum.
             viewModel.PendingApplicationsCount = await _context.LoanApplications
-                                                           .CountAsync(la => la.ApprovalStatus == LoanApprovalStatus.PENDING.ToString());
+                .CountAsync(la => la.ApprovalStatus == LoanApprovalStatus.PENDING.ToString());
 
+            // Overdue Loans Count: The total number of loans that are currently marked as 'OVERDUE'.
+            // These are loans where payments have been missed.
             viewModel.OverdueLoansCount = await _context.LoanApplications
-                                                    .CountAsync(la => la.LoanStatus == LoanOverallStatus.OVERDUE.ToString());
+                .CountAsync(la => la.LoanStatus == LoanOverallStatus.OVERDUE.ToString());
 
 
             // --- 2. Fetch Data for Loan Performance Chart (Bar Chart) ---
-            // (This section remains unchanged from the previous version)
-            var currentYear = DateTime.Now.Year;
+            // This section fetches data to show new loans and repayments over the current year.
 
+            // Retrieves the sum of approved loan amounts for each month of the current year.
             var newLoansByMonth = await _context.LoanApplications
-                                                .Where(la => la.ApprovalStatus == LoanApprovalStatus.APPROVED.ToString() &&
-                                                             la.ApplicationDate.Year == currentYear)
-                                                .GroupBy(la => la.ApplicationDate.Month)
-                                                .Select(g => new { Month = g.Key, TotalAmount = g.Sum(la => la.LoanAmount) })
-                                                .ToListAsync();
+                .Where(la => la.ApprovalStatus == LoanApprovalStatus.APPROVED.ToString() && la.ApplicationDate.Year == currentYear)
+                .GroupBy(la => la.ApplicationDate.Month)
+                .Select(g => new { Month = g.Key, TotalAmount = g.Sum(la => la.LoanAmount) })
+                .ToListAsync();
 
-            var repaymentsByMonth = await _context.LoanPayments
-                                                  .Where(lp => lp.PaymentDate.HasValue &&
-                                                               lp.PaymentDate.Value.Year == currentYear &&
-                                                               lp.Status == "Success")
-                                                  .GroupBy(lp => lp.PaymentDate.Value.Month)
-                                                  .Select(g => new { Month = g.Key, TotalAmount = g.Sum(lp => lp.PaidAmount) })
-                                                  .ToListAsync();
+            // Retrieves the sum of successful repayment amounts for each month of the current year.
+            // Note: Assumes a 'LoanPayment' entity and 'Success' status string.
+            var repaymentsByMonth = await _context.LoanPayments // Make sure you have a LoanPayments DbSet in your context
+                .Where(lp => lp.PaymentDate.HasValue && lp.PaymentDate.Value.Year == currentYear && lp.Status == "Success")
+                .GroupBy(lp => lp.PaymentDate.Value.Month)
+                .Select(g => new { Month = g.Key, TotalAmount = g.Sum(lp => lp.PaidAmount) })
+                .ToListAsync();
 
+            // Initialize arrays to hold data for all 12 months.
             var newLoansData = new decimal[12];
             var repaymentsData = new decimal[12];
-            var monthlyLabels = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+            var monthlyLabels = CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedMonthNames.Take(12).ToArray();
 
+            // Populate the arrays with the fetched data, converting amounts to 'thousands' for the chart.
             foreach (var item in newLoansByMonth)
             {
                 newLoansData[item.Month - 1] = item.TotalAmount / 1000;
@@ -129,63 +144,42 @@ namespace CredWise_Trail.Controllers
                 repaymentsData[item.Month - 1] = item.TotalAmount / 1000;
             }
 
+            // Assign the prepared data to the ViewModel.
             viewModel.MonthlyLabels = monthlyLabels.ToList();
             viewModel.NewLoansMonthlyData = newLoansData.ToList();
             viewModel.RepaymentsMonthlyData = repaymentsData.ToList();
 
 
-            // --- 3. Fetch Data for Loan Status Distribution Chart (Doughnut Chart) ---
+            // --- 3. Corrected Fetch Data for Loan Status Distribution Chart (Doughnut Chart) ---
+            // This logic populates the doughnut chart. The counts are directly taken from the
+            // summary card calculations to ensure data consistency across the dashboard.
 
-            // Fetch all loan status strings and their counts from the database.
-            var loanStatusCountsGrouped = await _context.LoanApplications
-                                                   .Where(la => la.LoanStatus != null && la.LoanStatus != "") // Ensure LoanStatus is not null or empty
-                                                   .GroupBy(la => la.LoanStatus) // Groups by the actual string values in LoanStatus column
-                                                   .Select(g => new { Status = g.Key, Count = g.Count() })
-                                                   .ToListAsync();
-
-            // Calculate 'ACTIVE' loans count.
-            // This now sums counts from any groups that match "ACTIVE" case-insensitively.
-            // This helps if your database might have "ACTIVE", "Active", "active" etc., as distinct grouped values.
-            var activeCount = loanStatusCountsGrouped
-                .Where(x => x.Status.Equals(LoanOverallStatus.ACTIVE.ToString(), StringComparison.OrdinalIgnoreCase))
-                .Sum(x => x.Count);
-
-            // Calculate 'OVERDUE' loans count, also case-insensitive.
-            var overdueCount = loanStatusCountsGrouped
-                .Where(x => x.Status.Equals(LoanOverallStatus.OVERDUE.ToString(), StringComparison.OrdinalIgnoreCase))
-                .Sum(x => x.Count);
-
-            // Get count for applications with 'PENDING' ApprovalStatus.
-            // ApprovalStatus is an ENUM in your provided SQL schema, so direct string match from the enum is usually reliable.
-            var pendingApprovalCount = await _context.LoanApplications
-                                                   .CountAsync(la => la.ApprovalStatus == LoanApprovalStatus.PENDING.ToString());
-
-            // Updated ViewModel labels for the chart.
+            // The labels for the doughnut chart segments.
             viewModel.LoanStatusLabels = new List<string> {
-    "Active",
-    "Pending Approval",
-    "Overdue"
-};
+            "Active",
+            "Pending Approval",
+            "Overdue"
+        };
 
-            // Updated ViewModel counts to correspond to the new labels.
+            // The data for the doughnut chart segments, using the counts calculated in step 1.
             viewModel.LoanStatusCounts = new List<int> {
-    activeCount,
-    pendingApprovalCount,
-    overdueCount
-};
-            // **MODIFICATIONS END HERE**
+            viewModel.ActiveLoansCount,
+            viewModel.PendingApplicationsCount,
+            viewModel.OverdueLoansCount
+        };
 
 
             // --- 4. Fetch Data for Recent Loan Applications Table ---
-            // (This section remains unchanged from the previous version)
-            viewModel.RecentLoanApplications = await _context.LoanApplications
-                                                         .Include(la => la.Customer)
-                                                         .Include(la => la.LoanProduct)
-                                                         .OrderByDescending(la => la.ApplicationDate)
-                                                         .Take(5)
-                                                         .ToListAsync();
+            // This section retrieves the 5 most recent loan applications to display in a table.
 
-            // Pass the populated ViewModel to the view.
+            viewModel.RecentLoanApplications = await _context.LoanApplications
+                .Include(la => la.Customer) // Eagerly loads the related Customer entity.
+                .Include(la => la.LoanProduct) // Eagerly loads the related LoanProduct entity.
+                .OrderByDescending(la => la.ApplicationDate) // Orders applications by date, newest first.
+                .Take(5) // Limits the result to the top 5.
+                .ToListAsync();
+
+            // Pass the fully populated ViewModel to the view for rendering.
             return View(viewModel);
         }
 
