@@ -268,15 +268,54 @@ namespace CredWise_Trail.Controllers
             return PhysicalFile(filePath, contentType);
         }
 
-        public async Task<IActionResult> LoanApproval()
+        public async Task<IActionResult> LoanApproval(string status = "All", int page = 1)
         {
-            // Fetch all loan applications including associated customer and loan product details
-            var loanApplications = await _context.LoanApplications
-                                                .Include(la => la.Customer) // Include Customer details
-                                                .Include(la => la.LoanProduct) // Include LoanProduct details
-                                                .OrderByDescending(la => la.ApplicationDate) // Order by latest application first
-                                                .ToListAsync();
+            // --- Step 1: Define Pagination Parameters ---
+            // We set a fixed number of items to display per page.
+            const int pageSize = 5;
 
+            // --- Step 2: Create the Base Query ---
+            // We start with a base query that includes the related Customer and LoanProduct.
+            // Using AsQueryable() allows us to build upon this query step-by-step before it's sent to the database.
+            var query = _context.LoanApplications
+                                .Include(la => la.Customer)
+                                .Include(la => la.LoanProduct)
+                                .AsQueryable();
+
+            // --- Step 3: Apply Server-Side Filtering ---
+            // If a specific status (other than "All") is provided in the URL (e.g., /Admin/LoanApproval?status=Pending),
+            // we add a WHERE clause to our query to filter the results.
+            if (!string.IsNullOrEmpty(status) && status != "All")
+            {
+                query = query.Where(la => la.ApprovalStatus == status);
+            }
+
+            // --- Step 4: Get the Total Count for Pagination ---
+            // We need to know the total number of items that match our filter to calculate the total number of pages.
+            // This count is performed on the filtered query before we take just one page.
+            var totalItems = await query.CountAsync();
+
+            // --- Step 5: Fetch the Paginated Data ---
+            // This is the core of pagination.
+            // We first order the applications by date.
+            // .Skip() bypasses a number of records based on the current page and page size.
+            // .Take() then selects the next 'pageSize' number of records.
+            // Finally, ToListAsync() executes the query against the database.
+            var loanApplications = await query
+                                        .OrderByDescending(la => la.ApplicationDate)
+                                        .Skip((page - 1) * pageSize)
+                                        .Take(pageSize)
+                                        .ToListAsync();
+
+            // --- Step 6: Store Pagination and Filter Data for the View ---
+            // We pass key information to the view using ViewData so we can build the pagination controls
+            // and correctly display the current state.
+            ViewData["CurrentPage"] = page;
+            ViewData["TotalPages"] = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewData["CurrentFilter"] = status; // To remember the selected filter on the dropdown.
+
+            // --- Step 7: Return the View with the Paginated List ---
+            // We pass the list of applications for the current page to the view.
             return View(loanApplications);
         }
 
@@ -303,7 +342,7 @@ namespace CredWise_Trail.Controllers
 
             if (status == "Approved") // Based on 'APPROVED' ENUM value
             {
-                loanApplication.ApprovalDate = DateTime.Now;
+                loanApplication.ApprovalDate = DateTime.Now.AddMonths(-4);
                 loanApplication.LoanStatus = "Active"; // Loan becomes active upon approval
 
                 // Ensure LoanAmount, InterestRate (annual %), TenureMonths, EMI (regular amount) are pre-set.

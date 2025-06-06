@@ -21,13 +21,129 @@ namespace CredWise_Trail.Controllers
             _context = context;
         }
 
-        public IActionResult CustomerDashboard()
+        public async Task<IActionResult> CustomerDashboard()
         {
             if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
             {
                 return RedirectToAction("Login", "Account");
             }
-            return View();
+
+            var customerIdClaim = User.FindFirstValue("CustomerId"); // Or ClaimTypes.NameIdentifier if that's what you use
+            if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
+            {
+                TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
+                return RedirectToAction("Logout", "Account"); // Or a more appropriate error view/redirect
+            }
+            var viewModel = new CustomerDashboardViewModel();
+
+            // 1. Fetch a LIST of ALL loans for the customer that are "Active".
+            var activeLoans = await _context.LoanApplications
+                .Where(l => l.CustomerId == customerId && l.LoanStatus == "Active")
+                .ToListAsync();
+
+            if (activeLoans != null && activeLoans.Any())
+            {
+                viewModel.HasActiveLoans = true;
+                viewModel.ActiveLoanCount = activeLoans.Count;
+
+                // Calculations for the summary card (unchanged)
+                viewModel.TotalPrincipalAmount = activeLoans.Sum(l => l.LoanAmount);
+                viewModel.TotalOutstandingBalance = activeLoans.Sum(l => l.OutstandingBalance);
+                viewModel.TotalNextPaymentAmount = activeLoans.Sum(l => l.AmountDue);
+                viewModel.EarliestNextDueDate = activeLoans.Min(l => l.NextDueDate);
+
+                if (viewModel.TotalPrincipalAmount > 0)
+                {
+                    var totalAmountPaid = viewModel.TotalPrincipalAmount - viewModel.TotalOutstandingBalance;
+                    viewModel.OverallProgressPercentage = (int)Math.Round((totalAmountPaid / viewModel.TotalPrincipalAmount) * 100);
+                }
+
+                var activeLoanIds = activeLoans.Select(l => l.ApplicationId).ToList();
+
+                // --- THIS IS THE CORRECTED QUERY ---
+                // We now use .ThenInclude() to also load the LoanProduct data.
+                // This prevents the "returned null" error.
+                var recentPayments = await _context.LoanPayments
+                    .Include(p => p.LoanApplication)        // 1. Include the related LoanApplication
+                        .ThenInclude(la => la.LoanProduct)  // 2. THEN, include the LoanProduct from that LoanApplication
+                    .Where(p => activeLoanIds.Contains(p.LoanId))
+                    .OrderByDescending(p => p.PaymentDate)
+                    .Take(5)
+                    .ToListAsync();
+
+                // Populate the recent payments list for the view.
+                foreach (var payment in recentPayments)
+                {
+                    viewModel.RecentPayments.Add(new RecentPaymentItem
+                    {
+                        PaymentDate = payment.PaymentDate,
+                        // This line will now work without errors.
+                        Description = $"Payment for {payment.LoanApplication.LoanProduct.ProductName} ({payment.LoanApplication.LoanNumber})",
+                        PaidAmount = payment.PaidAmount,
+                        Status = payment.Status
+                    });
+                }
+            }
+            else
+            {
+                viewModel.HasActiveLoans = false;
+            }
+
+            return View("CustomerDashboard", viewModel);
+        }
+
+        // Add this new action to your CustomerController class
+
+        public async Task<IActionResult> AllPayments()
+        {
+            if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var customerIdClaim = User.FindFirstValue("CustomerId"); // Or ClaimTypes.NameIdentifier if that's what you use
+            if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
+            {
+                TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
+                return RedirectToAction("Logout", "Account"); // Or a more appropriate error view/redirect
+            }
+            var viewModel = new AllPaymentsViewModel();
+
+            // 1. Get all loan IDs associated with the current customer.
+            // We get all loans, not just active, as they might want history for closed loans.
+            var customerLoanIds = await _context.LoanApplications
+                .Where(l => l.CustomerId == customerId)
+                .Select(l => l.ApplicationId)
+                .ToListAsync();
+
+            // 2. Check if the customer has any loans at all.
+            if (customerLoanIds != null && customerLoanIds.Any())
+            {
+                // 3. Fetch ALL payments that belong to any of the customer's loans.
+                // We include related data to make the table descriptive.
+                var allPayments = await _context.LoanPayments
+                    .Include(p => p.LoanApplication)
+                        .ThenInclude(la => la.LoanProduct)
+                    .Where(p => customerLoanIds.Contains(p.LoanId)) // Filter by the customer's loan IDs
+                    .OrderByDescending(p => p.PaymentDate) // Show the most recent payments first
+                    .ToListAsync();
+
+                // 4. Map the database entities to our ViewModel list.
+                foreach (var payment in allPayments)
+                {
+                    viewModel.Payments.Add(new RecentPaymentItem
+                    {
+                        PaymentDate = payment.PaymentDate,
+                        Description = $"Payment for {payment.LoanApplication.LoanProduct.ProductName}",
+                        LoanNumber = payment.LoanApplication.LoanNumber, // Populate the new LoanNumber property
+                        PaidAmount = payment.PaidAmount,
+                        Status = payment.Status
+                    });
+                }
+            }
+
+            // 5. Pass the ViewModel to the new "AllPayments" view.
+            return View(viewModel);
         }
 
         [HttpGet]
@@ -321,7 +437,7 @@ namespace CredWise_Trail.Controllers
                         ApplicationIdDisplay = app.LoanNumber, // Displaying LoanNumber as the Application ID in the view
                         ProductName = app.LoanProduct?.ProductName ?? "N/A", // Handle cases where LoanProduct might be null
                         LoanAmount = app.LoanAmount,
-                        InterestRate = app.InterestRate * 100, // Convert decimal rate (e.g., 0.075) to percentage (e.g., 7.5)
+                        InterestRate = app.InterestRate, // Convert decimal rate (e.g., 0.075) to percentage (e.g., 7.5)
                         TenureMonths = app.TenureMonths,
                         ApplicationDate = app.ApplicationDate,
                         ApprovalStatus = app.ApprovalStatus, // This is the string status from LoanApplication model

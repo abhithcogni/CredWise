@@ -1,0 +1,178 @@
+﻿@model CredWise_Trail.Models.ViewModels.AllPaymentsViewModel
+
+@{
+    ViewData["Title"] = "All Payment History";
+
+    // Helper function to determine badge class based on Payment Status (from your theme)
+    Func<string, string> GetPaymentStatusBadgeClass = (status) =>
+    {
+        if (string.IsNullOrEmpty(status)) return "badge-custom-pending";
+        return status.ToUpper() switch
+        {
+            "COMPLETED" => "badge-custom-completed",
+            "SUCCESS" => "badge-custom-completed",
+            "PENDING" => "badge-custom-pending",
+            "FAILED" => "badge-custom-rejected",
+            _ => "badge-secondary"
+        };
+    };
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - MyBank</title>
+
+    @* --- THEME CHANGE: Using Bootstrap 4 and Font Awesome 5 from your statement theme --- *@
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    @* --- THEME CHANGE: Copied the entire <style> block from your statement theme --- *@
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        /* Custom colors for the theme */
+        .primary-color {
+            color: #0A2463; /* Dark blue */
+        }
+
+        .secondary-color {
+            color: #3E92CC; /* Lighter blue */
+        }
+        /* Custom button styles */
+        .btn-primary-custom {
+            background-color: #0A2463;
+            border-color: #0A2463;
+            color: white;
+        }
+
+            .btn-primary-custom:hover {
+                background-color: #081f53;
+                border-color: #081f53;
+                color: white;
+            }
+        /* Styling for the main page header */
+        .page-header {
+            border-bottom: 2px solid #0A2463;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+            .page-header .icon {
+                font-size: 2rem;
+                margin-right: 10px;
+            }
+        /* Custom card styling with a left border highlight */
+        .card-custom {
+            border-left: 5px solid #0A2463;
+            margin-bottom: 20px;
+        }
+        /* Table header styling */
+        .table th {
+            background-color: #f2f2f2;
+            color: #0A2463;
+        }
+        /* Custom badge styles for different statuses */
+        .badge-custom-pending {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .badge-custom-completed {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .badge-custom-rejected {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .badge-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+
+        @* --- THEME CHANGE: Using the stylized page header --- *@
+        <div class="page-header d-flex align-items-center">
+            <i class="fas fa-history primary-color icon"></i>
+            <h1 class="primary-color mb-0">All Payment History</h1>
+            <a href="@Url.Action("CustomerDashboard", "Customer")" class="btn btn-primary-custom ml-auto">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="card card-custom">
+            <div class="card-header">
+                <h5 class="mb-0 primary-color"><i class="fas fa-receipt"></i> All Transactions</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Payment Date</th>
+                                <th>Description</th>
+                                <th>Loan Number</th>
+                                <th>Amount Paid</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Payments.Any())
+                            {
+                                @foreach (var payment in Model.Payments)
+                                {
+                                    <tr>
+                                        <td>@payment.PaymentDate?.ToString("yyyy-MM-dd")</td>
+                                        <td>@payment.Description</td>
+                                        <td>@payment.LoanNumber</td>
+                                        <td>₹@payment.PaidAmount.ToString("N2")</td>
+                                        <td>
+                                            @* --- THEME CHANGE: Using the dynamic badge helper function --- *@
+                                            <span class="badge @GetPaymentStatusBadgeClass(payment.Status)">@(payment.Status?.ToUpper())</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center p-5">
+                                        <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                                        <p class="mb-0">You have not made any payments yet.</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  
+
+    @* --- THEME CHANGE: Using Bootstrap 4 JS bundle --- *@
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

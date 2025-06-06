@@ -136,6 +136,10 @@
                 <div class="card shadow">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span><i class="fas fa-list-ul me-2"></i>Available Loan Products</span>
+                        <div class="input-group" style="width: 300px;">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search by loan type...">
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive ">
@@ -152,7 +156,7 @@
                                 </thead>
                                 <tbody>
                                     @* Data will be loaded here via JavaScript *@
-                                </tbody> 
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -256,7 +260,7 @@
 
                 data.forEach(product => {
                     const row = `
-                        <tr>
+                        <tr class="product-row">
                             <td>${product.productName}</td>
                             <td>${product.interestRate.toFixed(2)}%</td>
                             <td>₹${product.minAmount.toLocaleString('en-IN')}</td>
@@ -274,6 +278,10 @@
                     `;
                     tbody.append(row);
                 });
+
+                // Add a hidden row for "no results" message
+                tbody.append('<tr id="noResultsRow" style="display: none;"><td colspan="6" class="text-center text-muted py-4">No matching loan products found.</td></tr>');
+
                 $('#tableInfoProducts').text(`Displaying ${data.length} loan product(s).`);
                 initializeTooltips(); // Re-initialize tooltips after table is populated
             }
@@ -297,6 +305,33 @@
 
             // Initial fetch of loan products
             fetchLoanProducts();
+
+            // *** NEW: SEARCH FUNCTIONALITY ***
+            $('#searchInput').on('keyup', function () {
+                const query = $(this).val().toLowerCase();
+                let visibleRowCount = 0;
+
+                $('#loanProductsTable tbody tr.product-row').each(function () {
+                    const productName = $(this).find('td:first').text().toLowerCase();
+                    if (productName.includes(query)) {
+                        $(this).show();
+                        visibleRowCount++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                // Show or hide the "No results" row
+                if (visibleRowCount === 0 && query !== '') {
+                    $('#noResultsRow').show();
+                    $('#tableInfoProducts').text('No matching loan products found.');
+                } else {
+                    $('#noResultsRow').hide();
+                    const totalRows = $('#loanProductsTable tbody tr.product-row').length;
+                    $('#tableInfoProducts').text(`Displaying ${visibleRowCount} of ${totalRows} loan product(s).`);
+                }
+            });
+
 
             // Initialize Bootstrap tooltips for dynamically added buttons
             function initializeTooltips() {
