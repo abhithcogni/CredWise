@@ -9,7 +9,8 @@ using System;
 using System.Collections.Generic; // Required for List<Claim>
 using System.Threading.Tasks;    // Required for async Task
 using Microsoft.Extensions.Logging; // Required for ILogger
-using CredWise_Trail.Services;     // Required for the new service
+using CredWise_Trail.Services;
+using CredWise_Trail.Filters;     // Required for the new service
 
 namespace CredWise_Trail.Controllers
 {
@@ -184,11 +185,13 @@ namespace CredWise_Trail.Controllers
             return View(model);
         }
         [HttpGet]
+        [NoCache] // <-- ADD THIS
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(
                 Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
 
+            // Redirect to a public page after logout.
             return RedirectToAction("Landing", "Account");
         }
     }
