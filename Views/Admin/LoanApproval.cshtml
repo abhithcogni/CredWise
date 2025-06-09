@@ -30,6 +30,15 @@
             margin: 0;
         }
 
+        :root {
+            --primary-brand-color: #0A2463;
+            --secondary-accent-color: #3E92CC;
+        }
+
+        .page-header h2, .page-header .h3 {
+            color: var(--primary-brand-color); /* Applied */
+            font-weight: 700;
+        }
         #wrapper {
             display: flex;
         }
@@ -202,7 +211,7 @@
         @* Assuming AdminUtility.cshtml provides the sidebar content here *@
 
         <div id="page-content-wrapper">
-            <div class="container-fluid p-4">
+            <div class="container-fluid col-11 ">
                 <div class="page-header mb-4">
                     <h2 class="h3"><i class="fas fa-gavel me-2"></i>Loan Application Management</h2>
                     <p class="text-muted">Review and process pending loan applications.</p>

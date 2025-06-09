@@ -9,6 +9,7 @@ using System.Security.Claims; // Add this using directive for CultureInfo
 
 namespace CredWise_Trail.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly BankLoanManagementDbContext _context;
@@ -414,7 +415,7 @@ namespace CredWise_Trail.Controllers
 
             if (status == "Approved") // Based on 'APPROVED' ENUM value
             {
-                loanApplication.ApprovalDate = DateTime.Now;
+                loanApplication.ApprovalDate = DateTime.Now.AddMonths(-4);
                 loanApplication.LoanStatus = "Active"; // Loan becomes active upon approval
 
                 // Ensure LoanAmount, InterestRate (annual %), TenureMonths, EMI (regular amount) are pre-set.

@@ -16,7 +16,7 @@ builder.Services.AddDbContext<BankLoanManagementDbContext>(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme) // Specifies default authentication scheme
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login";       // Path to your login action
+        options.LoginPath = "/Account/Landing";       // Path to your login action
         options.AccessDeniedPath = "/Account/AccessDenied"; // Optional: Path for access denied
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // How long the cookie is valid
         options.SlidingExpiration = true; // Renews cookie if half of expiration time has passed
