@@ -34,39 +34,45 @@ namespace CredWise_Trail.Controllers
                 TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
                 return RedirectToAction("Logout", "Account"); // Or a more appropriate error view/redirect
             }
+
             var viewModel = new CustomerDashboardViewModel();
 
-            // 1. Fetch a LIST of ALL loans for the customer that are "Active".
-            var activeLoans = await _context.LoanApplications
-                .Where(l => l.CustomerId == customerId && l.LoanStatus == "Active")
+            // 1. Fetch a LIST of ALL loans for the customer that are "Active" OR "Overdue".
+            var relevantLoans = await _context.LoanApplications
+                .Where(l => l.CustomerId == customerId &&
+                            (l.LoanStatus == "Active" || l.LoanStatus == "Overdue")) // MODIFIED: Include "Overdue" loans
                 .ToListAsync();
 
-            if (activeLoans != null && activeLoans.Any())
+            if (relevantLoans != null && relevantLoans.Any())
             {
-                viewModel.HasActiveLoans = true;
-                viewModel.ActiveLoanCount = activeLoans.Count;
+                viewModel.HasActiveLoans = true; // Renaming this might be good, but keeping for now.
+                                                 // It now means "Has Active or Overdue Loans"
+                viewModel.ActiveLoanCount = relevantLoans.Count; // This will count both active and overdue
 
-                // Calculations for the summary card (unchanged)
-                viewModel.TotalPrincipalAmount = activeLoans.Sum(l => l.LoanAmount);
-                viewModel.TotalOutstandingBalance = activeLoans.Sum(l => l.OutstandingBalance);
-                viewModel.TotalNextPaymentAmount = activeLoans.Sum(l => l.AmountDue);
-                viewModel.EarliestNextDueDate = activeLoans.Min(l => l.NextDueDate);
+                // Calculations for the summary card
+                viewModel.TotalPrincipalAmount = relevantLoans.Sum(l => l.LoanAmount);
+                viewModel.TotalOutstandingBalance = relevantLoans.Sum(l => l.OutstandingBalance);
+                viewModel.TotalNextPaymentAmount = relevantLoans.Sum(l => l.AmountDue);
+                viewModel.EarliestNextDueDate = relevantLoans.Min(l => l.NextDueDate);
 
                 if (viewModel.TotalPrincipalAmount > 0)
                 {
                     var totalAmountPaid = viewModel.TotalPrincipalAmount - viewModel.TotalOutstandingBalance;
                     viewModel.OverallProgressPercentage = (int)Math.Round((totalAmountPaid / viewModel.TotalPrincipalAmount) * 100);
                 }
+                else
+                {
+                    viewModel.OverallProgressPercentage = 0; // Handle division by zero if all loans are fully paid
+                }
 
-                var activeLoanIds = activeLoans.Select(l => l.ApplicationId).ToList();
 
-                // --- THIS IS THE CORRECTED QUERY ---
-                // We now use .ThenInclude() to also load the LoanProduct data.
-                // This prevents the "returned null" error.
+                var relevantLoanIds = relevantLoans.Select(l => l.ApplicationId).ToList();
+
+                // THIS IS THE CORRECTED QUERY for recent payments to include relevant loans
                 var recentPayments = await _context.LoanPayments
-                    .Include(p => p.LoanApplication)        // 1. Include the related LoanApplication
-                        .ThenInclude(la => la.LoanProduct)  // 2. THEN, include the LoanProduct from that LoanApplication
-                    .Where(p => activeLoanIds.Contains(p.LoanId))
+                    .Include(p => p.LoanApplication)      // 1. Include the related LoanApplication
+                        .ThenInclude(la => la.LoanProduct) // 2. THEN, include the LoanProduct from that LoanApplication
+                    .Where(p => relevantLoanIds.Contains(p.LoanId)) // Use relevantLoanIds
                     .OrderByDescending(p => p.PaymentDate)
                     .Take(5)
                     .ToListAsync();
@@ -77,7 +83,6 @@ namespace CredWise_Trail.Controllers
                     viewModel.RecentPayments.Add(new RecentPaymentItem
                     {
                         PaymentDate = payment.PaymentDate,
-                        // This line will now work without errors.
                         Description = $"Payment for {payment.LoanApplication.LoanProduct.ProductName} ({payment.LoanApplication.LoanNumber})",
                         PaidAmount = payment.PaidAmount,
                         Status = payment.Status
@@ -91,6 +96,7 @@ namespace CredWise_Trail.Controllers
 
             return View("CustomerDashboard", viewModel);
         }
+    
 
         // Add this new action to your CustomerController class
 

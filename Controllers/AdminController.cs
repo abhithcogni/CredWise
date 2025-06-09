@@ -414,7 +414,7 @@ namespace CredWise_Trail.Controllers
 
             if (status == "Approved") // Based on 'APPROVED' ENUM value
             {
-                loanApplication.ApprovalDate = DateTime.Now.AddMonths(-4);
+                loanApplication.ApprovalDate = DateTime.Now;
                 loanApplication.LoanStatus = "Active"; // Loan becomes active upon approval
 
                 // Ensure LoanAmount, InterestRate (annual %), TenureMonths, EMI (regular amount) are pre-set.
