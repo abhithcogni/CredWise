@@ -55,7 +55,7 @@ namespace CredWise_Trail.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Admin");
+                    b.ToTable("Admin", (string)null);
                 });
 
             modelBuilder.Entity("CredWise_Trail.Models.Customer", b =>
@@ -103,7 +103,7 @@ namespace CredWise_Trail.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("CredWise_Trail.Models.KycApproval", b =>
@@ -142,7 +142,7 @@ namespace CredWise_Trail.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("KYC_APPROVAL");
+                    b.ToTable("KYC_APPROVALS", (string)null);
                 });
 
             modelBuilder.Entity("CredWise_Trail.Models.LoanApplication", b =>
@@ -190,10 +190,7 @@ namespace CredWise_Trail.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("LoanProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("LoanProductId1")
+                    b.Property<int>("LoanProductId")
                         .HasColumnType("int");
 
                     b.Property<string>("LoanStatus")
@@ -219,9 +216,7 @@ namespace CredWise_Trail.Migrations
 
                     b.HasIndex("LoanProductId");
 
-                    b.HasIndex("LoanProductId1");
-
-                    b.ToTable("LOAN_APPLICATIONS", t =>
+                    b.ToTable("LOAN_APPLICATIONS", null, t =>
                         {
                             t.HasCheckConstraint("CK_LoanApplication_ApprovalStatus", "approvalStatus IN ('PENDING', 'APPROVED', 'REJECTED')");
                         });
@@ -266,7 +261,7 @@ namespace CredWise_Trail.Migrations
 
                     b.HasIndex("LoanId");
 
-                    b.ToTable("LOAN_PAYMENTS");
+                    b.ToTable("LOAN_PAYMENTS", (string)null);
                 });
 
             modelBuilder.Entity("CredWise_Trail.Models.LoanProduct", b =>
@@ -296,7 +291,7 @@ namespace CredWise_Trail.Migrations
 
                     b.HasKey("LoanProductId");
 
-                    b.ToTable("LoanProducts");
+                    b.ToTable("LoanProducts", (string)null);
                 });
 
             modelBuilder.Entity("CredWise_Trail.Models.Repayment", b =>
@@ -328,7 +323,7 @@ namespace CredWise_Trail.Migrations
 
                     b.HasIndex("ApplicationId");
 
-                    b.ToTable("Repayments", t =>
+                    b.ToTable("REPAYMENTS", null, t =>
                         {
                             t.HasCheckConstraint("CK_Repayment_PaymentStatus", "paymentStatus IN ('PENDING', 'COMPLETED')");
                         });
@@ -341,7 +336,7 @@ namespace CredWise_Trail.Migrations
                         .HasForeignKey("AdminId");
 
                     b.HasOne("CredWise_Trail.Models.Customer", "Customer")
-                        .WithMany("kycApprovals")
+                        .WithMany("KycApprovals")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -358,13 +353,10 @@ namespace CredWise_Trail.Migrations
                         .IsRequired();
 
                     b.HasOne("CredWise_Trail.Models.LoanProduct", "LoanProduct")
-                        .WithMany()
-                        .HasForeignKey("LoanProductId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CredWise_Trail.Models.LoanProduct", null)
                         .WithMany("LoanApplications")
-                        .HasForeignKey("LoanProductId1");
+                        .HasForeignKey("LoanProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Customer");
 
@@ -374,7 +366,7 @@ namespace CredWise_Trail.Migrations
             modelBuilder.Entity("CredWise_Trail.Models.LoanPayment", b =>
                 {
                     b.HasOne("CredWise_Trail.Models.LoanApplication", "LoanApplication")
-                        .WithMany("Payments")
+                        .WithMany("LoanPayments")
                         .HasForeignKey("LoanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -400,14 +392,14 @@ namespace CredWise_Trail.Migrations
 
             modelBuilder.Entity("CredWise_Trail.Models.Customer", b =>
                 {
-                    b.Navigation("LoanApplications");
+                    b.Navigation("KycApprovals");
 
-                    b.Navigation("kycApprovals");
+                    b.Navigation("LoanApplications");
                 });
 
             modelBuilder.Entity("CredWise_Trail.Models.LoanApplication", b =>
                 {
-                    b.Navigation("Payments");
+                    b.Navigation("LoanPayments");
 
                     b.Navigation("Repayments");
                 });
