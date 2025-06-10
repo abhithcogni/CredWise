@@ -85,11 +85,6 @@ namespace CredWise_Trail.Controllers
             var viewModel = new AdminDashboardViewModel();
             var currentYear = DateTime.Now.Year;
 
-            // --- 1. Corrected Fetch Data for Summary Cards ---
-            // This section now correctly calculates the key metrics for the dashboard's summary cards.
-
-            // Total Loan Value: The principal amount of loans that are either active or overdue.
-            // This represents the total capital that is currently deployed and outstanding.
             viewModel.TotalLoanValue = await _context.LoanApplications
                 .Where(la => la.ApprovalStatus == LoanApprovalStatus.APPROVED.ToString() &&
                              (la.LoanStatus == LoanOverallStatus.ACTIVE.ToString() || la.LoanStatus == LoanOverallStatus.OVERDUE.ToString()))
@@ -150,12 +145,6 @@ namespace CredWise_Trail.Controllers
             viewModel.NewLoansMonthlyData = newLoansData.ToList();
             viewModel.RepaymentsMonthlyData = repaymentsData.ToList();
 
-
-            // --- 3. Corrected Fetch Data for Loan Status Distribution Chart (Doughnut Chart) ---
-            // This logic populates the doughnut chart. The counts are directly taken from the
-            // summary card calculations to ensure data consistency across the dashboard.
-
-            // The labels for the doughnut chart segments.
             viewModel.LoanStatusLabels = new List<string> {
             "Active",
             "Pending Approval",
@@ -288,10 +277,6 @@ namespace CredWise_Trail.Controllers
                 return Json(new { success = false, message = "An unexpected error occurred." });
             }
         }
-
-        // --- NEW ACTION TO SERVE DOCUMENTS SECURELY (IF NOT IN WWWROOT) ---
-        // If your kyc_documents are NOT in wwwroot, use this.
-        // Adjust the path to your actual documents folder on the server.
         public IActionResult GetKycDocument(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
@@ -719,7 +704,33 @@ namespace CredWise_Trail.Controllers
             }
         }
 
+        public IActionResult LoanApplications()
+        {
+            return View();
+        }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllLoanApplications()
+        {
+            var applications = await _context.LoanApplications
+                .Include(la => la.Customer)
+                .Include(la => la.LoanProduct)
+                .OrderByDescending(la => la.ApplicationDate)
+                .Select(la => new
+                {
+                    ApplicationId = la.ApplicationId,
+                    LoanNumber = la.LoanNumber,
+                    CustomerName = la.Customer.Name,
+                    ProductName = la.LoanProduct.ProductName,
+                    LoanAmount = la.LoanAmount,
+                    ApplicationDate = la.ApplicationDate,
+                    ApprovalStatus = la.ApprovalStatus,
+                    LoanStatus = la.LoanStatus
+                })
+                .ToListAsync();
+
+            return Json(applications);
+        }
 
     }
 }

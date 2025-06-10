@@ -83,7 +83,7 @@ namespace CredWise_Trail.Controllers
                     viewModel.RecentPayments.Add(new RecentPaymentItem
                     {
                         PaymentDate = payment.PaymentDate,
-                        Description = $"Payment for {payment.LoanApplication.LoanProduct.ProductName} ({payment.LoanApplication.LoanNumber})",
+                        Description = $"Payment for {payment.LoanApplication.LoanProduct?.ProductName ?? "Loan"} ({payment.LoanApplication.LoanNumber})",
                         PaidAmount = payment.PaidAmount,
                         Status = payment.Status
                     });

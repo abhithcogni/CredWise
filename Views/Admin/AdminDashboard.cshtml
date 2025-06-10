@@ -2,11 +2,11 @@
 @*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
-@model CredWise_Trail.Models.ViewModels.AdminDashboardViewModel // Declare the model type for the view
+@model CredWise_Trail.Models.ViewModels.AdminDashboardViewModel
 
 @{
     Layout = "~/Views/Shared/AdminUtility.cshtml";
-    // This line tells Razor that this view expects an AdminDashboardViewModel object.
+
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -33,7 +33,7 @@
             color: var(--primary-brand-color); /* Applied */
             font-weight: 700;
         }
-        /* Custom Colors */
+
         .text-primary-custom {
             color: #0A2463 !important;
         }
@@ -49,7 +49,7 @@
                 border-color: #0A2463;
             }
 
-        /* Card Styles */
+
         .card {
             border: none;
             border-radius: 0.5rem;
@@ -79,14 +79,14 @@
             color: #343a40;
         }
 
-        /* Chart container */
+
         .chart-container {
             position: relative;
             height: 350px;
             width: 100%;
         }
 
-        /* Table styles */
+
         .table th {
             font-weight: 600;
         }
@@ -99,7 +99,7 @@
             background-color: #e9ecef;
         }
 
-        /* Make badge text more readable on yellow bg */
+
         .badge.bg-warning {
             color: #000 !important;
         }
@@ -121,7 +121,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="card-title-custom text-uppercase">Total Loan Value</div>
-                            @* Displaying TotalLoanValue from the ViewModel, formatted as currency with no decimals *@
+
                             <div class="card-text-value">₹@Model.TotalLoanValue.ToString("N0")</div>
                         </div>
                     </div>
@@ -135,8 +135,8 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="card-title-custom text-uppercase">Active Loans</div>
-                            @* Displaying ActiveLoansCount from the ViewModel *@
-                            <div class="card-text-value">@Model.ActiveLoansCount</div>
+
+                            <div class="card-text-value">@(Model.ActiveLoansCount + Model.OverdueLoansCount)</div>
                         </div>
                     </div>
                 </div>
@@ -149,7 +149,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="card-title-custom text-uppercase">Pending Applications</div>
-                            @* Displaying PendingApplicationsCount from the ViewModel *@
+
                             <div class="card-text-value">@Model.PendingApplicationsCount</div>
                         </div>
                     </div>
@@ -163,7 +163,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="card-title-custom text-uppercase">Overdue Loans</div>
-                            @* Displaying OverdueLoansCount from the ViewModel *@
+
                             <div class="card-text-value">@Model.OverdueLoansCount</div>
                         </div>
                     </div>
@@ -208,7 +208,7 @@
                 <div class="card">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0"><i class="fas fa-list-alt me-2"></i>Recent Loan Applications</h5>
-                        <a href="@Url.Action("LoanApproval","Admin")" class="btn btn-sm btn-outline-primary-custom">View All <i class="fas fa-arrow-right ms-1"></i></a>
+                        <a href="@Url.Action("LoanApplications", "Admin")" class="btn btn-sm btn-outline-primary-custom">View All <i class="fas fa-arrow-right ms-1"></i></a>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -225,7 +225,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @* Loop through the RecentLoanApplications from the ViewModel *@
+
                                     @if (Model.RecentLoanApplications != null && Model.RecentLoanApplications.Any())
                                     {
                                         foreach (var application in Model.RecentLoanApplications)
@@ -238,7 +238,7 @@
                                                 <td>@application.ApplicationDate.ToString("yyyy-MM-dd")</td>
                                                 <td>
                                                     @{
-                                                        string approvalBadgeClass = "bg-secondary"; // Default
+                                                        string approvalBadgeClass = "bg-secondary";
                                                         if (application.ApprovalStatus?.ToUpper() == "APPROVED")
                                                         {
                                                             approvalBadgeClass = "bg-success";
@@ -256,7 +256,7 @@
                                                 </td>
                                                 <td>
                                                     @{
-                                                        string loanStatusBadgeClass = "bg-dark"; // Default
+                                                        string loanStatusBadgeClass = "bg-dark";
                                                         if (application.LoanStatus?.ToUpper() == "ACTIVE")
                                                         {
                                                             loanStatusBadgeClass = "bg-success";
@@ -271,7 +271,7 @@
                                                         }
                                                         else if (application.LoanStatus?.ToUpper() == "CLOSED")
                                                         {
-                                                            loanStatusBadgeClass = "bg-light text-dark"; // A lighter grey for closed
+                                                            loanStatusBadgeClass = "bg-light text-dark";
                                                         }
                                                     }
                                                     <span class="badge @loanStatusBadgeClass">@application.LoanStatus?.Replace("_", " ")</span>
@@ -299,16 +299,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Chart.js Setup for Loan Performance (Bar Chart)
+
             const loanPerformanceCtx = document.getElementById('loanPerformanceChart');
             if (loanPerformanceCtx) {
                 new Chart(loanPerformanceCtx, {
                     type: 'bar',
                     data: {
-                        labels: @Html.Raw(JsonConvert.SerializeObject(Model.MonthlyLabels)), // Dynamically pass labels from ViewModel
+                        labels: @Html.Raw(JsonConvert.SerializeObject(Model.MonthlyLabels)),
                         datasets: [{
                             label: 'New Loans (₹k)',
-                            data: @Html.Raw(JsonConvert.SerializeObject(Model.NewLoansMonthlyData)), // Dynamically pass data from ViewModel
+                            data: @Html.Raw(JsonConvert.SerializeObject(Model.NewLoansMonthlyData)),
                             backgroundColor: '#0A2463',
                             borderColor: '#0A2463',
                             borderWidth: 1,
@@ -318,7 +318,7 @@
                         },
                         {
                             label: 'Repayments (₹k)',
-                            data: @Html.Raw(JsonConvert.SerializeObject(Model.RepaymentsMonthlyData)), // Dynamically pass data from ViewModel
+                            data: @Html.Raw(JsonConvert.SerializeObject(Model.RepaymentsMonthlyData)),
                             backgroundColor: '#198754',
                             borderColor: '#198754',
                             borderWidth: 1,
@@ -336,7 +336,7 @@
                                 grid: { color: '#e9ecef' },
                                 ticks: {
                                     callback: function (value) {
-                                        return '₹' + value + 'k'; // Format Y-axis labels
+                                        return '₹' + value + 'k';
                                     }
                                 }
                             },
@@ -377,20 +377,20 @@
                 });
             }
 
-            // Chart.js Setup for Loan Status Distribution (Doughnut Chart)
+
             const loanStatusCtx = document.getElementById('loanStatusChart');
             if (loanStatusCtx) {
                 new Chart(loanStatusCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: @Html.Raw(JsonConvert.SerializeObject(Model.LoanStatusLabels)), // Dynamically pass labels from ViewModel
+                        labels: @Html.Raw(JsonConvert.SerializeObject(Model.LoanStatusLabels)),
                         datasets: [{
                             label: 'Loan Status',
-                            data: @Html.Raw(JsonConvert.SerializeObject(Model.LoanStatusCounts)), // Dynamically pass data from ViewModel
+                            data: @Html.Raw(JsonConvert.SerializeObject(Model.LoanStatusCounts)),
                             backgroundColor: [
-                                '#198754', // Active
-                                '#ffc107', // Pending Approval
-                                '#dc3545'  // Overdue
+                                '#198754',
+                                '#ffc107',
+                                '#dc3545'
                             ],
                             borderColor: '#fff',
                             borderWidth: 2,
@@ -403,7 +403,7 @@
                         cutout: '70%',
                         plugins: {
                             legend: {
-                                display: false // Hiding default legend to use the custom one below the chart.
+                                display: false
                             },
                             tooltip: {
                                 callbacks: {
@@ -413,7 +413,7 @@
                                             label += ': ';
                                         }
                                         if (context.parsed !== null) {
-                                            label += context.parsed; // Display the raw count in the tooltip
+                                            label += context.parsed;
                                         }
                                         return label;
                                     }

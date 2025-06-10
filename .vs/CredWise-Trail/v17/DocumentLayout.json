@@ -1,34 +1,58 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\CredWise-Trail\\CredWise\\",
+  "WorkspaceRootPath": "C:\\CredWise\\CredWise\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise-trail\\credwise\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\views\\customer\\makepayment.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:views\\customer\\makepayment.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise-trail\\credwise\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\models\\loanapplication.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:models\\loanapplication.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise-trail\\credwise\\views\\shared\\adminutility.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:views\\shared\\adminutility.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\migrations\\20250606101010_lastmigrate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:migrations\\20250606101010_lastmigrate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise-trail\\credwise\\credwise-trail.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:credwise-trail.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\migrations\\20250606101010_lastmigrate.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:migrations\\20250606101010_lastmigrate.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise-trail\\credwise\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\views\\admin\\loanapplications.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:views\\admin\\loanapplications.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise-trail\\credwise\\controllers\\customercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\controllers\\customercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:controllers\\customercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise-trail\\credwise\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\models\\loanproduct.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:models\\loanproduct.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\views\\admin\\loanapproval.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:views\\admin\\loanapproval.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\views\\admin\\kycapproval.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:views\\admin\\kycapproval.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\views\\admin\\customerdetails.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:views\\admin\\customerdetails.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\views\\admin\\admindashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:views\\admin\\admindashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|c:\\credwise\\credwise\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7E63A309-5896-4D06-955D-1D6848031788}|CredWise-Trail.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,7 +62,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -51,92 +75,170 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "AdminUtility.cshtml",
-              "DocumentMoniker": "C:\\CredWise-Trail\\CredWise\\Views\\Shared\\AdminUtility.cshtml",
-              "RelativeDocumentMoniker": "Views\\Shared\\AdminUtility.cshtml",
-              "ToolTip": "C:\\CredWise-Trail\\CredWise\\Views\\Shared\\AdminUtility.cshtml",
-              "RelativeToolTip": "Views\\Shared\\AdminUtility.cshtml",
-              "ViewState": "AgIAABsAAAAAAAAAAAAAACsAAABVAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-06-09T09:57:47.012Z",
+              "Title": "20250606101010_lastmigrate.cs",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Migrations\\20250606101010_lastmigrate.cs",
+              "RelativeDocumentMoniker": "Migrations\\20250606101010_lastmigrate.cs",
+              "ToolTip": "C:\\CredWise\\CredWise\\Migrations\\20250606101010_lastmigrate.cs",
+              "RelativeToolTip": "Migrations\\20250606101010_lastmigrate.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-10T10:14:18.817Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\CredWise-Trail\\CredWise\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\CredWise-Trail\\CredWise\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAACYAAAAAAAAAAAAowDkAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 3,
+              "Title": "20250606101010_lastmigrate.Designer.cs",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Migrations\\20250606101010_lastmigrate.Designer.cs",
+              "RelativeDocumentMoniker": "Migrations\\20250606101010_lastmigrate.Designer.cs",
+              "ToolTip": "C:\\CredWise\\CredWise\\Migrations\\20250606101010_lastmigrate.Designer.cs",
+              "RelativeToolTip": "Migrations\\20250606101010_lastmigrate.Designer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-09T09:50:14.896Z",
+              "WhenOpened": "2025-06-10T10:14:18.699Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
               "Title": "CustomerController.cs",
-              "DocumentMoniker": "C:\\CredWise-Trail\\CredWise\\Controllers\\CustomerController.cs",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Controllers\\CustomerController.cs",
               "RelativeDocumentMoniker": "Controllers\\CustomerController.cs",
-              "ToolTip": "C:\\CredWise-Trail\\CredWise\\Controllers\\CustomerController.cs",
+              "ToolTip": "C:\\CredWise\\CredWise\\Controllers\\CustomerController.cs",
               "RelativeToolTip": "Controllers\\CustomerController.cs",
-              "ViewState": "AgIAAC4FAAAAAAAAAAAowEEFAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAnwFkAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-09T09:49:47.598Z",
+              "WhenOpened": "2025-06-10T10:06:44.119Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 6,
-              "Title": "AdminController.cs",
-              "DocumentMoniker": "C:\\CredWise-Trail\\CredWise\\Controllers\\AdminController.cs",
-              "RelativeDocumentMoniker": "Controllers\\AdminController.cs",
-              "ToolTip": "C:\\CredWise-Trail\\CredWise\\Controllers\\AdminController.cs",
-              "RelativeToolTip": "Controllers\\AdminController.cs",
-              "ViewState": "AgIAAMECAAAAAAAAAAAowNQCAAABAAAAAAAAAA==",
+              "Title": "LoanProduct.cs",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Models\\LoanProduct.cs",
+              "RelativeDocumentMoniker": "Models\\LoanProduct.cs",
+              "ToolTip": "C:\\CredWise\\CredWise\\Models\\LoanProduct.cs",
+              "RelativeToolTip": "Models\\LoanProduct.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-09T09:49:34.759Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AccountController.cs",
-              "DocumentMoniker": "C:\\CredWise-Trail\\CredWise\\Controllers\\AccountController.cs",
-              "RelativeDocumentMoniker": "Controllers\\AccountController.cs",
-              "ToolTip": "C:\\CredWise-Trail\\CredWise\\Controllers\\AccountController.cs",
-              "RelativeToolTip": "Controllers\\AccountController.cs",
-              "ViewState": "AgIAALcAAAAAAAAAAAAIwLsAAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-09T09:49:21.353Z",
+              "WhenOpened": "2025-06-10T10:06:07.582Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "_Layout.cshtml",
-              "DocumentMoniker": "C:\\CredWise-Trail\\CredWise\\Views\\Shared\\_Layout.cshtml",
-              "RelativeDocumentMoniker": "Views\\Shared\\_Layout.cshtml",
-              "ToolTip": "C:\\CredWise-Trail\\CredWise\\Views\\Shared\\_Layout.cshtml",
-              "RelativeToolTip": "Views\\Shared\\_Layout.cshtml",
-              "ViewState": "AgIAABsAAAAAAAAAAAAAACwAAAANAAAAAAAAAA==",
+              "Title": "MakePayment.cshtml",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Views\\Customer\\MakePayment.cshtml",
+              "RelativeDocumentMoniker": "Views\\Customer\\MakePayment.cshtml",
+              "ToolTip": "C:\\CredWise\\CredWise\\Views\\Customer\\MakePayment.cshtml",
+              "RelativeToolTip": "Views\\Customer\\MakePayment.cshtml",
+              "ViewState": "AgIAADACAAAAAAAAAAAqwHoCAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-06-09T09:57:23.451Z",
+              "WhenOpened": "2025-06-10T10:01:55.954Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "CredWise-Trail",
-              "DocumentMoniker": "C:\\CredWise-Trail\\CredWise\\CredWise-Trail.csproj",
-              "RelativeDocumentMoniker": "CredWise-Trail.csproj",
-              "ToolTip": "C:\\CredWise-Trail\\CredWise\\CredWise-Trail.csproj",
-              "RelativeToolTip": "CredWise-Trail.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-06-09T09:55:19.388Z",
+              "DocumentIndex": 7,
+              "Title": "LoanApproval.cshtml",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Views\\Admin\\LoanApproval.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\LoanApproval.cshtml",
+              "ToolTip": "C:\\CredWise\\CredWise\\Views\\Admin\\LoanApproval.cshtml",
+              "RelativeToolTip": "Views\\Admin\\LoanApproval.cshtml",
+              "ViewState": "AgIAAIkBAAAAAAAAAAAmwKABAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-10T10:01:25.286Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "KYCApproval.cshtml",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Views\\Admin\\KYCApproval.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\KYCApproval.cshtml",
+              "ToolTip": "C:\\CredWise\\CredWise\\Views\\Admin\\KYCApproval.cshtml",
+              "RelativeToolTip": "Views\\Admin\\KYCApproval.cshtml",
+              "ViewState": "AgIAAMwBAAAAAAAAAAAmwN0BAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-10T10:00:57.608Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "LoanApplications.cshtml",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Views\\Admin\\LoanApplications.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\LoanApplications.cshtml",
+              "ToolTip": "C:\\CredWise\\CredWise\\Views\\Admin\\LoanApplications.cshtml",
+              "RelativeToolTip": "Views\\Admin\\LoanApplications.cshtml",
+              "ViewState": "AgIAAH8AAAAAAAAAAAAmwIwAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-10T09:52:37.183Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "LoanApplication.cs",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Models\\LoanApplication.cs",
+              "RelativeDocumentMoniker": "Models\\LoanApplication.cs",
+              "ToolTip": "C:\\CredWise\\CredWise\\Models\\LoanApplication.cs",
+              "RelativeToolTip": "Models\\LoanApplication.cs",
+              "ViewState": "AgIAAEkAAAAAAAAAAAA1wEMAAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-10T09:48:56.579Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "CustomerDetails.cshtml",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Views\\Admin\\CustomerDetails.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\CustomerDetails.cshtml",
+              "ToolTip": "C:\\CredWise\\CredWise\\Views\\Admin\\CustomerDetails.cshtml",
+              "RelativeToolTip": "Views\\Admin\\CustomerDetails.cshtml",
+              "ViewState": "AgIAAOIAAAAAAAAAAAAAwGcBAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-10T09:47:46.144Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "AdminController.cs",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Controllers\\AdminController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AdminController.cs",
+              "ToolTip": "C:\\CredWise\\CredWise\\Controllers\\AdminController.cs",
+              "RelativeToolTip": "Controllers\\AdminController.cs",
+              "ViewState": "AgIAAKQCAAAAAAAAAAAcwMICAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-10T09:43:04.433Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "AdminDashboard.cshtml",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\Views\\Admin\\AdminDashboard.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\AdminDashboard.cshtml",
+              "ToolTip": "C:\\CredWise\\CredWise\\Views\\Admin\\AdminDashboard.cshtml",
+              "RelativeToolTip": "Views\\Admin\\AdminDashboard.cshtml",
+              "ViewState": "AgIAAMkAAAAAAAAAAAAWwNAAAABoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-10T09:41:57.825Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\CredWise\\CredWise\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "C:\\CredWise\\CredWise\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAACPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-06-10T09:38:47.234Z",
               "EditorCaption": ""
             }
           ]

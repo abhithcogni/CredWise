@@ -21,27 +21,29 @@
             --primary-brand-color: #0A2463;
             --secondary-accent-color: #3E92CC;
         }
+
         .pagination .page-item.active .page-link {
-            background-color: var(--primary-brand-color); /* Applied */
-            border-color: var(--primary-brand-color); /* Applied */
+            background-color: var(--primary-brand-color);
+            border-color: var(--primary-brand-color);
             color: white;
         }
 
         .page-header h2, .page-header .h3 {
-            color: var(--primary-brand-color); /* Applied */
+            color: var(--primary-brand-color);
             font-weight: 700;
         }
 
         .pagination .page-link {
-            color: var(--secondary-accent-color); /* Applied */
+            color: var(--secondary-accent-color);
         }
 
             .pagination .page-link:hover {
-                color: var(--primary-brand-color); /* Applied */
+                color: var(--primary-brand-color);
             }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; /* Consistent background */
+            background-color: #f0f2f5;
         }
 
         #page-content-wrapper {
@@ -50,7 +52,7 @@
             flex-direction: column;
             flex-grow: 1;
         }
-        /* Card Styles for the table container */
+
         .card-table-container {
             border: 1px solid #e9ecef;
             border-radius: 0.75rem;
@@ -78,7 +80,6 @@
                 padding: 1.5rem;
             }
 
-        /* Table styles */
         .table th {
             font-weight: 600;
             color: #495057;
@@ -89,16 +90,16 @@
         .table td, .table th {
             vertical-align: middle;
             padding: 0.9rem 1rem;
-            text-align: center; /* Center align table content */
+            text-align: center;
         }
 
         .table-hover tbody tr:hover {
-            background-color: #eef2f7; /* Lighter blue hover for admin */
+            background-color: #eef2f7;
         }
 
         .table td .badge {
             font-size: 0.85em;
-            padding: 0.5em 0.8em; /* Slightly larger padding for badges */
+            padding: 0.5em 0.8em;
             font-weight: 500;
         }
 
@@ -109,10 +110,9 @@
 
         .table .form-select-sm {
             font-size: 0.875rem;
-            min-width: 130px; /* Ensure dropdown is not too small */
+            min-width: 130px;
         }
 
-        /* Status Badges (Bootstrap 5 soft style) */
         .badge.bg-warning-soft {
             background-color: #fff3cd;
             color: #664d03;
@@ -133,7 +133,6 @@
             color: #055160;
         }
 
-        /* Filter section */
         .filter-section {
             display: flex;
             justify-content: space-between;
@@ -142,7 +141,7 @@
         }
 
             .filter-section .form-label {
-                margin-bottom: 0; /* Align label with select */
+                margin-bottom: 0;
             }
 
         .btn-primary {
@@ -187,7 +186,7 @@
                     <p class="text-muted">Efficiently manage and verify Know Your Customer (KYC) submissions.</p>
                 </div>
                 <div class="card-table-container">
-                    
+
                     <div class="card-body">
                         <div class="filter-section">
                             <h4 class="mb-0 h5">KYC Applications</h4>
@@ -246,10 +245,12 @@
                                                     </button>
                                                 </td>
                                                 <td>
-                                                    <select class="form-select form-select-sm status-dropdown" aria-label="Update KYC status for @kyc.Customer.Name">
-                                                        <option value="Pending" selected="@(kyc.Status == "Pending")">Pending</option>
-                                                        <option value="Approved" selected="@(kyc.Status == "Approved")">Approved</option>
-                                                        <option value="Rejected" selected="@(kyc.Status == "Rejected")">Rejected</option>
+                                                    <select class="form-select form-select-sm status-dropdown"
+                                                            aria-label="Update KYC status for @kyc.Customer.Name"
+                                                            disabled="@(kyc.Status.ToUpper() != "PENDING")">
+                                                        <option value="Pending" selected="@(kyc.Status.ToUpper() == "PENDING")">Pending</option>
+                                                        <option value="Approved" selected="@(kyc.Status.ToUpper() == "APPROVED")">Approve</option>
+                                                        <option value="Rejected" selected="@(kyc.Status.ToUpper() == "REJECTED")">Reject</option>
                                                     </select>
                                                 </td>
                                                 <td><span class="badge rounded-pill @statusBadgeClass">@kyc.Status.ToUpper()</span></td>
@@ -268,25 +269,21 @@
                             </table>
                         </div>
 
-                        @* The container div now aligns the pagination to the right *@
                         <div class="d-flex justify-content-center align-items-center">
                             <nav aria-label="Page navigation">
                                 <ul class="pagination mb-0">
                                     @{
-                                        // Getting the required values from our PaginatedList Model and ViewData
                                         int currentPage = Model.PageIndex;
                                         int totalPages = Model.TotalPages;
-                                        var currentFilter = ViewData["CurrentFilter"] as string; // Get the current filter
+                                        var currentFilter = ViewData["CurrentFilter"] as string;
                                     }
 
-                                    @* Previous Button *@
                                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                                         <a class="page-link" href="@Url.Action("KycApproval", new { pageNumber = currentPage - 1, status = currentFilter })" aria-label="Previous">
                                             <span aria-hidden="true">&laquo;</span>
                                         </a>
                                     </li>
 
-                                    @* Page Number Buttons *@
                                     @for (int i = 1; i <= totalPages; i++)
                                     {
                                         <li class="page-item @(i == currentPage ? "active" : "")">
@@ -294,7 +291,6 @@
                                         </li>
                                     }
 
-                                    @* Next Button *@
                                     <li class="page-item @(currentPage == totalPages || totalPages == 0 ? "disabled" : "")">
                                         <a class="page-link" href="@Url.Action("KycApproval", new { pageNumber = currentPage + 1, status = currentFilter })" aria-label="Next">
                                             <span aria-hidden="true">&raquo;</span>
@@ -309,7 +305,7 @@
         </div>
     </div>
 
-    @* --- MODALS (Unchanged) --- *@
+    @* --- MODALS --- *@
     <div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -356,23 +352,17 @@
             let currentKycId = null;
             let originalStatus = null;
 
-            // --- NEW: Filter logic adapted for server-side pagination ---
             $("#filterStatus").on("change", function () {
                 const selectedStatus = $(this).val();
-                // Reload the page with the filter query string. This will go to page 1 of the results.
                 window.location.href = `/Admin/KycApproval?status=${selectedStatus}`;
             });
 
-            // --- NEW: Set the dropdown to match the URL's filter on page load ---
             const currentUrlParams = new URLSearchParams(window.location.search);
             const statusFilter = currentUrlParams.get('status');
             if (statusFilter) {
                 $("#filterStatus").val(statusFilter);
             }
 
-            // --- UNCHANGED: All your modal and AJAX logic remains the same ---
-
-            // Document Viewing Logic
             $(document).on("click", ".view-doc-btn", function () {
                 if ($(this).is(':disabled')) return;
 
@@ -401,7 +391,6 @@
                 documentModal.show();
             });
 
-            // KYC Status Update Logic
             $(document).on("change", ".status-dropdown", function () {
                 const $thisDropdown = $(this);
                 selectedRow = $thisDropdown.closest("tr");
@@ -446,6 +435,10 @@
                             }
                             $statusBadge.attr("class", `badge rounded-pill ${newBadgeClass}`);
                             $statusDropdown.val(newStatusConfirmed.charAt(0).toUpperCase() + newStatusConfirmed.slice(1));
+
+                            // *** Disable the dropdown after successful update ***
+                            $statusDropdown.prop('disabled', true);
+
                         } else {
                             alert("Failed to update KYC status: " + (response.message || "Unknown error."));
                             if (originalStatus !== null) {
