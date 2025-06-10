@@ -338,10 +338,10 @@
                                                     <span class="input-group-text">₹</span>
                                                     <input type="number" class="form-control" id="paymentAmount"
                                                            name="paidAmount" step="0.01" min="1.00"
-                                                           value="@(amountDueToDisplay > 0 ? amountDueToDisplay.ToString("F2") : (emiFromModel > 0 ? emiFromModel.ToString("F2") : "100.00"))" required>
+                                                           value="@(amountDueToDisplay > 0 ? amountDueToDisplay.ToString("F2") : (emiFromModel > 0 ? emiFromModel.ToString("F2") : "100.00"))" disabled">
                                                 </div>
                                                 <div class="form-text">
-                                                    Enter the amount you wish to pay.
+                                          
                                                     @if (loanStatusToDisplay == "Overdue" && currentOverdueAmountToDisplay > 0)
                                                     {
                                                         <span class="text-danger d-block mt-1">Your loan is overdue. Suggested payment to clear dues: INR @currentOverdueAmountToDisplay.ToString("N2")</span>

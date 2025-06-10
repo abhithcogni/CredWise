@@ -19,7 +19,7 @@ namespace CredWise_Trail.Models.ViewModels
         // Detailed statements
         public List<LoanStatementDetailViewModel> LoanStatements { get; set; }
 
-        // NEW: Property to hold any error messages for the view
+        // Property to hold any error messages for the view
         public string ErrorMessage { get; set; }
 
         public CustomerStatementViewModel()
@@ -29,10 +29,6 @@ namespace CredWise_Trail.Models.ViewModels
             // ErrorMessage will be null by default
         }
     }
-
-    // LoanAccountSelectItemViewModel, LoanStatementDetailViewModel,
-    // and RepaymentHistoryItemViewModel remain the same as previously defined.
-    // (Make sure they are in this file or accessible)
 
     public class LoanAccountSelectItemViewModel
     {
@@ -50,6 +46,11 @@ namespace CredWise_Trail.Models.ViewModels
         public int TenureMonths { get; set; }
         public DateTime ApplicationDate { get; set; }
         public string ApprovalStatus { get; set; }
+
+        // --- NEW PROPERTY ADDED HERE ---
+        public string LoanStatus { get; set; } // To display the current status of the loan (e.g., Active, Overdue, Closed)
+        // -------------------------------
+
         public decimal OutstandingBalance { get; set; }
         public List<RepaymentHistoryItemViewModel> RepaymentHistory { get; set; }
 

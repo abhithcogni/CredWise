@@ -20,7 +20,10 @@ namespace CredWise_Trail.Controllers
         {
             _context = context;
         }
-
+        public IActionResult RequestSupport()
+        {
+            return View();
+        }
         public async Task<IActionResult> CustomerDashboard()
         {
             if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
@@ -381,7 +384,8 @@ namespace CredWise_Trail.Controllers
             {
                 // If not authenticated or not a customer, redirect to the login page.
                 // It's good practice to also include a returnUrl if your login action supports it.
-                return RedirectToAction("Login", "Account");
+                TempData["ErrorMessage"] = "Please log in as a customer to view your statements.";
+                return RedirectToAction("Login", "Account"); // Assuming AccountController handles login
             }
 
             // 2. Get CustomerId from Claims: Retrieve the logged-in customer's ID.
@@ -395,9 +399,8 @@ namespace CredWise_Trail.Controllers
             if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
             {
                 // If CustomerId is missing or invalid, set an error message and redirect.
-                // Redirecting to Logout is one option; another might be a dedicated error page or back to login.
                 TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
-                return RedirectToAction("Logout", "Account");
+                return RedirectToAction("Logout", "Account"); // Redirect to Logout or an error page
             }
 
             try
@@ -420,8 +423,8 @@ namespace CredWise_Trail.Controllers
                 // Eagerly load related LoanProduct and Repayments to avoid N+1 query issues.
                 var loanApplications = await _context.LoanApplications
                     .Where(la => la.CustomerId == customerId)
-                    .Include(la => la.LoanProduct)  // Include product details for each loan
-                    .Include(la => la.Repayments)   // Include repayment history for each loan
+                    .Include(la => la.LoanProduct)    // Include product details for each loan
+                    .Include(la => la.Repayments)     // Include repayment history for each loan
                     .ToListAsync();
 
                 // 7. Populate LoanAccountsForSelection (for dropdown) and LoanStatements (detailed view for each loan)
@@ -433,7 +436,7 @@ namespace CredWise_Trail.Controllers
                         // LoanNumber should be a unique identifier for the loan account itself.
                         LoanIdValue = app.LoanNumber,
                         // Display text for the dropdown option.
-                        LoanDisplayText = $"{app.LoanProduct?.ProductName ?? "N/A"} ({app.LoanNumber}) - {app.LoanAmount:C0}" // C0 format for currency with no decimals.
+                        LoanDisplayText = $"{app.LoanProduct?.ProductName ?? "N/A"} ({app.LoanNumber}) - ₹{app.LoanAmount:N0}" // N0 format for currency with no decimals.
                     });
 
                     // Create a detailed statement view model for each loan application.
@@ -446,7 +449,8 @@ namespace CredWise_Trail.Controllers
                         InterestRate = app.InterestRate, // Convert decimal rate (e.g., 0.075) to percentage (e.g., 7.5)
                         TenureMonths = app.TenureMonths,
                         ApplicationDate = app.ApplicationDate,
-                        ApprovalStatus = app.ApprovalStatus, // This is the string status from LoanApplication model
+                        ApprovalStatus = app.ApprovalStatus, // This is the string status from LoanApplication model (e.g., PENDING, APPROVED)
+                        LoanStatus = app.LoanStatus,         // This is the overall status (e.g., ACTIVE, CLOSED, OVERDUE)
                         OutstandingBalance = app.OutstandingBalance
                     };
 
@@ -471,22 +475,20 @@ namespace CredWise_Trail.Controllers
                 // 8. Calculate Overall Summary Statistics
                 if (loanApplications.Any()) // Proceed only if there are any loan applications
                 {
-                    // *** MODIFIED SECTION FOR ACCURATE SUMMARY CALCULATIONS ***
                     // Define the status strings from enums once for clarity and efficiency.
-                    // Ensures that comparison is made against the correct string values (e.g., "ACTIVE").
                     string activeStatusString = LoanOverallStatus.ACTIVE.ToString();
+                    string overdueStatusString = LoanOverallStatus.OVERDUE.ToString();
                     string approvedStatusString = LoanApprovalStatus.APPROVED.ToString();
                     string closedStatusString = LoanOverallStatus.CLOSED.ToString();
-                    string overdueStatusString = LoanOverallStatus.OVERDUE.ToString();
 
-                    // Calculate TotalActiveLoans using case-insensitive comparison.
-                    // Checks if LoanStatus is not null/empty before comparing.
+
+                    // Calculate TotalActiveLoans including "ACTIVE" and "OVERDUE" using case-insensitive comparison.
                     viewModel.TotalActiveLoans = loanApplications
                         .Count(la => !string.IsNullOrEmpty(la.LoanStatus) &&
-                                     la.LoanStatus.Equals(activeStatusString, StringComparison.OrdinalIgnoreCase));
+                                     (la.LoanStatus.Equals(activeStatusString, StringComparison.OrdinalIgnoreCase) ||
+                                      la.LoanStatus.Equals(overdueStatusString, StringComparison.OrdinalIgnoreCase)));
 
-                    // Calculate TotalAmountDisbursed using case-insensitive comparison.
-                    // A loan is considered disbursed if it's Approved OR Active OR Closed.
+                    // Calculate TotalAmountDisbursed for loans that are approved OR active OR closed (meaning they were disbursed)
                     viewModel.TotalAmountDisbursed = loanApplications
                         .Where(la =>
                             (!string.IsNullOrEmpty(la.ApprovalStatus) &&
@@ -494,12 +496,14 @@ namespace CredWise_Trail.Controllers
                             (!string.IsNullOrEmpty(la.LoanStatus) &&
                              la.LoanStatus.Equals(activeStatusString, StringComparison.OrdinalIgnoreCase)) ||
                             (!string.IsNullOrEmpty(la.LoanStatus) &&
-                             la.LoanStatus.Equals(closedStatusString, StringComparison.OrdinalIgnoreCase))
+                             la.LoanStatus.Equals(closedStatusString, StringComparison.OrdinalIgnoreCase)) ||
+                            (!string.IsNullOrEmpty(la.LoanStatus) && // Also include overdue as they are disbursed
+                             la.LoanStatus.Equals(overdueStatusString, StringComparison.OrdinalIgnoreCase))
                         )
                         .Sum(la => la.LoanAmount);
 
-                    // Calculate TotalOutstandingAmount using case-insensitive comparison.
-                    // Outstanding amount is typically for loans that are Active OR Overdue.
+
+                    // Calculate TotalOutstandingAmount for loans that are Active OR Overdue.
                     viewModel.TotalOutstandingAmount = loanApplications
                         .Where(la =>
                             (!string.IsNullOrEmpty(la.LoanStatus) &&
@@ -512,7 +516,6 @@ namespace CredWise_Trail.Controllers
                 else
                 {
                     // If the customer has no loan applications, explicitly set summary figures to 0.
-                    // (Though int/decimal properties default to 0, explicit assignment is clearer).
                     viewModel.TotalActiveLoans = 0;
                     viewModel.TotalAmountDisbursed = 0;
                     viewModel.TotalOutstandingAmount = 0;

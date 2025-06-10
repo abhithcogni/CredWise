@@ -21,6 +21,21 @@
         };
     };
 
+    // Helper function to determine badge class based on Loan Overall Status (Active, Overdue, Closed)
+    Func<string, string> GetLoanOverallStatusBadgeClass = (status) =>
+    {
+        if (string.IsNullOrEmpty(status)) return "badge-secondary"; // Default for null or empty
+        return status.ToUpper() switch
+        {
+            "ACTIVE" => "badge-custom-active",
+            "OVERDUE" => "badge-custom-overdue",
+            "CLOSED" => "badge-secondary", // Reusing completed style for closed loans
+            "PENDING" => "badge-custom-pending", // If LoanStatus can also be pending before disbursement
+            _ => "badge-secondary"
+        };
+    };
+
+
     // Helper function to determine badge class based on Repayment Status
     Func<string, string> GetRepaymentBadgeClass = (status) =>
     {
@@ -30,7 +45,7 @@
             "COMPLETED" => "badge-custom-completed",
             "SUCCESS" => "badge-custom-completed",   // If "SUCCESS" is used for completed
             "PENDING" => "badge-custom-pending",
-            "FAILED" => "badge-custom-rejected",     // Assuming 'failed' maps to rejected style
+            "FAILED" => "badge-custom-rejected",      // Assuming 'failed' maps to rejected style
             _ => "badge-secondary" // Default for any other statuses
         };
     };
@@ -49,8 +64,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333;
+            background-color: #f8f9fa; /* Light background */
         }
         /* Custom colors for the theme */
         .primary-color {
@@ -75,96 +91,148 @@
             background-color: #0A2463;
             border-color: #0A2463;
             color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
         }
 
             .btn-primary-custom:hover {
                 background-color: #081f53; /* Darker shade on hover */
                 border-color: #081f53;
                 color: white;
+                transform: translateY(-2px); /* Lift button on hover */
             }
 
         .btn-secondary-custom {
             background-color: #3E92CC;
             border-color: #3E92CC;
             color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
         }
 
             .btn-secondary-custom:hover {
                 background-color: #3279a8; /* Darker shade on hover */
                 border-color: #3279a8;
                 color: white;
+                transform: translateY(-2px); /* Lift button on hover */
             }
         /* Styling for the main page header */
         .page-header {
             border-bottom: 2px solid #0A2463; /* A strong bottom border */
-            padding-bottom: 10px;
+            padding-bottom: 15px;
             margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Space out title and button */
         }
 
             .page-header .icon {
-                font-size: 2rem; /* Larger icon for the header */
-                margin-right: 10px;
+                font-size: 2.2rem; /* Larger icon for the header */
+                margin-right: 15px;
+                color: #0A2463;
             }
+
+            .page-header h1 {
+                font-weight: 600; /* Bolder title */
+            }
+
         /* Styling for section headers within the content */
         .section-header {
             border-bottom: 1px solid #3E92CC; /* A subtle bottom border */
             padding-bottom: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             color: #0A2463; /* Primary color for section titles */
+            font-weight: 500;
+            display: flex;
+            align-items: center;
         }
 
             .section-header .icon {
-                margin-right: 8px;
+                margin-right: 10px;
                 color: #3E92CC; /* Secondary color for section icons */
             }
         /* Custom card styling with a left border highlight */
         .card-custom {
             border-left: 5px solid #0A2463; /* Primary color border on the left */
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08); /* Soft shadow */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
         }
+
+            .card-custom:hover {
+                transform: translateY(-3px); /* Lift card slightly on hover */
+                box-shadow: 0 6px 12px rgba(0,0,0,0.12); /* Enhanced shadow on hover */
+            }
+
+        .card-header.bg-secondary-custom {
+            border-bottom: none; /* Remove default card header border */
+            border-radius: .25rem .25rem 0 0; /* Match card border-radius */
+        }
+
         /* Table header styling */
         .table th {
-            background-color: #f2f2f2; /* Light grey background for table headers */
+            background-color: #e9ecef; /* Slightly darker grey for table headers */
             color: #0A2463; /* Primary color text for table headers */
+            font-weight: 600;
         }
+
+        .table-hover tbody tr:hover {
+            background-color: #e2f0ff; /* Light blue on row hover */
+            transition: background-color 0.2s ease;
+        }
+
         /* Custom badge styles for different statuses */
         .badge-custom-pending {
             background-color: #ffc107; /* Yellow for pending status */
             color: #333; /* Dark text for yellow badge */
+            padding: 0.4em 0.6em;
+            border-radius: 0.3rem;
         }
 
-        .badge-custom-verified, .badge-custom-approved, .badge-custom-completed {
-            background-color: #28a745; /* Green for verified/approved/completed */
+        .badge-custom-verified, .badge-custom-approved, .badge-custom-completed, .badge-custom-active {
+            background-color: #28a745; /* Green for verified/approved/completed/active */
             color: white;
+            padding: 0.4em 0.6em;
+            border-radius: 0.3rem;
         }
 
-        .badge-custom-rejected { /* Also used for FAILED repayments */
-            background-color: #dc3545; /* Red for rejected status */
+        .badge-custom-rejected, .badge-custom-overdue { /* Also used for FAILED repayments */
+            background-color: #dc3545; /* Red for rejected/overdue status */
             color: white;
+            padding: 0.4em 0.6em;
+            border-radius: 0.3rem;
         }
 
         .badge-secondary { /* Default/unknown status */
             background-color: #6c757d;
             color: white;
+            padding: 0.4em 0.6em;
+            border-radius: 0.3rem;
         }
         /* Styling for individual summary items */
         .summary-item {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
         }
 
         .summary-label {
             font-weight: bold;
             color: #0A2463; /* Bold primary color for labels */
+            margin-right: 5px;
         }
         /* Footer styling */
-        .footer {
-            text-align: center;
-            padding: 20px 0;
-            margin-top: 40px;
-            border-top: 1px solid #ddd; /* Light grey top border */
-            font-size: 0.9em;
-            color: #555;
+        
+
+        /* Animated content entry */
+        .statement-content {
+            opacity: 0; /* Start hidden */
+            transform: translateY(20px); /* Start slightly below */
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Smooth transition */
         }
+
+            .statement-content.show {
+                opacity: 1; /* Fade in */
+                transform: translateY(0); /* Move to original position */
+            }
+
         /* Print-specific styles */
         @@media print {
             .no-print {
@@ -174,12 +242,14 @@
             body {
                 font-size: 10pt; /* Adjust print font size */
                 color: #000; /* Ensure text is black for printing */
+                background-color: #fff; /* White background for print */
             }
 
             .card-custom {
                 border-left: none;
                 box-shadow: none;
                 page-break-inside: avoid;
+                border: 1px solid #eee; /* Light border for cards in print */
             }
 
             .table th, .table td {
@@ -212,6 +282,11 @@
                 color: #000 !important; /* Override badge text color for print */
                 background-color: transparent !important; /* No background for badges */
             }
+
+            .statement-content {
+                opacity: 1; /* Ensure visible when printing */
+                transform: none; /* No transforms when printing */
+            }
         }
     </style>
 </head>
@@ -232,17 +307,19 @@
         else // Model is valid and has no explicit error message
         {
             <div class="page-header d-flex align-items-center">
-                <i class="fas fa-file-invoice-dollar primary-color icon"></i>
-                <h1 class="primary-color mb-0">Customer Report & Statement</h1>
-                <button id="printStatementBtn" class="btn btn-primary-custom ml-auto no-print"><i class="fas fa-print"></i> Print Statement</button>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-file-invoice-dollar primary-color icon"></i>
+                    <h1 class="primary-color mb-0">Customer Report & Statement</h1>
+                </div>
+                <button id="printStatementBtn" class="btn btn-primary-custom no-print"><i class="fas fa-print"></i> Print Statement</button>
             </div>
             <hr class="no-print">
 
-            <section id="loanSummary" class="mb-4">
+            <section id="loanSummary" class="mb-5">
                 <h4 class="section-header"><i class="fas fa-landmark icon"></i>Loan Overview</h4>
                 <div class="row">
                     <div class="col-md-4">
-                        <div class="card text-center bg-light mb-3">
+                        <div class="card text-center bg-light mb-3 card-custom">
                             <div class="card-body">
                                 <h5 class="card-title primary-color">Total Active Loans</h5>
                                 <p class="card-text display-4 primary-color" id="totalActiveLoans">@Model.TotalActiveLoans</p>
@@ -250,7 +327,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card text-center bg-light mb-3">
+                        <div class="card text-center bg-light mb-3 card-custom">
                             <div class="card-body">
                                 <h5 class="card-title primary-color">Total Amount Disbursed</h5>
                                 <p class="card-text display-4 primary-color" id="totalDisbursed">₹@Model.TotalAmountDisbursed.ToString("N2")</p>
@@ -258,7 +335,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card text-center bg-light mb-3">
+                        <div class="card text-center bg-light mb-3 card-custom">
                             <div class="card-body">
                                 <h5 class="card-title primary-color">Total Outstanding</h5>
                                 <p class="card-text display-4 secondary-color" id="totalOutstanding">₹@Model.TotalOutstandingAmount.ToString("N2")</p>
@@ -271,10 +348,10 @@
 
             @if (Model.LoanStatements != null && Model.LoanStatements.Any())
             {
-                <section id="loanStatement">
+                <section id="loanStatement" class="mb-5">
                     <h4 class="section-header"><i class="fas fa-list-alt icon"></i>Loan Account Statement</h4>
 
-                    <div class="form-group no-print">
+                    <div class="form-group no-print mb-4">
                         <label for="loanAccountSelect" class="summary-label">Select Loan Account to View Statement:</label>
                         <select class="form-control" id="loanAccountSelect">
                             @foreach (var loanOption in Model.LoanAccountsForSelection)
@@ -288,7 +365,7 @@
 
                     @foreach (var statement in Model.LoanStatements)
                     {
-                        <div id="statementDetails@(statement.UniqueLoanIdentifier)" class="statement-content" style="@(statement.UniqueLoanIdentifier == firstLoanIdentifierToShow ? "" : "display: none;")">
+                        <div id="statementDetails@(statement.UniqueLoanIdentifier)" class="statement-content @(statement.UniqueLoanIdentifier == firstLoanIdentifierToShow ? "show" : "")">
                             <div class="card card-custom">
                                 <div class="card-header bg-secondary-custom">
                                     <h5 class="mb-0">@statement.ProductName Details (@statement.ApplicationIdDisplay)</h5>
@@ -302,8 +379,12 @@
                                         <div class="col-md-4 summary-item"><span class="summary-label">Tenure:</span> @statement.TenureMonths Months</div>
                                         <div class="col-md-4 summary-item"><span class="summary-label">Application Date:</span> @statement.ApplicationDate.ToString("yyyy-MM-dd")</div>
                                         <div class="col-md-4 summary-item">
-                                            <span class="summary-label">Status:</span>
+                                            <span class="summary-label">Application Status:</span>
                                             <span class="badge @GetLoanApprovalBadgeClass(statement.ApprovalStatus)">@(statement.ApprovalStatus?.ToUpper())</span>
+                                        </div>
+                                        <div class="col-md-4 summary-item">
+                                            <span class="summary-label">Loan Status:</span>
+                                            <span class="badge @GetLoanOverallStatusBadgeClass(statement.LoanStatus)">@(statement.LoanStatus?.ToUpper())</span>
                                         </div>
                                         <div class="col-md-4 summary-item"><span class="summary-label">Outstanding Balance:</span> ₹@statement.OutstandingBalance.ToString("N2")</div>
                                     </div>
@@ -341,7 +422,7 @@
                                     }
                                     else
                                     {
-                                        <p>No installments scheduled for this loan.</p>
+                                        <p class="text-muted">No installments scheduled or recorded for this loan yet.</p>
                                     }
                                 </div>
                             </div>
@@ -352,43 +433,47 @@
             else // No loan statements to display for this customer
             {
                 <hr>
-                <div class="alert alert-info text-center" role="alert">
-                    No loan accounts are currently available to display for @Model.CustomerName.
+                <div class="alert alert-info text-center py-4" role="alert">
+                    <i class="fas fa-info-circle fa-2x mb-3"></i>
+                    <h4>No loan accounts are currently available to display for @Model.CustomerName.</h4>
+                    <p>Apply for a new loan to see your statement here!</p>
                 </div>
             }
         }
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+   
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         $(document).ready(function () {
-            // Current year is now set by Razor in the footer, this JS line is not strictly needed
-            // if you keep the Razor version: $('#currentYear').text(new Date().getFullYear());
-
             $('#printStatementBtn').on('click', function () {
                 window.print();
             });
 
             $('#loanAccountSelect').on('change', function () {
                 var selectedLoanId = $(this).val();
-                // Hide all statement content divs that are part of the selection process
-                $('.statement-content').hide();
-                // Show the selected one
-                $('#statementDetails' + selectedLoanId).show();
+
+                // Hide all statement content divs and remove 'show' class
+                $('.statement-content').removeClass('show').hide();
+
+                // Show the selected one with animation
+                var $selectedDiv = $('#statementDetails' + selectedLoanId);
+                $selectedDiv.fadeIn(400, function() { // Fade in over 400ms
+                    $(this).addClass('show'); // Add 'show' class after fade-in is complete for the translateY effect
+                });
             });
 
-            // Ensure the initially selected loan's details are visible
-            // This is now primarily handled by the inline style in the Razor loop,
-            // but this JS can act as a fallback or reinforcement if needed.
+            // If there's an initial selected loan (first one by default), ensure it has the 'show' class for animation
             var initialSelectedLoan = $('#loanAccountSelect').val();
             if (initialSelectedLoan) {
-                $('#statementDetails' + initialSelectedLoan).show();
+                $('#statementDetails' + initialSelectedLoan).addClass('show');
             } else {
                 // If no specific loan is selected (e.g., if LoanAccountsForSelection is empty),
-                // ensure no statement-content is accidentally shown.
-                $('.statement-content').hide();
+                // ensure no statement-content is accidentally shown and clear any 'show' classes.
+                $('.statement-content').removeClass('show').hide();
             }
         });
     </script>
