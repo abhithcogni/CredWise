@@ -169,7 +169,7 @@
                                     <tr>
                                         <td>@item.ApplicationId</td>
                                         <td>@item.ApplicationDate.ToString("MMM dd, yyyy")</td>
-                                        <td>@(item.LoanProduct?.ProductName ?? "N/A")</td>
+                                        <td>@(item.LoanProductName)</td>
                                         <td>₹@item.LoanAmount.ToString("N2")</td>
                                         <td><span class="badge rounded-pill @applicationBadgeClass">@item.ApprovalStatus</span></td>
                                         <td><span class="badge rounded-pill @loanStatusBadgeClass">@(item.LoanStatus ?? "N/A")</span></td>

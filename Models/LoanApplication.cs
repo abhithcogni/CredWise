@@ -27,6 +27,8 @@ namespace CredWise_Trail.Models // Ensure this namespace matches your project st
         [StringLength(10)]
         public string ApprovalStatus { get; set; } // e.g., "PENDING", "APPROVED", "REJECTED"
 
+        public string LoanProductName { get; set; }
+
         // --- PROPERTIES FOR PAYMENT TRACKING ---
 
         [Column(TypeName = "decimal(7, 3)")] // For interest rate, e.g., 0.0800 for 8%

@@ -108,42 +108,6 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\site.js'))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\2_1c9897e1-5559-4162-916d-8f1cb99306f2_identity.pdf'))">
-      <SourceType>Package</SourceType>
-      <SourceId>CredWise-Trail</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/CredWise-Trail</BasePath>
-      <RelativePath>kyc_documents/2_1c9897e1-5559-4162-916d-8f1cb99306f2_identity.pdf</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>euyu1pyvch</Fingerprint>
-      <Integrity>5pCzajmMl8Ybfms51SvWfPbAPLVOSm7CdTWXsza/sAk=</Integrity>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\2_1c9897e1-5559-4162-916d-8f1cb99306f2_identity.pdf'))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\5_7900b955-2036-4ec5-94b0-97093df8dba8_identity.pdf'))">
-      <SourceType>Package</SourceType>
-      <SourceId>CredWise-Trail</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/CredWise-Trail</BasePath>
-      <RelativePath>kyc_documents/5_7900b955-2036-4ec5-94b0-97093df8dba8_identity.pdf</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>iqszhrth8x</Fingerprint>
-      <Integrity>xnbQtLhqw0DRAeaQN4fZmj2yhSzao1PQdWK9V38pqBk=</Integrity>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\kyc_documents\5_7900b955-2036-4ec5-94b0-97093df8dba8_identity.pdf'))</OriginalItemSpec>
-    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\lib\bootstrap\dist\css\bootstrap.css'))">
       <SourceType>Package</SourceType>
       <SourceId>CredWise-Trail</SourceId>

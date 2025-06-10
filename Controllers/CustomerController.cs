@@ -345,6 +345,7 @@ namespace CredWise_Trail.Controllers
 
                 // ** Assign the calculated EMI here **
                 EMI = finalCalculatedEmi,
+                LoanProductName= selectedLoanProduct.ProductName,
 
                 // These are set upon approval/disbursement or during payment processing
                 OutstandingBalance = 0, // Will be set to principal upon approval

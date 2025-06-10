@@ -21,9 +21,8 @@ namespace CredWise_Trail.Models
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<LoanApplication>()
      .HasOne(la => la.LoanProduct)           // A LoanApplication has one LoanProduct
-     .WithMany()                             // A LoanProduct can have many LoanApplications (no navigation collection needed on LoanProduct if not used)
+     .WithMany(lp => lp.LoanApplications)                             // A LoanProduct can have many LoanApplications (no navigation collection needed on LoanProduct if not used)
      .HasForeignKey(la => la.LoanProductId)  // The foreign key property in LoanApplication
-     .IsRequired(false)                      // Make the foreign key optional (allows NULL)
      .OnDelete(DeleteBehavior.SetNull);      // Set the foreign key to NULL on deletion of the principal (LoanProduct)
             modelBuilder.Entity<LoanApplication>(entity =>
             {
