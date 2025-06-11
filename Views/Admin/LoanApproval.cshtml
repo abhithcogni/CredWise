@@ -248,7 +248,7 @@
                                                 <td>@(item.Customer?.Name)</td>
                                                 <td><a href="mailto:@(item.Customer?.Email)" title="Email @(item.Customer?.Name)" id="email-to">@(item.Customer?.Email)</a></td>
                                                 <td>@item.LoanAmount.ToString("C")</td>
-                                                <td>@(item.LoanProduct?.ProductName ?? "N/A")</td>
+                                                <td>@(item.LoanProductName)</td>
                                                 <td><span class="status-badge @statusClass">@item.ApprovalStatus</span></td>
                                                 <td>
                                                     <select class="form-select form-select-sm action-dropdown"

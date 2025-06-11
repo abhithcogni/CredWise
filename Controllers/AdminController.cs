@@ -65,7 +65,7 @@ namespace CredWise_Trail.Controllers
                     LoanApplications = c.LoanApplications.Select(la => new LoanApplicationSummaryViewModel
                     {
                         ApplicationId = la.ApplicationId,
-                        ProductName = la.LoanProduct.ProductName,
+                        ProductName = la.LoanProductName,
                         LoanAmount = la.LoanAmount,
                         ApplicationDate = la.ApplicationDate,
                         ApprovalStatus = la.ApprovalStatus

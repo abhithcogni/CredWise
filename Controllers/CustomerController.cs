@@ -437,7 +437,8 @@ namespace CredWise_Trail.Controllers
                         // LoanNumber should be a unique identifier for the loan account itself.
                         LoanIdValue = app.LoanNumber,
                         // Display text for the dropdown option.
-                        LoanDisplayText = $"{app.LoanProduct?.ProductName ?? "N/A"} ({app.LoanNumber}) - ₹{app.LoanAmount:N0}" // N0 format for currency with no decimals.
+                        LoanDisplayText = $"{app.LoanProductName} " +
+                        $"({app.LoanNumber}) - ₹{app.LoanAmount:N0}" // N0 format for currency with no decimals.
                     });
 
                     // Create a detailed statement view model for each loan application.
@@ -445,7 +446,7 @@ namespace CredWise_Trail.Controllers
                     {
                         UniqueLoanIdentifier = app.LoanNumber, // Used to identify the div for this loan's details
                         ApplicationIdDisplay = app.LoanNumber, // Displaying LoanNumber as the Application ID in the view
-                        ProductName = app.LoanProduct?.ProductName ?? "N/A", // Handle cases where LoanProduct might be null
+                        ProductName = app.LoanProductName, // Handle cases where LoanProduct might be null
                         LoanAmount = app.LoanAmount,
                         InterestRate = app.InterestRate, // Convert decimal rate (e.g., 0.075) to percentage (e.g., 7.5)
                         TenureMonths = app.TenureMonths,
