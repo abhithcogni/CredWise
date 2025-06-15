@@ -1,265 +1,295 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<CredWise_Trail.Models.ViewModels.LoanProductViewModel>
+﻿@model IEnumerable<CredWise_Trail.Models.ViewModels.LoanProductViewModel>
 
 @{
     Layout = "~/Views/Shared/AdminUtility.cshtml";
     ViewData["Title"] = "Loan Products"; // Set page title
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - MyBank Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f0f2f5; /* Light gray background */
+    }
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; /* Light gray background */
+    :root {
+        --primary-brand-color: #0A2463;
+        --secondary-accent-color: #3E92CC;
+    }
+
+    .page-header h2, .page-header .h3 {
+        color: var(--primary-brand-color); /* Applied */
+        font-weight: 700;
+    }
+    /* Card Styles */
+    .card {
+        border: 1px solid #e9ecef;
+        border-radius: 0.75rem;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        color: #343a40;
+        padding: 1rem 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Table styles */
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        border-bottom-width: 1px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+        text-align: center;
+        padding: 0.9rem 0.75rem;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #eef2f7;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0,0,0,.025);
+    }
+
+    .table .btn-sm i { /* Ensure icons in small buttons are aligned */
+        vertical-align: middle;
+    }
+
+    /* Modal Styling */
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-title {
+        color: #343a40;
+        font-weight: 600;
+    }
+
+        .modal-title i {
+            margin-right: 0.5rem;
+            color: #0d6efd;
         }
 
-        :root {
-            --primary-brand-color: #0A2463;
-            --secondary-accent-color: #3E92CC;
+    .modal-footer {
+        background-color: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .modal-body .form-floating label i {
+        margin-right: 0.6rem;
+        color: #6c757d;
+        width: 16px;
+        text-align: center;
+    }
+
+    .modal-body .form-floating > label {
+        padding-left: 0.75rem;
+    }
+
+    .modal-body .form-floating > .form-control {
+        border-radius: 0.375rem;
+    }
+
+    .edit-btn {
+        background-color: white;
+        border-color: #3E92CC;
+        color: #3E92CC;
+    }
+
+        .edit-btn:hover {
+            background-color: #0A2463 !important;
+            border-color: white;
         }
 
-        .page-header h2, .page-header .h3 {
-            color: var(--primary-brand-color); /* Applied */
-            font-weight: 700;
-        }
-        /* Card Styles */
-        .card {
-            border: 1px solid #e9ecef;
-            border-radius: 0.75rem;
-        }
+    /* Toast Container (for pop-up messages) */
+    #toastContainer {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050; /* Above modals */
+    }
 
-        .card-header {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            font-weight: 600;
-            color: #343a40;
-            padding: 1rem 1.5rem;
-        }
+    .toast {
+        min-width: 250px;
+    }
 
-        .card-body {
-            padding: 1.5rem;
-        }
+    .toast-header .me-auto {
+        color: #343a40;
+    }
 
-        /* Table styles */
-        .table thead th {
-            background-color: #f8f9fa;
-            color: #495057;
-            font-weight: 600;
-            border-bottom-width: 1px;
-            text-align: center;
-            vertical-align: middle;
-        }
+    .toast-header strong {
+        font-weight: 600;
+    }
+</style>
 
-        .table tbody tr:last-child td {
-            border-bottom: none;
-        }
+<div id="page-content-wrapper" class="container">
+    <div class="container-fluid p-4">
+        <div class="page-header mb-4">
+            <h2 class="h3"><i class="fas fa-box-open me-2"></i>Loan Product Management</h2>
+            <p class="text-muted">View, edit, or delete existing loan products.</p>
+        </div>
 
-        .table td, .table th {
-            vertical-align: middle;
-            text-align: center;
-            padding: 0.9rem 0.75rem;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: #eef2f7;
-        }
-
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(0,0,0,.025);
-        }
-
-        .table .btn-sm i { /* Ensure icons in small buttons are aligned */
-            vertical-align: middle;
-        }
-
-        /* Modal Styling */
-        .modal-header {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .modal-title {
-            color: #343a40;
-            font-weight: 600;
-        }
-
-            .modal-title i {
-                margin-right: 0.5rem;
-                color: #0d6efd;
-            }
-
-        .modal-footer {
-            background-color: #f8f9fa;
-            border-top: 1px solid #dee2e6;
-        }
-
-        .modal-body .form-floating label i {
-            margin-right: 0.6rem;
-            color: #6c757d;
-            width: 16px;
-            text-align: center;
-        }
-
-        .modal-body .form-floating > label {
-            padding-left: 0.75rem;
-        }
-
-        .modal-body .form-floating > .form-control {
-            border-radius: 0.375rem;
-        }
-
-        .edit-btn {
-            background-color: white;
-            border-color: #3E92CC;
-            color: #3E92CC;
-        }
-
-            .edit-btn:hover {
-                background-color: #0A2463 !important;
-                border-color: white;
-            }
-
-        /* Responsive adjustments */
-    </style>
-</head>
-<body>
-    <div class="d-flex" id="wrapper">
-        <div id="page-content-wrapper" class="container">
-            <div class="container-fluid p-4">
-                <div class="page-header mb-4">
-                    <h2 class="h3"><i class="fas fa-box-open me-2"></i>Loan Product Management</h2>
-                    <p class="text-muted">View, edit, or delete existing loan products.</p>
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-list-ul me-2"></i>Available Loan Products</span>
+                <div class="input-group" style="width: 300px;">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by loan type...">
                 </div>
-
-                <div class="card shadow">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-list-ul me-2"></i>Available Loan Products</span>
-                        <div class="input-group" style="width: 300px;">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" id="searchInput" class="form-control" placeholder="Search by loan type...">
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive ">
-                            <table class="table table-hover table-striped mb-0" id="loanProductsTable">
-                                <thead>
-                                    <tr>
-                                        <th>@Html.DisplayNameFor(model => model.ProductName)</th>
-                                        <th>@Html.DisplayNameFor(model => model.InterestRate) (%)</th>
-                                        <th>@Html.DisplayNameFor(model => model.MinAmount) (₹)</th>
-                                        <th>@Html.DisplayNameFor(model => model.MaxAmount) (₹)</th>
-                                        <th>@Html.DisplayNameFor(model => model.Tenure) (Months)</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @* Data will be loaded here via JavaScript *@
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer text-muted small" id="tableInfoProducts">
-                        Loading loan products...
-                    </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive ">
+                    <table class="table table-hover table-striped mb-0" id="loanProductsTable">
+                        <thead>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.ProductName)</th>
+                                <th>@Html.DisplayNameFor(model => model.InterestRate) (%)</th>
+                                <th>@Html.DisplayNameFor(model => model.MinAmount) (₹)</th>
+                                <th>@Html.DisplayNameFor(model => model.MaxAmount) (₹)</th>
+                                <th>@Html.DisplayNameFor(model => model.Tenure) (Months)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @* Data will be loaded here via JavaScript *@
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+            <div class="card-footer text-muted small" id="tableInfoProducts">
+                Loading loan products...
             </div>
         </div>
     </div>
+</div>
 
-    @* Edit Product Modal *@
-    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editProductModalLabel"><i class="fas fa-edit"></i>Edit Loan Product</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editProductForm">
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="editProductName" name="editProductName" placeholder="Product Name" required readonly>
-                            <label for="editProductName"><i class="fas fa-tag"></i>Product Name</label>
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input type="number" class="form-control" id="editInterestRate" name="editInterestRate" placeholder="Interest Rate" step="0.01" required>
-                                    <label for="editInterestRate"><i class="fas fa-percentage"></i>Interest Rate (%)</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input type="number" class="form-control" id="editTenure" name="editTenure" placeholder="Tenure" required>
-                                    <label for="editTenure"><i class="fas fa-calendar-alt"></i>Tenure (months)</label>
-                                </div>
+@* Edit Product Modal *@
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProductModalLabel"><i class="fas fa-edit"></i>Edit Loan Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProductForm">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="editProductName" name="editProductName" placeholder="Product Name" required readonly>
+                        <label for="editProductName"><i class="fas fa-tag"></i>Product Name</label>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="editInterestRate" name="editInterestRate" placeholder="Interest Rate" step="0.01" required>
+                                <label for="editInterestRate"><i class="fas fa-percentage"></i>Interest Rate (%)</label>
                             </div>
                         </div>
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input type="number" class="form-control" id="editMinAmount" name="editMinAmount" placeholder="Minimum Amount" required>
-                                    <label for="editMinAmount"><i class="fas fa-rupee-sign"></i>Minimum Amount</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input type="number" class="form-control" id="editMaxAmount" name="editMaxAmount" placeholder="Maximum Amount" required>
-                                    <label for="editMaxAmount"><i class="fas fa-rupee-sign"></i>Maximum Amount</label>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="editTenure" name="editTenure" placeholder="Tenure" required>
+                                <label for="editTenure"><i class="fas fa-calendar-alt"></i>Tenure (months)</label>
                             </div>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveEditButton"><i class="fas fa-save me-1"></i>Save Changes</button>
-                </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="editMinAmount" name="editMinAmount" placeholder="Minimum Amount" required>
+                                <label for="editMinAmount"><i class="fas fa-rupee-sign"></i>Minimum Amount</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="number" class="form-control" id="editMaxAmount" name="editMaxAmount" placeholder="Maximum Amount" required>
+                                <label for="editMaxAmount"><i class="fas fa-rupee-sign"></i>Maximum Amount</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">  
+                <button type="button" class="btn btn-primary" id="saveEditButton"><i class="fas fa-save me-1"></i>Save Changes</button>
             </div>
         </div>
     </div>
+</div>
 
-    @* Delete Confirmation Modal *@
-    <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteConfirmationModalLabel"><i class="fas fa-exclamation-triangle text-danger"></i>Confirm Deletion</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to permanently delete the loan product: <strong id="deleteProductName"></strong>?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-ban me-1"></i>Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteButton"><i class="fas fa-trash-alt me-1"></i>Delete Product</button>
-                </div>
+@* Delete Confirmation Modal *@
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel"><i class="fas fa-exclamation-triangle text-danger"></i>Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete the loan product: <strong id="deleteProductName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton"><i class="fas fa-trash-alt me-1"></i>Delete Product</button>
             </div>
         </div>
     </div>
+</div>
 
+@* Toast Container for messages *@
+<div class="toast-container" id="toastContainer">
+</div>
+
+@section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
         $(document).ready(function () {
-            let currentlyEditingProduct = null; // Will store the product name of the item being edited
-            let productToDelete = null; // Will store the product name of the item to be deleted
+            let currentlyEditingProduct = null;
+            let productToDelete = null;
 
-            // Function to populate the table
+            function showToast(message, type = 'success') {
+                const toastId = `toast-${Date.now()}`;
+                const bgColor = type === 'success' ? 'bg-success' : (type === 'danger' ? 'bg-danger' : (type === 'warning' ? 'bg-warning' : 'bg-info'));
+                const textColor = type === 'warning' ? 'text-dark' : 'text-white';
+
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center ${bgColor} ${textColor} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+
+                $('#toastContainer').append(toastHtml);
+                const toastEl = $(`#${toastId}`);
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+
+                toastEl.on('hidden.bs.toast', function () {
+                    $(this).remove();
+                });
+            }
+
             function populateTable(data) {
                 const tbody = $('#loanProductsTable tbody');
-                tbody.empty(); // Clear existing rows
+                tbody.empty();
 
                 if (data.length === 0) {
                     tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">No loan products available.</td></tr>');
@@ -288,17 +318,15 @@
                     tbody.append(row);
                 });
 
-                // Add a hidden row for "no results" message
                 tbody.append('<tr id="noResultsRow" style="display: none;"><td colspan="6" class="text-center text-muted py-4">No matching loan products found.</td></tr>');
 
                 $('#tableInfoProducts').text(`Displaying ${data.length} loan product(s).`);
-                initializeTooltips(); // Re-initialize tooltips after table is populated
+                initializeTooltips();
             }
 
-            // Function to fetch loan products from the API
             function fetchLoanProducts() {
                 $.ajax({
-                    url: '@Url.Action("GetAllLoanProducts", "Admin")', // Adjust controller/action as needed
+                    url: '@Url.Action("GetAllLoanProducts", "Admin")',
                     type: 'GET',
                     dataType: 'json',
                     success: function (data) {
@@ -308,14 +336,13 @@
                         console.error("Error fetching loan products:", error);
                         $('#tableInfoProducts').text('Error loading loan products.');
                         $('#loanProductsTable tbody').empty().append('<tr><td colspan="6" class="text-center text-danger py-4">Failed to load loan products. Please try again.</td></tr>');
+                        showToast('Failed to load loan products. Please try again.', 'danger');
                     }
                 });
             }
 
-            // Initial fetch of loan products
             fetchLoanProducts();
 
-            // *** NEW: SEARCH FUNCTIONALITY ***
             $('#searchInput').on('keyup', function () {
                 const query = $(this).val().toLowerCase();
                 let visibleRowCount = 0;
@@ -330,7 +357,6 @@
                     }
                 });
 
-                // Show or hide the "No results" row
                 if (visibleRowCount === 0 && query !== '') {
                     $('#noResultsRow').show();
                     $('#tableInfoProducts').text('No matching loan products found.');
@@ -341,10 +367,7 @@
                 }
             });
 
-
-            // Initialize Bootstrap tooltips for dynamically added buttons
             function initializeTooltips() {
-                // Destroy existing tooltips to prevent duplicates
                 $('[data-bs-toggle="tooltip"]').tooltip('dispose');
 
                 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
@@ -353,14 +376,12 @@
                 });
             }
 
-
-            // Handle Edit button click (event delegation)
             $('#loanProductsTable tbody').on('click', '.edit-button', function () {
                 const productName = $(this).data('product-name');
-                currentlyEditingProduct = productName; // Store the product name for editing
+                currentlyEditingProduct = productName;
 
                 $.ajax({
-                    url: '@Url.Action("GetLoanProductByName", "Admin")', // API endpoint to get a single product
+                    url: '@Url.Action("GetLoanProductByName", "Admin")',
                     type: 'GET',
                     data: { productName: productName },
                     dataType: 'json',
@@ -375,37 +396,35 @@
                             const editModal = new bootstrap.Modal($('#editProductModal')[0]);
                             editModal.show();
                         } else {
-                            alert('Loan product not found.');
+                            showToast('Loan product not found for editing.', 'danger');
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("Error fetching loan product for edit:", error);
-                        alert('Failed to retrieve loan product details for editing.');
+                        showToast('Failed to retrieve loan product details for editing.', 'danger');
                     }
                 });
             });
 
-            // Handle Save button click in the edit modal
             $('#saveEditButton').on('click', function () {
                 if (!currentlyEditingProduct) {
-                    alert("No product selected for editing.");
+                    showToast("No product selected for editing.", 'warning');
                     return;
                 }
 
-                // Basic client-side validation
                 const interestRate = parseFloat($('#editInterestRate').val());
-                const minAmount = parseFloat($('#editMinAmount').val()); // Use parseFloat for monetary values
-                const maxAmount = parseFloat($('#editMaxAmount').val()); // Use parseFloat for monetary values
+                const minAmount = parseFloat($('#editMinAmount').val());
+                const maxAmount = parseFloat($('#editMaxAmount').val());
                 const tenure = parseInt($('#editTenure').val());
 
                 if (isNaN(interestRate) || isNaN(minAmount) || isNaN(maxAmount) || isNaN(tenure) ||
                     interestRate <= 0 || minAmount <= 0 || maxAmount <= 0 || tenure <= 0 || minAmount > maxAmount) {
-                    alert("Please enter valid product details. Minimum amount cannot exceed maximum amount, and all values must be positive.");
+                    showToast("Please enter valid product details. Minimum amount cannot exceed maximum amount, and all values must be positive.", 'warning');
                     return;
                 }
 
                 const updatedProduct = {
-                    ProductName: currentlyEditingProduct, // Use the original product name as identifier
+                    ProductName: currentlyEditingProduct,
                     InterestRate: interestRate,
                     MinAmount: minAmount,
                     MaxAmount: maxAmount,
@@ -413,34 +432,32 @@
                 };
 
                 $.ajax({
-                    url: '@Url.Action("UpdateLoanProduct", "Admin")', // API endpoint to update product
+                    url: '@Url.Action("UpdateLoanProduct", "Admin")',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(updatedProduct),
                     success: function (response) {
                         if (response.success) {
-                            alert(response.message); // "Loan product updated successfully!"
-                            fetchLoanProducts(); // Re-fetch and re-populate the table
+                            showToast(response.message, 'success');
+                            fetchLoanProducts();
                             const editModal = bootstrap.Modal.getInstance($('#editProductModal')[0]);
                             editModal.hide();
                         } else {
-                            alert('Error updating loan product: ' + response.message);
+                            showToast('Error updating loan product: ' + response.message, 'danger');
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("Error updating loan product:", error);
-                        alert('Failed to update loan product. Please try again.');
+                        showToast('Failed to update loan product. Please try again.', 'danger');
                     }
                 });
             });
 
-            // Reset currentlyEditingProduct when edit modal is hidden
             $('#editProductModal').on('hidden.bs.modal', function () {
                 currentlyEditingProduct = null;
-                $('#editProductForm')[0].reset(); // Reset form fields
+                $('#editProductForm')[0].reset();
             });
 
-            // Handle Delete button click (event delegation)
             $('#loanProductsTable tbody').on('click', '.delete-button', function () {
                 productToDelete = $(this).data('product-name');
                 $('#deleteProductName').text(productToDelete);
@@ -448,45 +465,36 @@
                 deleteModal.show();
             });
 
-            // Handle confirmation of delete
             $('#confirmDeleteButton').on('click', function () {
                 if (!productToDelete) {
-                    alert("No product selected for deletion.");
+                    showToast("No product selected for deletion.", 'warning');
                     return;
                 }
 
                 $.ajax({
-                    url: '@Url.Action("DeleteLoanProduct", "Admin")', // API endpoint to delete product
-                    type: 'POST', // Use POST for deletion as it modifies data
-                    data: { productName: productToDelete }, // Pass the product name
+                    url: '@Url.Action("DeleteLoanProduct", "Admin")',
+                    type: 'POST',
+                    data: { productName: productToDelete },
                     success: function (response) {
                         if (response.success) {
-                            fetchLoanProducts(); // Re-fetch and re-populate the table
+                            showToast(response.message, 'success');
+                            fetchLoanProducts();
                             const deleteModal = bootstrap.Modal.getInstance($('#deleteConfirmationModal')[0]);
                             deleteModal.hide();
                         } else {
-                            alert('Error deleting loan product: ' + response.message);
+                            showToast('Error deleting loan product: ' + response.message, 'danger');
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("Error deleting loan product:", error);
-                        alert('Failed to delete loan product. Please try again.');
+                        showToast('Failed to delete loan product. Please try again.', 'danger');
                     }
                 });
             });
 
-            // Reset productToDelete when delete confirmation modal is hidden
             $('#deleteConfirmationModal').on('hidden.bs.modal', function () {
                 productToDelete = null;
             });
-
-            // Sidebar active link handling (if AdminUtility.cshtml doesn't handle it)
-            $('#sidebar-wrapper .list-group-item').on('click', function (e) {
-                var currentActive = $('#sidebar-wrapper .list-group-item.active');
-                currentActive.removeClass('active');
-                $(this).addClass('active');
-            });
         });
     </script>
-</body>
-</html>
+}

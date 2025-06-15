@@ -12,11 +12,11 @@
     }
 
     .page-header h2, .page-header .h3 {
-        color: var(--primary-brand-color); /* Applied */
+        color: var(--primary-brand-color);
         font-weight: 700;
     }
     body{
-        background-color: #f0f2f5; /* Consistent background */
+        background-color: #f0f2f5; 
     }
     .btn-outline-primary {
         background-color: #3E92CC;
@@ -68,7 +68,7 @@
             <div class="card custom-card stylish-card">
                 <div class="card-body p-4 p-lg-5">
                     <h2 style="color: #0A2463;" class="text-center">@ViewData["Title"]</h2>
-                    <form asp-action="AddLoanProduct" asp-controller="Admin" method="post"> @* <-- UPDATED CONTROLLER NAME *@
+                    <form asp-action="AddLoanProduct" asp-controller="Admin" method="post"> 
                         <div class="mb-4">
                             <label asp-for="ProductName" class="form-label"><i class="fas fa-tag me-2"></i>Product Name</label>
                             <input asp-for="ProductName" type="text" class="form-control form-control-lg" required placeholder="e.g., Home Loan,Personal Finance">
@@ -99,7 +99,7 @@
                                 <label asp-for="MinAmount" class="form-label"><i class="fas fa-dollar-sign me-2"></i>Minimum Loan Amount</label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text">₹</span>
-                                    <input asp-for="MinAmount" type="number" class="form-control" step="100" required placeholder="e.g., 1000">
+                                    <input asp-for="MinAmount" type="number" class="form-control" step="1000" required placeholder="e.g., 1000">
                                 </div>
                                 <span asp-validation-for="MinAmount" class="text-danger"></span>
                             </div>
