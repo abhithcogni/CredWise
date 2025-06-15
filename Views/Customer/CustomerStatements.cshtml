@@ -1,56 +1,49 @@
-﻿@*
-    CustomerStatement.cshtml
-    This view expects a CustomerStatementViewModel object from the controller.
-*@
-@model CredWise_Trail.Models.ViewModels.CustomerStatementViewModel
+﻿@model CredWise_Trail.Models.ViewModels.CustomerStatementViewModel
 
 @{
     ViewData["Title"] = "Customer Report & Statement";
-    // Layout = "~/Views/Shared/_YourCustomerLayout.cshtml"; // Optional: Set your layout page
 
-    // Helper function to determine badge class based on Loan Approval Status
+    // Helper function to convert a status string (e.g., "APPROVED") into a CSS class for styling badges.
     Func<string, string> GetLoanApprovalBadgeClass = (status) =>
     {
-        if (string.IsNullOrEmpty(status)) return "badge-secondary"; // Default for null or empty
+        if (string.IsNullOrEmpty(status)) return "badge-secondary";
         return status.ToUpper() switch
         {
             "APPROVED" => "badge-custom-approved",
             "PENDING" => "badge-custom-pending",
             "REJECTED" => "badge-custom-rejected",
-            _ => "badge-secondary" // Default for any other statuses
+            _ => "badge-secondary"
         };
     };
 
-    // Helper function to determine badge class based on Loan Overall Status (Active, Overdue, Closed)
     Func<string, string> GetLoanOverallStatusBadgeClass = (status) =>
     {
-        if (string.IsNullOrEmpty(status)) return "badge-secondary"; // Default for null or empty
+        if (string.IsNullOrEmpty(status)) return "badge-secondary";
         return status.ToUpper() switch
         {
             "ACTIVE" => "badge-custom-active",
             "OVERDUE" => "badge-custom-overdue",
-            "CLOSED" => "badge-secondary", // Reusing completed style for closed loans
-            "PENDING" => "badge-custom-pending", // If LoanStatus can also be pending before disbursement
+            "CLOSED" => "badge-secondary",
+            "PENDING" => "badge-custom-pending",
             _ => "badge-secondary"
         };
     };
 
 
-    // Helper function to determine badge class based on Repayment Status
     Func<string, string> GetRepaymentBadgeClass = (status) =>
     {
-        if (string.IsNullOrEmpty(status)) return "badge-custom-pending"; // Default for null or empty
+        if (string.IsNullOrEmpty(status)) return "badge-custom-pending";
         return status.ToUpper() switch
         {
             "COMPLETED" => "badge-custom-completed",
-            "SUCCESS" => "badge-custom-completed",   // If "SUCCESS" is used for completed
+            "SUCCESS" => "badge-custom-completed",
             "PENDING" => "badge-custom-pending",
-            "FAILED" => "badge-custom-rejected",      // Assuming 'failed' maps to rejected style
-            _ => "badge-secondary" // Default for any other statuses
+            "FAILED" => "badge-custom-rejected",
+            _ => "badge-secondary"
         };
     };
 
-    // Determine the identifier of the first loan to show by default
+    // Determine the identifier of the first loan to show by default on page load.
     var firstLoanIdentifierToShow = Model?.LoanStatements?.FirstOrDefault()?.UniqueLoanIdentifier;
 }
 
@@ -66,80 +59,75 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333;
-            background-color: #f8f9fa; /* Light background */
+            background-color: #f8f9fa;
         }
-        /* Custom colors for the theme */
         .primary-color {
-            color: #0A2463; /* Dark blue for primary elements */
+            color: #0A2463;
         }
 
         .secondary-color {
-            color: #3E92CC; /* Lighter blue for secondary elements */
+            color: #3E92CC;
         }
-        /* Custom background colors */
         .bg-primary-custom {
             background-color: #0A2463 !important;
-            color: white; /* White text on dark blue background */
+            color: white;
         }
 
         .bg-secondary-custom {
             background-color: #3E92CC !important;
-            color: white; /* White text on lighter blue background */
+            color: white;
         }
-        /* Custom button styles */
         .btn-primary-custom {
             background-color: #0A2463;
             border-color: #0A2463;
             color: white;
-            transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
             .btn-primary-custom:hover {
-                background-color: #081f53; /* Darker shade on hover */
+                background-color: #081f53;
                 border-color: #081f53;
                 color: white;
-                transform: translateY(-2px); /* Lift button on hover */
+                transform: translateY(-2px);
             }
 
         .btn-secondary-custom {
             background-color: #3E92CC;
             border-color: #3E92CC;
             color: white;
-            transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
             .btn-secondary-custom:hover {
-                background-color: #3279a8; /* Darker shade on hover */
+                background-color: #3279a8;
                 border-color: #3279a8;
                 color: white;
-                transform: translateY(-2px); /* Lift button on hover */
+                transform: translateY(-2px);
             }
-        /* Styling for the main page header */
         .page-header {
-            border-bottom: 2px solid #0A2463; /* A strong bottom border */
+            border-bottom: 2px solid #0A2463;
             padding-bottom: 15px;
             margin-bottom: 30px;
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Space out title and button */
+            justify-content: space-between;
         }
 
             .page-header .icon {
-                font-size: 2.2rem; /* Larger icon for the header */
+                font-size: 2.2rem;
                 margin-right: 15px;
                 color: #0A2463;
             }
 
             .page-header h1 {
-                font-weight: 600; /* Bolder title */
+                font-weight: 600;
             }
 
-        /* Styling for section headers within the content */
         .section-header {
-            border-bottom: 1px solid #3E92CC; /* A subtle bottom border */
+            border-bottom: 1px solid #3E92CC;
             padding-bottom: 8px;
             margin-bottom: 25px;
-            color: #0A2463; /* Primary color for section titles */
+            color: #0A2463;
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -147,67 +135,63 @@
 
             .section-header .icon {
                 margin-right: 10px;
-                color: #3E92CC; /* Secondary color for section icons */
+                color: #3E92CC;
             }
-        /* Custom card styling with a left border highlight */
         .card-custom {
-            border-left: 5px solid #0A2463; /* Primary color border on the left */
+            border-left: 5px solid #0A2463;
             margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.08); /* Soft shadow */
-            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
             .card-custom:hover {
-                transform: translateY(-3px); /* Lift card slightly on hover */
-                box-shadow: 0 6px 12px rgba(0,0,0,0.12); /* Enhanced shadow on hover */
+                transform: translateY(-3px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.12);
             }
 
         .card-header.bg-secondary-custom {
-            border-bottom: none; /* Remove default card header border */
-            border-radius: .25rem .25rem 0 0; /* Match card border-radius */
+            border-bottom: none;
+            border-radius: .25rem .25rem 0 0;
         }
 
-        /* Table header styling */
         .table th {
-            background-color: #e9ecef; /* Slightly darker grey for table headers */
-            color: #0A2463; /* Primary color text for table headers */
+            background-color: #e9ecef;
+            color: #0A2463;
             font-weight: 600;
         }
 
         .table-hover tbody tr:hover {
-            background-color: #e2f0ff; /* Light blue on row hover */
+            background-color: #e2f0ff;
             transition: background-color 0.2s ease;
         }
 
-        /* Custom badge styles for different statuses */
         .badge-custom-pending {
-            background-color: #ffc107; /* Yellow for pending status */
-            color: #333; /* Dark text for yellow badge */
+            background-color: #ffc107;
+            color: #333;
             padding: 0.4em 0.6em;
             border-radius: 0.3rem;
         }
 
         .badge-custom-verified, .badge-custom-approved, .badge-custom-completed, .badge-custom-active {
-            background-color: #28a745; /* Green for verified/approved/completed/active */
+            background-color: #28a745;
             color: white;
             padding: 0.4em 0.6em;
             border-radius: 0.3rem;
         }
 
-        .badge-custom-rejected, .badge-custom-overdue { /* Also used for FAILED repayments */
-            background-color: #dc3545; /* Red for rejected/overdue status */
+        .badge-custom-rejected, .badge-custom-overdue {
+            background-color: #dc3545;
             color: white;
             padding: 0.4em 0.6em;
             border-radius: 0.3rem;
         }
 
-        .badge-secondary { /* Default/unknown status */
+        .badge-secondary {
             background-color: #6c757d;
             color: white;
             padding: 0.4em 0.6em;
             border-radius: 0.3rem;
         }
-        /* Styling for individual summary items */
         .summary-item {
             margin-bottom: 12px;
             font-size: 0.95rem;
@@ -215,56 +199,54 @@
 
         .summary-label {
             font-weight: bold;
-            color: #0A2463; /* Bold primary color for labels */
+            color: #0A2463;
             margin-right: 5px;
         }
-        /* Footer styling */
         
 
-        /* Animated content entry */
         .statement-content {
-            opacity: 0; /* Start hidden */
-            transform: translateY(20px); /* Start slightly below */
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Smooth transition */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
         }
 
             .statement-content.show {
-                opacity: 1; /* Fade in */
-                transform: translateY(0); /* Move to original position */
+                opacity: 1;
+                transform: translateY(0);
             }
 
-        /* Print-specific styles */
+        /* Print-only styles: This block is ignored by the browser but used when printing the page. */
         @@media print {
             .no-print {
                 display: none !important;
             }
 
             body {
-                font-size: 10pt; /* Adjust print font size */
-                color: #000; /* Ensure text is black for printing */
-                background-color: #fff; /* White background for print */
+                font-size: 10pt;
+                color: #000;
+                background-color: #fff;
             }
 
             .card-custom {
                 border-left: none;
                 box-shadow: none;
                 page-break-inside: avoid;
-                border: 1px solid #eee; /* Light border for cards in print */
+                border: 1px solid #eee;
             }
 
             .table th, .table td {
-                border: 1px solid #dee2e6 !important; /* Ensure table borders are visible */
+                border: 1px solid #dee2e6 !important;
             }
 
             .table th {
-                background-color: #f2f2f2 !important; /* Ensure background for TH */
-                -webkit-print-color-adjust: exact; /* For Chrome/Safari */
-                print-color-adjust: exact; /* Standard */
+                background-color: #f2f2f2 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
 
             .page-header, .section-header {
                 border-bottom: none;
-                margin-bottom: 15px; /* Adjust spacing for print */
+                margin-bottom: 15px;
             }
 
             .container {
@@ -276,16 +258,16 @@
                 display: none;
             }
 
-            .badge { /* Basic badge styling for print */
+            .badge {
                 border: 1px solid #ccc;
                 padding: .25em .4em;
-                color: #000 !important; /* Override badge text color for print */
-                background-color: transparent !important; /* No background for badges */
+                color: #000 !important;
+                background-color: transparent !important;
             }
 
             .statement-content {
-                opacity: 1; /* Ensure visible when printing */
-                transform: none; /* No transforms when printing */
+                opacity: 1;
+                transform: none;
             }
         }
     </style>
@@ -304,7 +286,7 @@
                 @Model.ErrorMessage
             </div>
         }
-        else // Model is valid and has no explicit error message
+        else
         {
             <div class="page-header d-flex align-items-center">
                 <div class="d-flex align-items-center">
@@ -356,6 +338,7 @@
                         <select class="form-control" id="loanAccountSelect">
                             @foreach (var loanOption in Model.LoanAccountsForSelection)
                             {
+                                // The 'selected' attribute is dynamically added to the first loan, making it the default view.
                                 <option value="@loanOption.LoanIdValue" selected="@(loanOption.LoanIdValue == firstLoanIdentifierToShow ? "selected" : null)">
                                     @loanOption.LoanDisplayText
                                 </option>
@@ -365,6 +348,7 @@
 
                     @foreach (var statement in Model.LoanStatements)
                     {
+                        // This div's ID is unique. The 'show' class is added to the first loan so it's visible by default.
                         <div id="statementDetails@(statement.UniqueLoanIdentifier)" class="statement-content @(statement.UniqueLoanIdentifier == firstLoanIdentifierToShow ? "show" : "")">
                             <div class="card card-custom">
                                 <div class="card-header bg-secondary-custom">
@@ -430,7 +414,7 @@
                     }
                 </section>
             }
-            else // No loan statements to display for this customer
+            else
             {
                 <hr>
                 <div class="alert alert-info text-center py-4" role="alert">
@@ -442,7 +426,7 @@
         }
     </div>
 
-   
+    
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -453,26 +437,22 @@
                 window.print();
             });
 
+            // When the dropdown selection changes, hide all statements and show only the selected one.
             $('#loanAccountSelect').on('change', function () {
                 var selectedLoanId = $(this).val();
 
-                // Hide all statement content divs and remove 'show' class
                 $('.statement-content').removeClass('show').hide();
 
-                // Show the selected one with animation
                 var $selectedDiv = $('#statementDetails' + selectedLoanId);
-                $selectedDiv.fadeIn(400, function() { // Fade in over 400ms
-                    $(this).addClass('show'); // Add 'show' class after fade-in is complete for the translateY effect
+                $selectedDiv.fadeIn(400, function() {
+                    $(this).addClass('show');
                 });
             });
 
-            // If there's an initial selected loan (first one by default), ensure it has the 'show' class for animation
             var initialSelectedLoan = $('#loanAccountSelect').val();
             if (initialSelectedLoan) {
                 $('#statementDetails' + initialSelectedLoan).addClass('show');
             } else {
-                // If no specific loan is selected (e.g., if LoanAccountsForSelection is empty),
-                // ensure no statement-content is accidentally shown and clear any 'show' classes.
                 $('.statement-content').removeClass('show').hide();
             }
         });

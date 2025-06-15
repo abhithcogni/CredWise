@@ -1,83 +1,73 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Collections.Generic; // Added for ICollection
 
-namespace CredWise_Trail.Models // Ensure this namespace matches your project structure
+namespace CredWise_Trail.Models
 {
-    [Table("LOAN_APPLICATIONS")] // Explicitly setting table name, if not already done by convention
+    [Table("LOAN_APPLICATIONS")]
     public class LoanApplication
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int ApplicationId { get; set; } // Your existing primary key name
+        public int ApplicationId { get; set; } 
 
         public int CustomerId { get; set; }
 
         public int? LoanProductId { get; set; }
 
-        [Column(TypeName = "decimal(18, 2)")] // Changed from 10,2 to 18,2 for consistency with other financial fields
-        public decimal LoanAmount { get; set; } // This is the principal amount requested
+        [Column(TypeName = "decimal(18, 2)")] 
+        public decimal LoanAmount { get; set; } 
 
         public DateTime ApplicationDate { get; set; }
 
-        public DateTime? ApprovalDate { get; set; } // Nullable DateTime for approval date
+        public DateTime? ApprovalDate { get; set; } 
 
         [Required]
         [StringLength(10)]
-        public string ApprovalStatus { get; set; } // e.g., "PENDING", "APPROVED", "REJECTED"
+        public string ApprovalStatus { get; set; } 
 
         public string LoanProductName { get; set; }
 
-        // --- PROPERTIES FOR PAYMENT TRACKING ---
 
-        [Column(TypeName = "decimal(7, 3)")] // For interest rate, e.g., 0.0800 for 8%
-        public decimal InterestRate { get; set; } // Annual interest rate of the approved loan product
+        [Column(TypeName = "decimal(7, 3)")] 
+        public decimal InterestRate { get; set; } 
 
-        public int TenureMonths { get; set; } // Loan tenure in months
-
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal EMI { get; set; } // Calculated Equated Monthly Installment for this loan (fixed monthly payment)
+        public int TenureMonths { get; set; } 
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal OutstandingBalance { get; set; } // Remaining principal balance + accrued interest
-
-        public DateTime? NextDueDate { get; set; } // When the next payment is due
-
-        public DateTime? LastPaymentDate { get; set; } // When the last payment was made
+        public decimal EMI { get; set; } 
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal AmountDue { get; set; } // The total amount currently expected for payment (EMI + overdue)
+        public decimal OutstandingBalance { get; set; } 
+
+        public DateTime? NextDueDate { get; set; } 
+
+        public DateTime? LastPaymentDate { get; set; } 
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal AmountDue { get; set; } 
 
         [StringLength(50)]
-        public string LoanNumber { get; set; } // A unique identifier for the approved loan itself (e.g., HL05682)
+        public string LoanNumber { get; set; } 
 
         [StringLength(20)]
-        public string LoanStatus { get; set; } = "Pending Disbursement"; // Overall loan status: "Active", "Closed", "Overdue", etc.
+        public string LoanStatus { get; set; } = "Pending Disbursement"; 
 
-        // --- NEW PROPERTIES FOR OVERDUE TRACKING ---
-        public int OverdueMonths { get; set; } = 0; // Number of months loan is overdue
+        public int OverdueMonths { get; set; } = 0; 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal CurrentOverdueAmount { get; set; } = 0; // Total accumulated overdue amount (principal + interest + penalties)
+        public decimal CurrentOverdueAmount { get; set; } = 0; 
 
-
-        // --- EXISTING NAVIGATION PROPERTIES ---
 
         [ForeignKey("CustomerId")]
         public Customer Customer { get; set; }
 
         [ForeignKey("LoanProductId")]
-        public LoanProduct LoanProduct { get; set; } // Assuming this model holds details like interest rates for products
+        public LoanProduct LoanProduct { get; set; } 
 
-        // --- NEW NAVIGATION PROPERTIES ---
-
-        // This will be for the individual payment records associated with this loan
+        //ICollection is used here to represent one-to-many relationship.
         public ICollection<LoanPayment> Payments { get; set; }
-        public ICollection<Repayment> Repayments { get; set; }// Changed from Repayments to Payments for consistency with LoanPayment model
+        public ICollection<Repayment> Repayments { get; set; }
     }
 
-    // You might want to define enums for ApprovalStatus and LoanStatus for strong typing in C#.
-    // Example:
     public enum LoanApprovalStatus
     {
         PENDING,
@@ -90,6 +80,6 @@ namespace CredWise_Trail.Models // Ensure this namespace matches your project st
         ACTIVE,
         CLOSED,
         OVERDUE,
-        PENDING_DISBURSEMENT // For loans approved but not yet active
+        PENDING_DISBURSEMENT
     }
 }

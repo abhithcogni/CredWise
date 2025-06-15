@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using System.Security.Claims; // Add this using directive for CultureInfo
+using System.Security.Claims; 
 
 namespace CredWise_Trail.Controllers
 {

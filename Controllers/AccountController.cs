@@ -6,19 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
 using System;
-using System.Collections.Generic; // Required for List<Claim>
-using System.Threading.Tasks;    // Required for async Task
-using Microsoft.Extensions.Logging; // Required for ILogger
+using System.Collections.Generic;
+using System.Threading.Tasks;  
+using Microsoft.Extensions.Logging;
 using CredWise_Trail.Services;
-using CredWise_Trail.Filters;     // Required for the new service
+using CredWise_Trail.Filters; 
 
 namespace CredWise_Trail.Controllers
 {
     public class AccountController : Controller
     {
         private readonly BankLoanManagementDbContext _context;
-        private readonly LoanUpdateOrchestratorService _loanUpdateService; // Added service
-        private readonly ILogger<AccountController> _logger;             // Added logger
+        private readonly LoanUpdateOrchestratorService _loanUpdateService; 
+        private readonly ILogger<AccountController> _logger;             
 
         // Constructor updated to inject the new services
         public AccountController(
@@ -185,7 +185,7 @@ namespace CredWise_Trail.Controllers
             return View(model);
         }
         [HttpGet]
-        [NoCache] // <-- ADD THIS
+        [NoCache]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(

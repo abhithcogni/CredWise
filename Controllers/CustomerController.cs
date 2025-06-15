@@ -8,7 +8,7 @@ using System.IO;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using CredWise_Trail.Models.ViewModels; // Added for LINQ operations
+using CredWise_Trail.Models.ViewModels;
 
 namespace CredWise_Trail.Controllers
 {
@@ -24,35 +24,37 @@ namespace CredWise_Trail.Controllers
         {
             return View();
         }
+
         public async Task<IActionResult> CustomerDashboard()
         {
+            //User is a property of the Controller class that gives us access to the current user. It contains information about the user's identity and claims.
             if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var customerIdClaim = User.FindFirstValue("CustomerId"); // Or ClaimTypes.NameIdentifier if that's what you use
+            //out is used to take values when we have 2 return values. Since TryParse gives a bool and int as return type, we use out to store both.
+            var customerIdClaim = User.FindFirstValue("CustomerId");
             if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
             {
                 TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
-                return RedirectToAction("Logout", "Account"); // Or a more appropriate error view/redirect
+                return RedirectToAction("Logout", "Account");
             }
 
             var viewModel = new CustomerDashboardViewModel();
 
-            // 1. Fetch a LIST of ALL loans for the customer that are "Active" OR "Overdue".
+            //Eager Loading
             var relevantLoans = await _context.LoanApplications
                 .Where(l => l.CustomerId == customerId &&
-                            (l.LoanStatus == "Active" || l.LoanStatus == "Overdue")) // MODIFIED: Include "Overdue" loans
+                            (l.LoanStatus == "Active" || l.LoanStatus == "Overdue")) 
                 .ToListAsync();
 
             if (relevantLoans != null && relevantLoans.Any())
             {
-                viewModel.HasActiveLoans = true; // Renaming this might be good, but keeping for now.
-                                                 // It now means "Has Active or Overdue Loans"
-                viewModel.ActiveLoanCount = relevantLoans.Count; // This will count both active and overdue
+                viewModel.HasActiveLoans = true; 
+                                                 
+                viewModel.ActiveLoanCount = relevantLoans.Count; 
 
-                // Calculations for the summary card
                 viewModel.TotalPrincipalAmount = relevantLoans.Sum(l => l.LoanAmount);
                 viewModel.TotalOutstandingBalance = relevantLoans.Sum(l => l.OutstandingBalance);
                 viewModel.TotalNextPaymentAmount = relevantLoans.Sum(l => l.AmountDue);
@@ -65,22 +67,21 @@ namespace CredWise_Trail.Controllers
                 }
                 else
                 {
-                    viewModel.OverallProgressPercentage = 0; // Handle division by zero if all loans are fully paid
+                    viewModel.OverallProgressPercentage = 0;
                 }
 
 
                 var relevantLoanIds = relevantLoans.Select(l => l.ApplicationId).ToList();
 
-                // THIS IS THE CORRECTED QUERY for recent payments to include relevant loans
+                //Chained Eager Loading
                 var recentPayments = await _context.LoanPayments
-                    .Include(p => p.LoanApplication)      // 1. Include the related LoanApplication
-                        .ThenInclude(la => la.LoanProduct) // 2. THEN, include the LoanProduct from that LoanApplication
-                    .Where(p => relevantLoanIds.Contains(p.LoanId)) // Use relevantLoanIds
+                    .Include(p => p.LoanApplication)      
+                        .ThenInclude(la => la.LoanProduct) 
+                    .Where(p => relevantLoanIds.Contains(p.LoanId)) 
                     .OrderByDescending(p => p.PaymentDate)
                     .Take(5)
                     .ToListAsync();
 
-                // Populate the recent payments list for the view.
                 foreach (var payment in recentPayments)
                 {
                     viewModel.RecentPayments.Add(new RecentPaymentItem
@@ -99,9 +100,6 @@ namespace CredWise_Trail.Controllers
 
             return View("CustomerDashboard", viewModel);
         }
-    
-
-        // Add this new action to your CustomerController class
 
         public async Task<IActionResult> AllPayments()
         {
@@ -110,48 +108,41 @@ namespace CredWise_Trail.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var customerIdClaim = User.FindFirstValue("CustomerId"); // Or ClaimTypes.NameIdentifier if that's what you use
+            var customerIdClaim = User.FindFirstValue("CustomerId"); 
             if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
             {
                 TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
-                return RedirectToAction("Logout", "Account"); // Or a more appropriate error view/redirect
+                return RedirectToAction("Logout", "Account"); 
             }
             var viewModel = new AllPaymentsViewModel();
 
-            // 1. Get all loan IDs associated with the current customer.
-            // We get all loans, not just active, as they might want history for closed loans.
             var customerLoanIds = await _context.LoanApplications
                 .Where(l => l.CustomerId == customerId)
                 .Select(l => l.ApplicationId)
                 .ToListAsync();
 
-            // 2. Check if the customer has any loans at all.
             if (customerLoanIds != null && customerLoanIds.Any())
             {
-                // 3. Fetch ALL payments that belong to any of the customer's loans.
-                // We include related data to make the table descriptive.
                 var allPayments = await _context.LoanPayments
                     .Include(p => p.LoanApplication)
                         .ThenInclude(la => la.LoanProduct)
-                    .Where(p => customerLoanIds.Contains(p.LoanId)) // Filter by the customer's loan IDs
-                    .OrderByDescending(p => p.PaymentDate) // Show the most recent payments first
+                    .Where(p => customerLoanIds.Contains(p.LoanId)) 
+                    .OrderByDescending(p => p.PaymentDate)
                     .ToListAsync();
 
-                // 4. Map the database entities to our ViewModel list.
                 foreach (var payment in allPayments)
                 {
                     viewModel.Payments.Add(new RecentPaymentItem
                     {
                         PaymentDate = payment.PaymentDate,
                         Description = $"Payment for {payment.LoanApplication.LoanProduct.ProductName}",
-                        LoanNumber = payment.LoanApplication.LoanNumber, // Populate the new LoanNumber property
+                        LoanNumber = payment.LoanApplication.LoanNumber,
                         PaidAmount = payment.PaidAmount,
                         Status = payment.Status
                     });
                 }
             }
 
-            // 5. Pass the ViewModel to the new "AllPayments" view.
             return View(viewModel);
         }
 
@@ -163,20 +154,19 @@ namespace CredWise_Trail.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var customerIdClaim = User.FindFirstValue("CustomerId"); // Or ClaimTypes.NameIdentifier if that's what you use
+            var customerIdClaim = User.FindFirstValue("CustomerId"); 
             if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
             {
                 TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
-                return RedirectToAction("Logout", "Account"); // Or a more appropriate error view/redirect
+                return RedirectToAction("Logout", "Account"); 
             }
 
-            // Fetch the most recent KYC record for the customer
             var latestKyc = await _context.KycApprovals
                                         .Where(k => k.CustomerId == customerId)
                                         .OrderByDescending(k => k.SubmissionDate)
                                         .FirstOrDefaultAsync();
 
-            ViewData["ShowLoanForm"] = false; // Default: do not show the loan form
+            ViewData["ShowLoanForm"] = false; 
 
             if (latestKyc != null)
             {
@@ -185,37 +175,35 @@ namespace CredWise_Trail.Controllers
                 {
                     case "Approved":
                         ViewData["ShowLoanForm"] = true;
-                        // Only load loan products if KYC is approved
                         var loanProducts = await _context.LoanProducts.ToListAsync();
-                        ViewBag.LoanProducts = loanProducts; // This is used by your view
+                        ViewBag.LoanProducts = loanProducts; 
                         break;
                     case "Pending":
                         TempData["WarningMessage"] = "Your KYC verification is currently pending. It must be approved before you can apply for a loan.";
-                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
+                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); 
                         ViewData["KycPageLinkText"] = "Check KYC Status / Upload Documents";
                         break;
                     case "Rejected":
                         TempData["ErrorMessage"] = "Your KYC verification was rejected. Please re-submit your KYC documents and get approval before applying for a loan.";
-                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
+                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); 
                         ViewData["KycPageLinkText"] = "Re-apply for KYC";
                         break;
-                    default: // Handles any other status
+                    default: 
                         TempData["InfoMessage"] = $"Your KYC status is '{latestKyc.Status}'. Please ensure it is approved to apply for a loan.";
                         ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer");
                         ViewData["KycPageLinkText"] = "Review KYC Status";
                         break;
                 }
             }
-            else // No KYC record found for the customer
+            else 
             {
                 ViewData["KycStatus"] = "Not Submitted";
                 TempData["InfoMessage"] = "You need to complete and get your KYC verified before applying for a loan.";
-                ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
+                ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer");
                 ViewData["KycPageLinkText"] = "Complete KYC Verification";
             }
 
-            // The view will now use ViewData["ShowLoanForm"] to decide what to display
-            return View(); // If ShowLoanForm is true, it will expect ViewBag.LoanProducts
+            return View();
         }
 
         [HttpPost]
@@ -232,21 +220,19 @@ namespace CredWise_Trail.Controllers
             {
                 ModelState.AddModelError("", "Unable to identify customer. Please log in again.");
                 ViewBag.LoanProducts = await _context.LoanProducts.ToListAsync();
-                // Ensure you pass necessary ViewData back if returning to the LoanApplication view
-                ViewData["ShowLoanForm"] = true; // Or however you manage this
-                return View("LoanApplication"); // Or the correct path to your apply loan view
+                ViewData["ShowLoanForm"] = true; 
+                return View("LoanApplication"); 
             }
 
             var selectedLoanProduct = await _context.LoanProducts.FindAsync(loanProductId);
             if (selectedLoanProduct == null)
             {
-                ModelState.AddModelError("loanProductId", "Selected loan product is invalid."); // More specific error
+                ModelState.AddModelError("loanProductId", "Selected loan product is invalid."); 
                 ViewBag.LoanProducts = await _context.LoanProducts.ToListAsync();
                 ViewData["ShowLoanForm"] = true;
                 return View("LoanApplication");
             }
 
-            // --- Input Validations ---
             if (loanAmount <= 0)
             {
                 ModelState.AddModelError("loanAmount", "Loan amount must be a positive value.");
@@ -264,7 +250,7 @@ namespace CredWise_Trail.Controllers
             {
                 ModelState.AddModelError("tenure", "Tenure must be a positive value (in months).");
             }
-            if (tenure > selectedLoanProduct.Tenure) // Assuming selectedLoanProduct.Tenure is max tenure for product
+            if (tenure > selectedLoanProduct.Tenure)
             {
                 ModelState.AddModelError("tenure", $"Tenure cannot exceed {selectedLoanProduct.Tenure} months for this product.");
             }
@@ -273,12 +259,9 @@ namespace CredWise_Trail.Controllers
             {
                 ViewBag.LoanProducts = await _context.LoanProducts.ToListAsync();
                 ViewData["ShowLoanForm"] = true;
-                // Pass back the submitted values if you want to repopulate the form
-                // You might want to pass the model/viewModel back here
                 return View("LoanApplication");
             }
 
-            // --- EMI Calculation ---
             decimal principal = loanAmount;
             decimal annualInterestRatePercent = selectedLoanProduct.InterestRate;
             int tenureInMonths = tenure;
@@ -286,29 +269,26 @@ namespace CredWise_Trail.Controllers
 
             if (tenureInMonths <= 0)
             {
-                // This case should ideally be caught by validation, but as a fallback:
-                calculatedEmi = principal; // Or handle as an error, as tenure must be positive for EMI calc
+                calculatedEmi = principal;
             }
             else
             {
-                if (annualInterestRatePercent == 0) // Zero interest loan
+                if (annualInterestRatePercent == 0)
                 {
                     calculatedEmi = principal / tenureInMonths;
                 }
                 else
                 {
                     decimal monthlyInterestRate = annualInterestRatePercent / 12 / 100;
-                    // Standard EMI formula: P * R * (1+R)^N / ((1+R)^N - 1)
-                    // Need to use double for Math.Pow
                     double r = (double)monthlyInterestRate;
                     double p = (double)principal;
                     int n = tenureInMonths;
 
-                    if (r == 0) // Handles cases where very small interest rates might become 0 after division/rounding before this check
+                    if (r == 0)
                     {
                         calculatedEmi = principal / tenureInMonths;
                     }
-                    else if (1 + r <= 0 && n % 1 != 0) // Safety for Math.Pow (highly unlikely with positive rates)
+                    else if (1 + r <= 0 && n % 1 != 0) 
                     {
                         Console.WriteLine($"Warning: Math.Pow unstable condition for EMI calculation. Rate: {r}, Principal: {p}, Tenure: {n}. Falling back to simple division.");
                         calculatedEmi = principal / n;
@@ -319,7 +299,7 @@ namespace CredWise_Trail.Controllers
                         if (double.IsNaN(emiDouble) || double.IsInfinity(emiDouble))
                         {
                             Console.WriteLine($"Warning: EMI calculation resulted in NaN or Infinity. Rate: {r}, Principal: {p}, Tenure: {n}. Falling back to simple division.");
-                            calculatedEmi = principal / tenureInMonths; // Fallback for safety
+                            calculatedEmi = principal / tenureInMonths; 
                         }
                         else
                         {
@@ -338,22 +318,19 @@ namespace CredWise_Trail.Controllers
                 LoanProductId = loanProductId,
                 LoanAmount = loanAmount,
                 ApplicationDate = DateTime.Now,
-                ApprovalStatus = "Pending", // Initial status for new applications
+                ApprovalStatus = "Pending",
                 InterestRate = selectedLoanProduct.InterestRate,
                 TenureMonths = tenure,
-                LoanNumber = "APL-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(), // Example loan number
+                LoanNumber = "APL-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
 
-                // ** Assign the calculated EMI here **
                 EMI = finalCalculatedEmi,
                 LoanProductName= selectedLoanProduct.ProductName,
 
-                // These are set upon approval/disbursement or during payment processing
-                OutstandingBalance = 0, // Will be set to principal upon approval
+                OutstandingBalance = 0, 
                 NextDueDate = null,
                 LastPaymentDate = null,
-                AmountDue = 0,          // Will be set to first EMI upon approval
-                LoanStatus = "Pending", // Initial overall status; admin approval moves to "Active" (or "Pending Disbursement" then "Active")
-                                        // Changed from "Pending Disbursement" to "Pending" for consistency, approval sets it to "Active"
+                AmountDue = 0,          
+                LoanStatus = "Pending", 
                 OverdueMonths = 0,
                 CurrentOverdueAmount = 0
             };
@@ -364,7 +341,7 @@ namespace CredWise_Trail.Controllers
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Your loan application has been submitted successfully! EMI will be approximately " + finalCalculatedEmi.ToString("C");
-                return RedirectToAction("LoanStatus"); // Assuming you have a LoanStatus view
+                return RedirectToAction("LoanStatus");
             }
             catch (Exception ex)
             {
@@ -372,9 +349,8 @@ namespace CredWise_Trail.Controllers
                 ModelState.AddModelError("", "An unexpected error occurred while submitting your application. Please try again.");
                 ViewBag.LoanProducts = await _context.LoanProducts.ToListAsync();
                 ViewData["ShowLoanForm"] = true;
-                // Pass back the model with values for repopulation if you have a proper view model
-                // For now, returning to "LoanApplication" view
-                return View("LoanApplication", new { loanProductId, loanAmount, tenure }); // Pass back some values if needed by view
+
+                return View("LoanApplication", new { loanProductId, loanAmount, tenure });
             }
         }
 
@@ -383,80 +359,61 @@ namespace CredWise_Trail.Controllers
         {
             if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
             {
-                // If not authenticated or not a customer, redirect to the login page.
-                // It's good practice to also include a returnUrl if your login action supports it.
                 TempData["ErrorMessage"] = "Please log in as a customer to view your statements.";
-                return RedirectToAction("Login", "Account"); // Assuming AccountController handles login
+                return RedirectToAction("Login", "Account");
             }
 
-            // 2. Get CustomerId from Claims: Retrieve the logged-in customer's ID.
-            var customerIdClaim = User.FindFirstValue("CustomerId"); // "CustomerId" should match the claim type used during login.
+            var customerIdClaim = User.FindFirstValue("CustomerId"); 
 
-            // Initialize the ViewModel. It's ALWAYS initialized to ensure the view never receives a null model,
-            // which helps prevent NullReferenceExceptions in the Razor page.
             var viewModel = new CustomerStatementViewModel();
 
-            // 3. Validate CustomerId Claim: Ensure the CustomerId claim was found and is a valid integer.
             if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
             {
-                // If CustomerId is missing or invalid, set an error message and redirect.
                 TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
-                return RedirectToAction("Logout", "Account"); // Redirect to Logout or an error page
+                return RedirectToAction("Logout", "Account"); 
             }
 
             try
             {
-                // 4. Fetch Customer: Retrieve customer details from the database.
                 var customer = await _context.Customers.FindAsync(customerId);
                 if (customer == null)
                 {
-                    // If no customer is found for the given ID, populate error message in ViewModel.
                     viewModel.ErrorMessage = $"Customer with ID {customerId} not found. Please ensure a valid customer ID is provided.";
-                    // _logger?.LogWarning("Customer not found for Statement with Id: {CustomerId}", customerId); // Optional logging
-                    return View(viewModel); // Return the view with the error message displayed.
+                    return View(viewModel);
                 }
 
-                // 5. Populate ViewModel with Customer Details
                 viewModel.CustomerId = customer.CustomerId;
                 viewModel.CustomerName = customer.Name;
 
-                // 6. Fetch Loan Applications: Retrieve all loan applications for this customer.
-                // Eagerly load related LoanProduct and Repayments to avoid N+1 query issues.
                 var loanApplications = await _context.LoanApplications
                     .Where(la => la.CustomerId == customerId)
-                    .Include(la => la.LoanProduct)    // Include product details for each loan
-                    .Include(la => la.Repayments)     // Include repayment history for each loan
+                    .Include(la => la.LoanProduct) 
+                    .Include(la => la.Repayments)
                     .ToListAsync();
 
-                // 7. Populate LoanAccountsForSelection (for dropdown) and LoanStatements (detailed view for each loan)
                 foreach (var app in loanApplications)
                 {
-                    // Populate the list for the loan selection dropdown.
                     viewModel.LoanAccountsForSelection.Add(new LoanAccountSelectItemViewModel
                     {
-                        // LoanNumber should be a unique identifier for the loan account itself.
                         LoanIdValue = app.LoanNumber,
-                        // Display text for the dropdown option.
                         LoanDisplayText = $"{app.LoanProductName} " +
-                        $"({app.LoanNumber}) - ₹{app.LoanAmount:N0}" // N0 format for currency with no decimals.
+                        $"({app.LoanNumber}) - ₹{app.LoanAmount:N0}" 
                     });
 
-                    // Create a detailed statement view model for each loan application.
                     var loanDetail = new LoanStatementDetailViewModel
                     {
-                        UniqueLoanIdentifier = app.LoanNumber, // Used to identify the div for this loan's details
-                        ApplicationIdDisplay = app.LoanNumber, // Displaying LoanNumber as the Application ID in the view
-                        ProductName = app.LoanProductName, // Handle cases where LoanProduct might be null
+                        UniqueLoanIdentifier = app.LoanNumber, 
+                        ApplicationIdDisplay = app.LoanNumber, 
+                        ProductName = app.LoanProductName, 
                         LoanAmount = app.LoanAmount,
-                        InterestRate = app.InterestRate, // Convert decimal rate (e.g., 0.075) to percentage (e.g., 7.5)
+                        InterestRate = app.InterestRate, 
                         TenureMonths = app.TenureMonths,
                         ApplicationDate = app.ApplicationDate,
-                        ApprovalStatus = app.ApprovalStatus, // This is the string status from LoanApplication model (e.g., PENDING, APPROVED)
-                        LoanStatus = app.LoanStatus,         // This is the overall status (e.g., ACTIVE, CLOSED, OVERDUE)
+                        ApprovalStatus = app.ApprovalStatus, 
+                        LoanStatus = app.LoanStatus,        
                         OutstandingBalance = app.OutstandingBalance
                     };
 
-                    // Populate repayment history for this specific loan, ordered by DueDate.
                     if (app.Repayments != null)
                     {
                         foreach (var repayment in app.Repayments.OrderBy(r => r.DueDate))
@@ -466,31 +423,27 @@ namespace CredWise_Trail.Controllers
                                 RepaymentId = repayment.RepaymentId,
                                 DueDate = repayment.DueDate,
                                 AmountDue = repayment.AmountDue,
-                                PaymentDate = repayment.PaymentDate, // This is nullable
-                                PaymentStatus = repayment.PaymentStatus // This is the string status from Repayment model
+                                PaymentDate = repayment.PaymentDate, 
+                                PaymentStatus = repayment.PaymentStatus 
                             });
                         }
                     }
                     viewModel.LoanStatements.Add(loanDetail);
                 }
 
-                // 8. Calculate Overall Summary Statistics
-                if (loanApplications.Any()) // Proceed only if there are any loan applications
+                if (loanApplications.Any()) 
                 {
-                    // Define the status strings from enums once for clarity and efficiency.
                     string activeStatusString = LoanOverallStatus.ACTIVE.ToString();
                     string overdueStatusString = LoanOverallStatus.OVERDUE.ToString();
                     string approvedStatusString = LoanApprovalStatus.APPROVED.ToString();
                     string closedStatusString = LoanOverallStatus.CLOSED.ToString();
 
-
-                    // Calculate TotalActiveLoans including "ACTIVE" and "OVERDUE" using case-insensitive comparison.
                     viewModel.TotalActiveLoans = loanApplications
                         .Count(la => !string.IsNullOrEmpty(la.LoanStatus) &&
                                      (la.LoanStatus.Equals(activeStatusString, StringComparison.OrdinalIgnoreCase) ||
                                       la.LoanStatus.Equals(overdueStatusString, StringComparison.OrdinalIgnoreCase)));
 
-                    // Calculate TotalAmountDisbursed for loans that are approved OR active OR closed (meaning they were disbursed)
+                    
                     viewModel.TotalAmountDisbursed = loanApplications
                         .Where(la =>
                             (!string.IsNullOrEmpty(la.ApprovalStatus) &&
@@ -499,13 +452,11 @@ namespace CredWise_Trail.Controllers
                              la.LoanStatus.Equals(activeStatusString, StringComparison.OrdinalIgnoreCase)) ||
                             (!string.IsNullOrEmpty(la.LoanStatus) &&
                              la.LoanStatus.Equals(closedStatusString, StringComparison.OrdinalIgnoreCase)) ||
-                            (!string.IsNullOrEmpty(la.LoanStatus) && // Also include overdue as they are disbursed
+                            (!string.IsNullOrEmpty(la.LoanStatus) && 
                              la.LoanStatus.Equals(overdueStatusString, StringComparison.OrdinalIgnoreCase))
                         )
                         .Sum(la => la.LoanAmount);
 
-
-                    // Calculate TotalOutstandingAmount for loans that are Active OR Overdue.
                     viewModel.TotalOutstandingAmount = loanApplications
                         .Where(la =>
                             (!string.IsNullOrEmpty(la.LoanStatus) &&
@@ -517,7 +468,6 @@ namespace CredWise_Trail.Controllers
                 }
                 else
                 {
-                    // If the customer has no loan applications, explicitly set summary figures to 0.
                     viewModel.TotalActiveLoans = 0;
                     viewModel.TotalAmountDisbursed = 0;
                     viewModel.TotalOutstandingAmount = 0;
@@ -525,22 +475,17 @@ namespace CredWise_Trail.Controllers
             }
             catch (Exception ex)
             {
-                // 9. Error Handling: Catch any unexpected exceptions during processing.
-                // _logger?.LogError(ex, "Error retrieving statement for CustomerId {CustomerId}", customerId); // Optional logging
                 viewModel.ErrorMessage = "An unexpected error occurred while retrieving your statement data. Please try again later or contact support.";
 
-                // Optionally clear any partially populated data to present a clean error state.
                 viewModel.LoanStatements?.Clear();
                 viewModel.LoanAccountsForSelection?.Clear();
 
-                // Ensure summary statistics are also zeroed out in case of an error.
                 viewModel.TotalActiveLoans = 0;
                 viewModel.TotalAmountDisbursed = 0;
                 viewModel.TotalOutstandingAmount = 0;
             }
 
-            // 10. Return View: Pass the populated (or error-state) ViewModel to the Razor view.
-            return View(viewModel); // Always return the viewModel, which is never null.
+            return View(viewModel);
         }
 
         public async Task<IActionResult> LoanStatus()
@@ -567,71 +512,10 @@ namespace CredWise_Trail.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Customer")] // Ensures only authenticated customers can access
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> KYCUpload()
         {
-            // User.Identity.IsAuthenticated check is implicitly handled by [Authorize]
-            // User.IsInRole("Customer") is also handled by [Authorize(Roles="Customer")]
 
-            var customerIdClaim = User.FindFirst("CustomerId"); // Or User.FindFirst(ClaimTypes.NameIdentifier) if that's what you use
-            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
-            {
-                TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
-                // It might be better to redirect to Login if customerId is crucial and missing,
-                // or ensure it's always present for authenticated customers.
-                return RedirectToAction("Logout", "Account"); // Or an error page
-            }
-
-            // Fetch the most recent KYC record for the customer
-            var latestKyc = await _context.KycApprovals
-                                        .Where(k => k.CustomerId == customerId)
-                                        .OrderByDescending(k => k.SubmissionDate)
-                                        .FirstOrDefaultAsync();
-
-            var model = new KycUploadViewModel(); // Initialize model for the view
-
-            if (latestKyc != null)
-            {
-                ViewData["CurrentKycStatus"] = latestKyc.Status; // Store current status for display
-                switch (latestKyc.Status)
-                {
-                    case "Approved":
-                        ViewData["ShowForm"] = false; // Flag to hide form
-                        TempData["InfoMessage"] = "Your KYC has already been approved. No further action is required.";
-                        // Optionally, redirect to dashboard if no other info needs to be shown on this page
-                        // return RedirectToAction("CustomerDashboard");
-                        break;
-                    case "Pending":
-                        ViewData["ShowForm"] = true; // Flag to show form (allows resubmission)
-                        TempData["InfoMessage"] = "Your KYC submission is currently pending review. You can upload new documents if you wish to replace the previous submission.";
-                        break;
-                    case "Rejected":
-                        ViewData["ShowForm"] = true; // Flag to show form for resubmission
-                        TempData["WarningMessage"] = "Your previous KYC submission was rejected. Please review any feedback and upload the correct documents again.";
-                        break;
-                    default: // Handles any other unforeseen status or if a new submission is desired
-                        ViewData["ShowForm"] = true;
-                        break;
-                }
-            }
-            else // No existing KYC record, it's a new submission
-            {
-                ViewData["ShowForm"] = true;
-                ViewData["CurrentKycStatus"] = "Not Submitted"; // For display purposes
-                                                                // No specific TempData message needed here, the standard form instructions will show.
-            }
-
-            return View(model);
-        }
-
-        // Your existing HttpPost KYCUpload action remains largely the same.
-        // It will create a new KYC record with "Pending" status upon each submission.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> KYCUpload(KycUploadViewModel model)
-        {
-            // Existing authentication and customerId retrieval logic
             var customerIdClaim = User.FindFirst("CustomerId");
             if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
             {
@@ -639,33 +523,81 @@ namespace CredWise_Trail.Controllers
                 return RedirectToAction("Logout", "Account");
             }
 
-            // Check if an "Approved" KYC already exists. If so, prevent new submissions.
-            // This is an additional safeguard in the POST, complementing the GET logic.
+            var latestKyc = await _context.KycApprovals
+                                        .Where(k => k.CustomerId == customerId)
+                                        .OrderByDescending(k => k.SubmissionDate)
+                                        .FirstOrDefaultAsync();
+
+            var model = new KycUploadViewModel();
+
+            if (latestKyc != null)
+            {
+                ViewData["CurrentKycStatus"] = latestKyc.Status;
+                switch (latestKyc.Status)
+                {
+                    case "Approved":
+                        ViewData["ShowForm"] = false;
+                        TempData["InfoMessage"] = "Your KYC has already been approved. No further action is required.";
+                        break;
+                    case "Pending":
+                        ViewData["ShowForm"] = true;
+                        TempData["InfoMessage"] = "Your KYC submission is currently pending review. You can upload new documents if you wish to replace the previous submission.";
+                        break;
+                    case "Rejected":
+                        ViewData["ShowForm"] = true;
+                        TempData["WarningMessage"] = "Your previous KYC submission was rejected. Please review any feedback and upload the correct documents again.";
+                        break;
+                    default:
+                        ViewData["ShowForm"] = true;
+                        break;
+                }
+            }
+            else
+            {
+                ViewData["ShowForm"] = true;
+                ViewData["CurrentKycStatus"] = "Not Submitted"; 
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> KYCUpload(KycUploadViewModel model)
+        {
+            var customerIdClaim = User.FindFirst("CustomerId");
+            if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+            {
+                TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
+                return RedirectToAction("Logout", "Account");
+            }
+
             var existingApprovedKyc = await _context.KycApprovals
                                             .AnyAsync(k => k.CustomerId == customerId && k.Status == "Approved");
             if (existingApprovedKyc)
             {
                 TempData["InfoMessage"] = "Your KYC is already approved. You cannot submit new documents.";
-                return RedirectToAction("CustomerDashboard"); // Or back to the KYCUpload page which will show the approved message
+                return RedirectToAction("CustomerDashboard");
             }
 
 
             if (ModelState.IsValid)
             {
-                string contentRootPath = Directory.GetCurrentDirectory(); // Consider using IWebHostEnvironment
-                string uploadFolder = Path.Combine(contentRootPath, "kyc_documents"); // Store in wwwroot for easier serving if needed
+                string contentRootPath = Directory.GetCurrentDirectory();
+                string uploadFolder = Path.Combine(contentRootPath, "kyc_documents");
 
                 if (!Directory.Exists(uploadFolder))
                 {
                     Directory.CreateDirectory(uploadFolder);
                 }
 
+                //Since file operation can fail due to reasons like permission issues, disk space, etc., we use try-catch to handle this.
                 try
                 {
                     string identityFileName = null;
                     if (model.IdentityProofFile != null && model.IdentityProofFile.Length > 0)
                     {
-                        // Basic validation (you have client-side, but server-side is crucial)
                         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
                         var fileExtension = Path.GetExtension(model.IdentityProofFile.FileName).ToLowerInvariant();
                         if (!allowedExtensions.Contains(fileExtension))
@@ -683,8 +615,11 @@ namespace CredWise_Trail.Controllers
                             return View(model);
                         }
 
+                        //Guid.NewGuid() (Global unique identifier) is used to generate a unique file name to avoid conflicts with existing files and files with the same name.
                         identityFileName = $"{customerId}_{Guid.NewGuid()}_identity{fileExtension}";
                         string filePath = Path.Combine(uploadFolder, identityFileName);
+                        //using is used to always properly dispose of the FileStream after use, ensuring no file locks or resource leaks.
+                        //a FileStream is a C# object that represents a pipe or a channel directly to a file on your computer's disk.
                         using (var fileStream = new FileStream(filePath, FileMode.Create))
                         {
                             await model.IdentityProofFile.CopyToAsync(fileStream);
@@ -694,16 +629,15 @@ namespace CredWise_Trail.Controllers
                     {
                         ModelState.AddModelError("IdentityProofFile", "Identity proof document is required.");
                         TempData["ErrorMessage"] = "Identity proof document is required.";
-                        return View(model); // Stay on the view if the file is missing
+                        return View(model);
                     }
 
                     var kycApproval = new KycApproval
                     {
                         CustomerId = customerId,
                         SubmissionDate = DateTime.UtcNow,
-                        Status = "Pending", // New submissions are always Pending
-                        DocumentPath = identityFileName, // Relative path if stored in wwwroot, or full path
-                                                         // DocumentType = model.IdentityDocumentType // Assuming you add this to KycApproval model if needed
+                        Status = "Pending",
+                        DocumentPath = identityFileName,
                     };
 
                     _context.KycApprovals.Add(kycApproval);
@@ -714,15 +648,13 @@ namespace CredWise_Trail.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception (ex)
-                    Console.WriteLine($"Error uploading KYC documents: {ex.Message}"); // Basic logging
+                    Console.WriteLine($"Error uploading KYC documents: {ex.Message}");
                     TempData["ErrorMessage"] = "An error occurred during document upload. Please try again.";
                     ModelState.AddModelError("", "An unexpected error occurred. Please try again.");
                 }
             }
             else
             {
-                // Log ModelState errors for debugging
                 foreach (var state in ModelState)
                 {
                     foreach (var error in state.Value.Errors)
@@ -733,8 +665,6 @@ namespace CredWise_Trail.Controllers
                 TempData["ErrorMessage"] = "Please correct the errors below and try again.";
             }
 
-            // If ModelState is invalid or an exception occurred, return to the view with the model
-            // The view will then display the validation errors and TempData messages
             return View(model);
         }
 
@@ -773,33 +703,21 @@ namespace CredWise_Trail.Controllers
         }
 
         [HttpGet]
-        [Authorize] // Ensures only logged-in users can update their profile
+        [Authorize]     
         public async Task<IActionResult> CustomerUpdate()
         {
-            // 1. Get the ID of the currently logged-in user.
-            // The User's ID is stored in a "Claim" after they log in.
-            // We retrieve it here to ensure users can only edit their own profile.
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int customerId))
             {
-                // If we can't find the user's ID, it's a bad request or they are not properly logged in.
                 return Unauthorized("User ID is not available or invalid.");
             }
-
-            // 2. Find the customer in the database using their ID.
-            // We use 'FindAsync' for an efficient lookup by primary key.
             var customer = await _context.Customers.FindAsync(customerId);
 
-            // 3. Check if the customer exists.
             if (customer == null)
             {
-                // If no customer is found with that ID, return a "Not Found" error.
                 return NotFound();
             }
 
-            // 4. Map the data from the database model (Customer) to the ViewModel (CustomerUpdateViewModel).
-            // This is a crucial step. We only expose the data needed for the view, not the entire database object
-            // (e.g., we don't send the PasswordHash to the client).
             var viewModel = new CustomerUpdateViewModel
             {
                 CustomerId = customer.CustomerId,
@@ -809,8 +727,6 @@ namespace CredWise_Trail.Controllers
                 Address = customer.Address
             };
 
-            // 5. Return the 'CustomerUpdate' view, passing the populated ViewModel to it.
-            // The view will use this ViewModel to pre-fill the form fields with the customer's current information.
             return View(viewModel);
         }
         [HttpPost]
@@ -818,31 +734,21 @@ namespace CredWise_Trail.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CustomerUpdate(CustomerUpdateViewModel model)
         {
-            // 1. Check if the submitted data is valid.
-            // ModelState.IsValid checks for validation rules defined in the ViewModel (e.g., [Required], [EmailAddress]).
-            // If the model is not valid, the method will redisplay the form with validation error messages.
             if (ModelState.IsValid)
             {
-                // 2. Fetch the original customer record from the database.
-                // It's critical to retrieve the entity from the DB first to ensure we are updating a valid, existing record.
-                // We use the CustomerId from the submitted model to find the correct record.
                 var customerToUpdate = await _context.Customers.FindAsync(model.CustomerId);
 
                 if (customerToUpdate == null)
                 {
-                    // If, for some reason, the customer doesn't exist, return a "Not Found" error.
                     return NotFound();
                 }
 
-                // Optional: Security check to ensure the logged-in user is the one they are trying to update.
                 var loggedInUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (customerToUpdate.CustomerId.ToString() != loggedInUserId)
                 {
-                    return Forbid(); // Or Unauthorized()
+                    return Forbid(); 
                 }
 
-                // 3. Update the properties of the retrieved database entity with the new values from the ViewModel.
-                // We are deliberately NOT updating sensitive fields like PasswordHash or AccountNumber here.
                 customerToUpdate.Name = model.Name;
                 customerToUpdate.Email = model.Email;
                 customerToUpdate.PhoneNumber = model.PhoneNumber;
@@ -850,23 +756,15 @@ namespace CredWise_Trail.Controllers
 
                 try
                 {
-                    // 4. Save the changes to the database.
-                    // _context.Update(customerToUpdate) marks the entity as modified.
-                    // _context.SaveChangesAsync() commits the changes to the database in a single transaction.
                     _context.Update(customerToUpdate);
                     await _context.SaveChangesAsync();
 
-                    // (Optional) Add a success message to display on the next page.
                     TempData["SuccessMessage"] = "Your profile has been updated successfully!";
 
-                    // 5. Redirect the user to a confirmation or details page upon successful update.
-                    // RedirectToAction is used to prevent form re-submission if the user refreshes the page.
                     return RedirectToAction("CustomerDetails", "Customer");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    // This catch block handles rare cases where the record was modified by someone else
-                    // between the time we loaded it and the time we tried to save it.
                     ModelState.AddModelError("", "The record you attempted to edit "
                         + "was modified by another user after you got the original value. "
                         + "Your edit operation was canceled.");
@@ -874,14 +772,9 @@ namespace CredWise_Trail.Controllers
                 }
             }
 
-            // 6. If ModelState is invalid, return the view with the submitted model.
-            // This ensures the form is redisplayed with the user's entered data and the corresponding validation error messages.
             return View(model);
         }
 
-        // This action displays the list of accepted loans and simulates their disbursement
-        // GET: /Customer/MakePayment/{loanApplicationId}
-        // Displays the payment page for a specific loan, ensuring it belongs to the authenticated customer.
         [HttpGet]
         public async Task<IActionResult> MakePayment(int loanApplicationId)
         {
@@ -902,8 +795,7 @@ namespace CredWise_Trail.Controllers
                 return RedirectToAction("AcceptedLoans");
             }
 
-            // Initialize ViewBag properties
-            ViewBag.ShowPaymentForm = false; // Default to not showing the form
+            ViewBag.ShowPaymentForm = false; 
             ViewBag.PaymentButtonText = "Make Payment";
             ViewBag.PaymentFormDisabledMessage = "";
             ViewBag.DisplayLoanStatus = loanApplication.LoanStatus;
@@ -919,14 +811,13 @@ namespace CredWise_Trail.Controllers
             {
                 ViewBag.NoPaymentDueMessage = "This loan is not yet active for payments.";
             }
-            else // Loan is "Active" or "Overdue" from DB
+            else 
             {
                 DateTime today = DateTime.Now.Date;
                 bool isEffectivelyOverdue = false;
                 decimal effectiveOverdueAmountTotal = 0;
                 int effectiveOverdueMonthsCount = 0;
 
-                // Check for any past due PENDING installments to determine effective overdue status for display
                 var pastDueRepayments = await _context.Repayments
                     .Where(r => r.ApplicationId == loanApplication.ApplicationId &&
                                  r.PaymentStatus == "PENDING" &&
@@ -937,15 +828,14 @@ namespace CredWise_Trail.Controllers
                 if (pastDueRepayments.Any())
                 {
                     isEffectivelyOverdue = true;
-                    ViewBag.DisplayLoanStatus = "Overdue"; // Override display status if not already set in DB
+                    ViewBag.DisplayLoanStatus = "Overdue"; 
                     effectiveOverdueMonthsCount = pastDueRepayments.Count;
                     effectiveOverdueAmountTotal = pastDueRepayments.Sum(r => r.AmountDue);
 
                     ViewBag.DisplayOverdueMonths = effectiveOverdueMonthsCount;
                     ViewBag.DisplayCurrentOverdueAmount = effectiveOverdueAmountTotal;
-                    ViewBag.DisplayAmountDue = effectiveOverdueAmountTotal; // Initially, amount due is total past due
+                    ViewBag.DisplayAmountDue = effectiveOverdueAmountTotal; 
 
-                    // Add current month's EMI to DisplayAmountDue if it's also due and not part of pastDueRepayments
                     if (loanApplication.NextDueDate.HasValue && loanApplication.NextDueDate.Value.Date >= today)
                     {
                         var currentInstallment = await _context.Repayments
@@ -960,19 +850,14 @@ namespace CredWise_Trail.Controllers
                 }
                 else
                 {
-                    // No past due installments, use DB values for overdue (should be 0 if no past dues)
-                    // And set DisplayAmountDue to the current NextDueDate's amount from LoanApplication
                     ViewBag.DisplayAmountDue = loanApplication.AmountDue;
                     if (loanApplication.LoanStatus == "Overdue" && loanApplication.CurrentOverdueAmount > 0)
                     {
-                        // This handles if DB says overdue but our check found no specific past due Repayment items.
-                        // Could be an edge case or if CurrentOverdueAmount is a penalty. Prioritize it.
+                        
                         ViewBag.DisplayAmountDue = loanApplication.CurrentOverdueAmount;
                     }
                 }
 
-
-                // --- Logic for enabling/disabling payment form based on current NextDueDate ---
                 if (loanApplication.NextDueDate.HasValue)
                 {
                     DateTime nextDueDateValue = loanApplication.NextDueDate.Value.Date;
@@ -982,13 +867,11 @@ namespace CredWise_Trail.Controllers
 
                     if (repaymentForNextDueDate != null && repaymentForNextDueDate.PaymentStatus == "PENDING")
                     {
-                        // An unpaid installment exists for the NextDueDate
-                        // Allow payment if it's overdue OR if the current month has "arrived" for the due date
                         if (isEffectivelyOverdue || (today.Year == nextDueDateValue.Year && today.Month == nextDueDateValue.Month) || today > nextDueDateValue)
                         {
                             ViewBag.ShowPaymentForm = true;
                         }
-                        else // Due date is in a future month, and not yet "that month"
+                        else 
                         {
                             ViewBag.ShowPaymentForm = false;
                             ViewBag.PaymentFormDisabledMessage = $"Next payment for {nextDueDateValue:MMMM d, yyyy} is scheduled. Payment option will be available from {new DateTime(nextDueDateValue.Year, nextDueDateValue.Month, 1):MMMM d, yyyy}.";
@@ -996,11 +879,9 @@ namespace CredWise_Trail.Controllers
                     }
                     else if (repaymentForNextDueDate != null && repaymentForNextDueDate.PaymentStatus == "COMPLETED")
                     {
-                        // The installment for the current NextDueDate is already paid.
-                        // ProcessPayment should have advanced NextDueDate. If it hasn't, this is a state to show.
                         ViewBag.ShowPaymentForm = false;
                         ViewBag.PaymentFormDisabledMessage = $"Installment for {nextDueDateValue:MMMM d, yyyy} has been paid. The system will update to the next due date shortly.";
-                        // You might want to query for the *actual* next pending repayment to display its details.
+                        
                         var actualNextPending = await _context.Repayments
                                                    .Where(r => r.ApplicationId == loanApplication.ApplicationId && r.PaymentStatus == "PENDING")
                                                    .OrderBy(r => r.DueDate)
@@ -1012,54 +893,43 @@ namespace CredWise_Trail.Controllers
                         else
                         {
                             ViewBag.PaymentFormDisabledMessage = "All scheduled payments have been made or the loan is being finalized.";
-                            // If all repayments are completed, the loan should ideally be 'Closed'.
-                            // This indicates a potential need for ProcessPayment to fully close the loan.
+                            
                         }
 
                     }
                     else if (repaymentForNextDueDate == null && loanApplication.OutstandingBalance > 0)
                     {
-                        // NextDueDate is set, but no matching Repayment schedule found (data integrity issue or end of schedule with balance)
-                        ViewBag.ShowPaymentForm = false; // Default to false, as it's an unusual state
+                        ViewBag.ShowPaymentForm = false; 
                         ViewBag.PaymentFormDisabledMessage = "Payment schedule details for the upcoming due date are currently inconsistent. Please contact support.";
-                        // If outstanding balance is > 0 but no schedule, could allow a custom payment amount to clear if desired.
-                        // For now, disable standard EMI payment.
+                        
                     }
                 }
-                else if (isEffectivelyOverdue) // Overdue, but NextDueDate on LoanApplication is null (should ideally point to oldest overdue)
+                else if (isEffectivelyOverdue)
                 {
-                    ViewBag.ShowPaymentForm = true; // Allow payment to clear dues
+                    ViewBag.ShowPaymentForm = true; 
                 }
-                else if (loanApplication.OutstandingBalance > 0) // Active, no NextDueDate, but has balance (should have a schedule or be an error)
+                else if (loanApplication.OutstandingBalance > 0) 
                 {
                     ViewBag.PaymentFormDisabledMessage = "Loan is active but has no upcoming due date. Please contact support.";
                 }
 
-
-                // If loan is overdue, the payment form should definitely be shown to allow clearing dues
                 if (ViewBag.DisplayLoanStatus == "Overdue" && ViewBag.DisplayCurrentOverdueAmount > 0)
                 {
                     ViewBag.ShowPaymentForm = true;
-                    ViewBag.PaymentFormDisabledMessage = ""; // Clear any previous disable message
+                    ViewBag.PaymentFormDisabledMessage = ""; 
                 }
             }
 
             return View("~/Views/Customer/MakePayment.cshtml", loanApplication);
         }
 
-        // POST: /Customer/ProcessPayment
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ProcessPayment(int loanId, decimal paidAmount, string paymentMethod)
         {
-            // IMPORTANT: Validate that loanId belongs to the currently authenticated customer.
-            // Example using claims:
-            var customerIdClaim = User.FindFirst("CustomerId"); // Ensure "CustomerId" is the correct claim type
+            var customerIdClaim = User.FindFirst("CustomerId"); 
             if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int currentCustomerId))
             {
-                // If you're using ASP.NET Core Identity, User.Identity.Name might give username,
-                // then you'd fetch customer ID from your users table.
-                // Or, a common approach is to store CustomerId as a claim upon login.
                 return Json(new { success = false, message = "User not authenticated or CustomerId not found in claims." });
             }
 
@@ -1069,8 +939,8 @@ namespace CredWise_Trail.Controllers
             }
 
             var loanApplication = await _context.LoanApplications
-                                                .Include(la => la.Repayments.Where(r => r.PaymentStatus == "PENDING").OrderBy(r => r.DueDate)) // Eager load pending repayments
-                                                .FirstOrDefaultAsync(la => la.ApplicationId == loanId && la.CustomerId == currentCustomerId); // Enforce customer ownership
+                                                .Include(la => la.Repayments.Where(r => r.PaymentStatus == "PENDING").OrderBy(r => r.DueDate))
+                                                .FirstOrDefaultAsync(la => la.ApplicationId == loanId && la.CustomerId == currentCustomerId);
 
             if (loanApplication == null)
             {
@@ -1085,36 +955,29 @@ namespace CredWise_Trail.Controllers
             {
                 return Json(new { success = false, message = "This loan is not yet active for payments." });
             }
-
-            // --- 1. Record the Payment Transaction ---
             var payment = new LoanPayment
             {
-                LoanId = loanApplication.ApplicationId, // FK to LoanApplication's PK
+                LoanId = loanApplication.ApplicationId, 
                 CustomerId = loanApplication.CustomerId,
                 PaidAmount = paidAmount,
                 PaymentDate = DateTime.Now,
                 PaymentMethod = paymentMethod,
-                TransactionId = $"MOCKTRX{DateTime.Now.Ticks}", // Placeholder: Generate a real transaction ID from payment gateway
-                Status = "Success" // Placeholder: Set based on actual payment gateway response
+                TransactionId = $"MOCKTRX{DateTime.Now.Ticks}", 
+                Status = "Success" 
             };
             _context.LoanPayments.Add(payment);
-            // Ensure LoanPayment.LoanId ForeignKey attribute correctly maps to LoanApplication.ApplicationId in your model.
 
-            // --- 2. Apply Payment to Repayments and Update Loan Application ---
             decimal remainingAmountToAllocate = paidAmount;
             DateTime today = DateTime.Now.Date;
 
-            // Handle overdue payments first
-            // Check based on in-memory loaded repayments or explicitly query if status might have changed externally.
-            // The eager-loaded 'loanApplication.Repayments' should only contain 'PENDING' ones.
             if (loanApplication.LoanStatus == "Overdue" ||
-                loanApplication.Repayments.Any(r => r.DueDate.Date < today)) // No need to check r.PaymentStatus == "PENDING" if already filtered by Include
+                loanApplication.Repayments.Any(r => r.DueDate.Date < today))
             {
-                if (loanApplication.LoanStatus != "Overdue") loanApplication.LoanStatus = "Overdue"; // Correct status if needed
+                if (loanApplication.LoanStatus != "Overdue") loanApplication.LoanStatus = "Overdue"; 
 
                 var pendingOverdueRepayments = loanApplication.Repayments
-                                                    .Where(r => r.DueDate.Date < today) // Already filtered for PENDING by Include, ordered by DueDate
-                                                    .OrderBy(r => r.DueDate) // Re-order just to be certain if Include's order isn't guaranteed post-load modifications
+                                                    .Where(r => r.DueDate.Date < today)
+                                                    .OrderBy(r => r.DueDate) 
                                                     .ToList();
 
                 foreach (var repayment in pendingOverdueRepayments)
@@ -1122,28 +985,22 @@ namespace CredWise_Trail.Controllers
                     if (remainingAmountToAllocate <= 0) break;
 
                     decimal amountToApplyToThisRepayment = Math.Min(remainingAmountToAllocate, repayment.AmountDue);
-                    // Interest calculation for each overdue EMI should follow specific business rules.
-                    // This example calculates simple interest on the outstanding balance before this EMI's principal reduction.
                     decimal interestForThisEmiPeriod = CalculateInterestForPeriod(loanApplication.OutstandingBalance, loanApplication.InterestRate);
                     decimal principalFromThisEmi = Math.Max(0, amountToApplyToThisRepayment - interestForThisEmiPeriod);
-                    principalFromThisEmi = Math.Min(principalFromThisEmi, loanApplication.OutstandingBalance); // Cannot pay more principal than available
+                    principalFromThisEmi = Math.Min(principalFromThisEmi, loanApplication.OutstandingBalance); 
 
                     loanApplication.OutstandingBalance -= principalFromThisEmi;
                     repayment.PaymentDate = DateTime.Now;
-                    repayment.PaymentStatus = "COMPLETED"; // EF Core tracks this change
+                    repayment.PaymentStatus = "COMPLETED";
                     remainingAmountToAllocate -= amountToApplyToThisRepayment;
                 }
             }
 
-            // Apply to current/future EMIs if loan is Active or dues are now clear, and funds remain
-            // Check if there are NO PENDING overdue repayments in the *in-memory collection* after the above processing.
             if ((loanApplication.LoanStatus == "Active" || !loanApplication.Repayments.Any(r => r.PaymentStatus == "PENDING" && r.DueDate.Date < today))
                 && remainingAmountToAllocate > 0)
             {
-                // Dues are clear, or loan was already active. Apply to current/future.
-                // Fetch from the in-memory collection, which should reflect any updates from the overdue section.
                 var nextPendingRepayments = loanApplication.Repayments
-                                            .Where(r => r.PaymentStatus == "PENDING") // Still pending after potential overdue payments
+                                            .Where(r => r.PaymentStatus == "PENDING") 
                                             .OrderBy(r => r.DueDate)
                                             .ToList();
 
@@ -1158,30 +1015,22 @@ namespace CredWise_Trail.Controllers
 
                     loanApplication.OutstandingBalance -= principalFromThisEmi;
                     repayment.PaymentDate = DateTime.Now;
-                    repayment.PaymentStatus = "COMPLETED"; // Mark as completed
+                    repayment.PaymentStatus = "COMPLETED";
                     remainingAmountToAllocate -= amountToApplyToThisRepayment;
                 }
             }
 
-            if (loanApplication.OutstandingBalance < 0.01m && loanApplication.OutstandingBalance > -0.01m) // Handle potential floating point inaccuracies
+            if (loanApplication.OutstandingBalance < 0.01m && loanApplication.OutstandingBalance > -0.01m) 
             {
                 loanApplication.OutstandingBalance = 0;
             }
             loanApplication.LastPaymentDate = DateTime.Now;
 
-            // INSIDE ProcessPayment method, replacing the "FINAL STATE CALCULATION" block
-
-            // --- FINAL STATE CALCULATION for LoanApplication ---
-            // Ensure 'today' is defined in this scope
-
-            // Explicitly get the current state of all Repayment entities for this loan
-            // from EF Core's local change tracker. This reflects all in-memory changes.
             var allTrackedRepaymentsForThisLoan = _context.ChangeTracker.Entries<Repayment>()
                 .Where(e => e.Entity.ApplicationId == loanApplication.ApplicationId)
                 .Select(e => e.Entity)
                 .ToList();
 
-            // Log the state of these tracked repayments
             System.Diagnostics.Debug.WriteLine($"--- Repayment States from ChangeTracker (LoanID: {loanApplication.ApplicationId}) BEFORE final LA state calc ---");
             if (allTrackedRepaymentsForThisLoan.Any())
             {
@@ -1192,11 +1041,9 @@ namespace CredWise_Trail.Controllers
             }
             else
             {
-                // Fallback if change tracker isn't providing them for some reason (e.g. if they were re-fetched without tracking)
-                // This path indicates a deeper issue if hit, as Include should make them tracked.
+                
                 allTrackedRepaymentsForThisLoan = loanApplication.Repayments?.ToList() ?? new List<Repayment>();
                 System.Diagnostics.Debug.WriteLine($"Warning/Info: Using loanApplication.Repayments navigation property as fallback for final calc. Count: {allTrackedRepaymentsForThisLoan.Count}");
-                // Log these too if fallback is used
                 foreach (var rep in allTrackedRepaymentsForThisLoan.OrderBy(r => r.DueDate))
                 {
                     System.Diagnostics.Debug.WriteLine($"Fallback Source: RepID: {rep.RepaymentId}, Due: {rep.DueDate.ToShortDateString()}, Amt: {rep.AmountDue}, Status: {rep.PaymentStatus}, PayDate: {rep.PaymentDate?.ToShortDateString() ?? "N/A"}");
@@ -1205,11 +1052,11 @@ namespace CredWise_Trail.Controllers
             System.Diagnostics.Debug.WriteLine("--- End Repayment States from ChangeTracker ---");
 
 
-            var finalPastDueRepayments = allTrackedRepaymentsForThisLoan // Use this refreshed list
+            var finalPastDueRepayments = allTrackedRepaymentsForThisLoan 
                 .Where(r => r.PaymentStatus == "PENDING" && r.DueDate.Date < today)
                 .ToList();
 
-            var nextUpcomingPendingRepayment = allTrackedRepaymentsForThisLoan // Use this refreshed list
+            var nextUpcomingPendingRepayment = allTrackedRepaymentsForThisLoan 
                 .Where(r => r.PaymentStatus == "PENDING")
                 .OrderBy(r => r.DueDate)
                 .FirstOrDefault();
@@ -1235,15 +1082,15 @@ namespace CredWise_Trail.Controllers
 
                 loanApplication.AmountDue = loanApplication.CurrentOverdueAmount;
                 if (nextUpcomingPendingRepayment != null &&
-                    !finalPastDueRepayments.Any(pr => pr.RepaymentId == nextUpcomingPendingRepayment.RepaymentId) && // Ensure it's not also a past due one
-                    nextUpcomingPendingRepayment.DueDate.Date >= today) // And it's current or future
+                    !finalPastDueRepayments.Any(pr => pr.RepaymentId == nextUpcomingPendingRepayment.RepaymentId) && 
+                    nextUpcomingPendingRepayment.DueDate.Date >= today) 
                 {
                     loanApplication.AmountDue += nextUpcomingPendingRepayment.AmountDue;
                 }
-                loanApplication.NextDueDate = nextUpcomingPendingRepayment?.DueDate; // Should be the oldest overall PENDING
+                loanApplication.NextDueDate = nextUpcomingPendingRepayment?.DueDate; 
                 System.Diagnostics.Debug.WriteLine($"LA State set in OVERDUE block: Status='{loanApplication.LoanStatus}', OverdueMonths='{loanApplication.OverdueMonths}', CurrentOverdueAmount='{loanApplication.CurrentOverdueAmount}', NextDueDate='{loanApplication.NextDueDate?.ToShortDateString()}', Calc AmountDue='{loanApplication.AmountDue}'");
             }
-            else // No past dues, so loan is Active (if not closed)
+            else 
             {
                 loanApplication.LoanStatus = "Active";
                 loanApplication.OverdueMonths = 0;
@@ -1253,99 +1100,75 @@ namespace CredWise_Trail.Controllers
                 System.Diagnostics.Debug.WriteLine($"LA State set in ACTIVE block: Status='{loanApplication.LoanStatus}', OverdueMonths='{loanApplication.OverdueMonths}', CurrentOverdueAmount='{loanApplication.CurrentOverdueAmount}', NextDueDate='{loanApplication.NextDueDate?.ToShortDateString()}', Calc AmountDue='{loanApplication.AmountDue}'");
             }
 
-            // Ensure OutstandingBalance isn't negative after all calculations
             if (loanApplication.OutstandingBalance < 0) loanApplication.OutstandingBalance = 0;
 
-            // --- LOG STATE BEFORE SAVE --- (Keep this log)
             System.Diagnostics.Debug.WriteLine($"ProcessPayment - BEFORE Save - LoanID: {loanApplication.ApplicationId}, Status: {loanApplication.LoanStatus}, OB: {loanApplication.OutstandingBalance}, NextDue: {loanApplication.NextDueDate}, AmtDue: {loanApplication.AmountDue}, OverdueAmt: {loanApplication.CurrentOverdueAmount}, OverdueMonths: {loanApplication.OverdueMonths}");
-           //PrintRepaymentStates(allTrackedRepaymentsForThisLoan, "Repayments from ChangeTracker/Fallback BEFORE Save"); // Log this collection
-
-            // ... rest of your try/catch for SaveChangesAsync and JSON response ...
 
             try
             {
-                await _context.SaveChangesAsync(); // Save all changes to LoanApplication, Repayments, and LoanPayments
+                await _context.SaveChangesAsync(); 
                 return Json(new
                 {
                     success = true,
                     message = $"Payment of INR {paidAmount:N2} processed successfully.",
                     loanStatus = loanApplication.LoanStatus,
                     outstandingBalance = loanApplication.OutstandingBalance,
-                    nextDueDate = loanApplication.NextDueDate?.ToString("yyyy-MM-dd"), // Format for JS consistency
-                    amountDue = loanApplication.AmountDue, // This is the crucial total amount currently payable
+                    nextDueDate = loanApplication.NextDueDate?.ToString("yyyy-MM-dd"), 
+                    amountDue = loanApplication.AmountDue, 
                     currentOverdueAmount = loanApplication.CurrentOverdueAmount,
                     overdueMonths = loanApplication.OverdueMonths,
-                    emi = loanApplication.EMI // Useful for defaulting payment amount if loan becomes Active
+                    emi = loanApplication.EMI 
                 });
             }
-            catch (DbUpdateException ex) // More specific exception
+            catch (DbUpdateException ex) 
             {
-                // Log ex for detailed error diagnosis (inner exception often has more details)
                 Console.WriteLine($"Error processing payment for LoanId {loanId}: {ex.Message} {ex.InnerException?.Message} {ex.StackTrace}");
                 return Json(new { success = false, message = "An error occurred while saving the payment details. Please try again." });
             }
             catch (Exception ex)
             {
-                // Log ex for detailed error diagnosis
                 Console.WriteLine($"Error processing payment for LoanId {loanId}: {ex.Message} {ex.StackTrace}");
                 return Json(new { success = false, message = "An unexpected error occurred while processing the payment." });
             }
         }
 
-        // Helper method to calculate interest for one month based on current balance and annual rate.
         private decimal CalculateInterestForPeriod(decimal currentOutstandingBalance, decimal annualInterestRatePercentage)
         {
             if (currentOutstandingBalance <= 0) return 0;
             decimal monthlyInterestRate = annualInterestRatePercentage / 12 / 100;
             return Math.Round(currentOutstandingBalance * monthlyInterestRate, 2);
         }
-
-        // GET: /Customer/AcceptedLoans
-        // Displays loans that are approved and not yet closed for the authenticated customer.
         public async Task<IActionResult> AcceptedLoans()
         {
-            var customerIdClaim = User.FindFirst("CustomerId"); // Assumes "CustomerId" claim is set during login
+            var customerIdClaim = User.FindFirst("CustomerId"); 
             if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
             {
                 TempData["ErrorMessage"] = "Authentication error: Customer ID not found.";
-                return RedirectToAction("Login", "Account"); // Redirect to login if not authenticated
+                return RedirectToAction("Login", "Account"); 
             }
 
             var approvedLoans = await _context.LoanApplications
-                                            .Include(l => l.LoanProduct) // To display product details
+                                            .Include(l => l.LoanProduct) 
                                             .Where(l => l.CustomerId == customerId && l.ApprovalStatus == "Approved")
-                                            .Where(l => l.LoanStatus != "Closed") // Filter out already closed loans
+                                            .Where(l => l.LoanStatus != "Closed") 
                                             .ToListAsync();
 
-            // This section simulates a disbursement check if your workflow includes 'Pending Disbursement' status
-            // and needs to transition to 'Active' upon viewing or a similar trigger.
-            // In a real system, disbursement might be an explicit admin action or automated process.
             bool hasChanges = false;
             foreach (var loan in approvedLoans)
             {
-                if (loan.LoanStatus == "Pending Disbursement") // A status indicating approved but funds not yet released
+                if (loan.LoanStatus == "Pending Disbursement") 
                 {
-                    // await SimulateLoanDisbursement(loan); // Your custom logic for disbursement
-                    // Example: Update status and outstanding balance if disbursement logic is here
-                    // loan.LoanStatus = "Active";
-                    // loan.OutstandingBalance = loan.LoanAmount; // If not set already
-                    // loan.NextDueDate = ... // Set first due date if not set during approval
-                    // hasChanges = true;
-                    // This is a placeholder for your disbursement logic which might also generate the schedule
-                    // if not done directly in UpdateLoanStatus. For this flow, schedule is in UpdateLoanStatus.
                 }
             }
             if (hasChanges)
             {
-                await _context.SaveChangesAsync(); // Save changes if any loan statuses were updated
+                await _context.SaveChangesAsync(); 
             }
             foreach (var loan in approvedLoans)
             {
                 Console.WriteLine($"AcceptedLoans Action: LoanApplicationId = {loan.ApplicationId}, ApprovalStatus = {loan.ApprovalStatus}, CustomerId = {loan.CustomerId}");
             }
-            return View(approvedLoans); // Pass the list of loans to an AcceptedLoans.cshtml view
+            return View(approvedLoans); 
         }
-
-        // GET: /Customer/Statement/{customerId}
     }
 }

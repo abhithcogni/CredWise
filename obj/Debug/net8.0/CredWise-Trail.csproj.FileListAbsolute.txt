@@ -55,12 +55,6 @@ C:\CredWise\CredWise\obj\Debug\net8.0\scopedcss\projectbundle\CredWise-Trail.bun
 C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets.build.json
 C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets.development.json
 C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets\msbuild.CredWise-Trail.Microsoft.AspNetCore.StaticWebAssets.props
-C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets\msbuild.CredWise-Trail.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
-C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets\msbuild.build.CredWise-Trail.props
-C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.CredWise-Trail.props
-C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.CredWise-Trail.props
-C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets.pack.json
 C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\CredWise\CredWise\obj\Debug\net8.0\CredWise-Trail.dll
 C:\CredWise\CredWise\obj\Debug\net8.0\refint\CredWise-Trail.dll
@@ -578,3 +572,8 @@ C:\Users\2406687\OneDrive - Cognizant\Desktop\CredWise final\CredWise\obj\Debug\
 C:\Users\2406687\OneDrive - Cognizant\Desktop\CredWise final\CredWise\obj\Debug\net8.0\CredWise-Trail.genruntimeconfig.cache
 C:\Users\2406687\OneDrive - Cognizant\Desktop\CredWise final\CredWise\obj\Debug\net8.0\ref\CredWise-Trail.dll
 C:\CredWise-Trail\CredWise\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\CredWise\CredWise\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\CredWise\CredWise\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\CredWise\CredWise\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\CredWise\CredWise\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\CredWise\CredWise\obj\Debug\net8.0\staticwebassets.build.json.cache
