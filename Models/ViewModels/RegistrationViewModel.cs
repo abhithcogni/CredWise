@@ -7,6 +7,7 @@ namespace CredWise_Trail.Models.ViewModels
     {
         [Required(ErrorMessage = "Name is required.")]
         [StringLength(100, ErrorMessage = "Name cannot exceed 100 characters.")]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Name can only contain letters and spaces.")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Email is required.")]
@@ -15,7 +16,7 @@ namespace CredWise_Trail.Models.ViewModels
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Phone number is required.")]
-        [StringLength(15, ErrorMessage = "Phone number cannot exceed 15 characters.")]
+        [StringLength(10, ErrorMessage = "Phone number cannot exceed 10 characters.")]
         [Phone(ErrorMessage = "Invalid phone number format.")]
         public string PhoneNumber { get; set; }
 

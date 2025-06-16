@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\2406687\\OneDrive - Cognizant\\Desktop\\CredWise Bank\\CredWise\\CredWise-Trail.csproj": {}
+    "C:\\CredWise\\CredWise\\CredWise-Trail.csproj": {}
   },
   "projects": {
-    "C:\\Users\\2406687\\OneDrive - Cognizant\\Desktop\\CredWise Bank\\CredWise\\CredWise-Trail.csproj": {
+    "C:\\CredWise\\CredWise\\CredWise-Trail.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\2406687\\OneDrive - Cognizant\\Desktop\\CredWise Bank\\CredWise\\CredWise-Trail.csproj",
+        "projectUniqueName": "C:\\CredWise\\CredWise\\CredWise-Trail.csproj",
         "projectName": "CredWise-Trail",
-        "projectPath": "C:\\Users\\2406687\\OneDrive - Cognizant\\Desktop\\CredWise Bank\\CredWise\\CredWise-Trail.csproj",
-        "packagesPath": "C:\\Users\\2406687\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\2406687\\OneDrive - Cognizant\\Desktop\\CredWise Bank\\CredWise\\obj\\",
+        "projectPath": "C:\\CredWise\\CredWise\\CredWise-Trail.csproj",
+        "packagesPath": "C:\\Users\\2406734\\.nuget\\packages\\",
+        "outputPath": "C:\\CredWise\\CredWise\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\2406687\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\2406734\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -45,7 +45,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -105,7 +105,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
