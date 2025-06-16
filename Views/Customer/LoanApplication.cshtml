@@ -1,29 +1,31 @@
-﻿@* @model CredWise_Trail.Models.LoanApplication *@
+﻿@* Ensure your model is defined if your form strongly types to it,
+    otherwise, you can remove it if all inputs are manually named.
+    If the form is NOT shown, this model isn't strictly used by this page directly. *@
+@* @model CredWise_Trail.Models.LoanApplication *@
 @{
-    // --- This block retrieves data passed from the Controller (ViewData/ViewBag) ---
-    // --- and sets up variables to control the view's logic and display.      ---
     ViewData["Title"] = "Apply for Loan";
+    // This will be null if ShowLoanForm is false and KYC is not approved.
     var loanProducts = ViewBag.LoanProducts as List<CredWise_Trail.Models.LoanProduct>;
-    bool showLoanForm = (bool?)ViewData["ShowLoanForm"] ?? false;
+    bool showLoanForm = (bool?)ViewData["ShowLoanForm"] ?? false; // Default to false if not set
     string kycPageLink = ViewData["KycPageLink"] as string;
     string kycPageLinkText = ViewData["KycPageLinkText"] as string;
     string kycStatus = ViewData["KycStatus"] as string;
     string kycStatusClass = "";
     if (!string.IsNullOrEmpty(kycStatus))
     {
-        switch (kycStatus.ToLower())
+        switch (kycStatus.ToLower()) // Use ToLower for case-insensitive comparison
         {
             case "pending":
-                kycStatusClass = "text-warning";
+                kycStatusClass = "text-warning"; // Bootstrap's yellow text
                 break;
             case "rejected":
-                kycStatusClass = "text-danger";
+                kycStatusClass = "text-danger";  // Bootstrap's red text
                 break;
             case "not submitted":
-                kycStatusClass = "text-secondary";
+                kycStatusClass = "text-secondary"; // A muted/grey color for not submitted
                 break;
             default:
-                kycStatusClass = "text-info";
+                kycStatusClass = "text-info"; // Default color for other statuses like "Approved" (though "Approved" wouldn't typically show here)
                 break;
         }
     }
@@ -118,6 +120,7 @@
             <i class="fas fa-file-alt"></i> Apply for a Loan
         </div>
         <div class="card-body">
+            @* Display All TempData Messages Consistently *@
             @if (TempData["SuccessMessage"] != null)
             {
                 <div class="alert alert-success">@TempData["SuccessMessage"]</div>
@@ -135,7 +138,6 @@
                 <div class="alert alert-info">@TempData["InfoMessage"]</div>
             }
 
-            @* This is the main logical switch. If true, the loan form is rendered. If false, the KYC status/guidance is shown instead. *@
             @if (showLoanForm)
             {
                 <form id="loanApplicationForm" asp-action="ApplyForLoan" asp-controller="Customer" method="post">
@@ -145,12 +147,11 @@
                         <label for="loanProductName" class="form-label"><i class="fas fa-piggy-bank me-2 text-secondary"></i>Loan Product Name:</label>
                         <select class="form-select" id="loanProductName" name="loanProductId" required>
                             <option value="" disabled selected>Select a loan product</option>
-                            @if (loanProducts != null)
+                            @if (loanProducts != null) // Check if loanProducts is available
                             {
                                 foreach (var product in loanProducts)
                                 {
                                     <option value="@product.LoanProductId"
-                                    @* These data-* attributes embed loan product details directly into the HTML, making them easily accessible to our client-side JavaScript. *@
                                             data-interest-rate="@product.InterestRate"
                                             data-min-amount="@product.MinAmount"
                                             data-max-amount="@product.MaxAmount"
@@ -196,6 +197,7 @@
                     </div>
 
                     <div class="mb-3">
+                        @* New div for Monthly EMI *@
                         <label for="monthlyEmi" class="form-label">
                             <i class=" bi bi-currency-rupee me-2 text-secondary">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-currency-rupee text-secondary">
@@ -238,8 +240,9 @@
                     </div>
                 </form>
             }
-            else
+            else // If showLoanForm is false
             {
+                @* The TempData messages are already displayed above. This section adds the link. *@
                 @if (!string.IsNullOrEmpty(kycPageLink) && !string.IsNullOrEmpty(kycPageLinkText))
                 {
                     <div class="text-center mt-3">
@@ -254,6 +257,7 @@
                 }
                 else if (TempData["ErrorMessage"] == null && TempData["WarningMessage"] == null && TempData["InfoMessage"] == null)
                 {
+                    // Fallback message if no specific TempData was set but form is still hidden
                     <div class="alert alert-info mt-3">Please ensure your KYC is completed and approved to apply for a loan. Contact support if you believe this is an error.</div>
                 }
             }
@@ -263,37 +267,39 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Check if the form elements are present before adding listeners
             const loanProductNameSelect = document.getElementById("loanProductName");
             const interestRateInput = document.getElementById("interestRate");
             const loanAmountInput = document.getElementById("loanAmount");
             const tenureInput = document.getElementById("tenure");
             const totalAmountInput = document.getElementById("totalAmount");
-            const monthlyEmiInput = document.getElementById("monthlyEmi");
+            const monthlyEmiInput = document.getElementById("monthlyEmi"); // New: Monthly EMI input
             const loanAmountValidationDiv = document.getElementById("loanAmountValidation");
             const tenureValidationDiv = document.getElementById("tenureValidation");
             const loanApplicationForm = document.getElementById("loanApplicationForm");
 
 
             let currentMinAmount = 0;
-            let currentMaxAmount = Infinity;
-            let currentMaxTenure = Infinity;
+            let currentMaxAmount = Infinity; // Default to no max if not specified
+            let currentMaxTenure = Infinity; // Default to no max if not specified
 
             function formatCurrency(value) {
-                return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
+                // Basic currency formatting, adjust as needed (e.g., for INR)
+                return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value); // Changed to 2 decimal places for EMI
             }
 
             function updateLoanProductLimits() {
-                if (!loanProductNameSelect) return;
+                if (!loanProductNameSelect) return; // Guard clause
                 const selectedOption = loanProductNameSelect.options[loanProductNameSelect.selectedIndex];
 
                 if (selectedOption && selectedOption.value !== "") {
                     interestRateInput.value = (parseFloat(selectedOption.dataset.interestRate) || 0).toFixed(2);
                     currentMinAmount = parseFloat(selectedOption.dataset.minAmount) || 0;
-                    currentMaxAmount = parseFloat(selectedOption.dataset.maxAmount) || Infinity;
-                    currentMaxTenure = parseInt(selectedOption.dataset.maxTenure) || Infinity;
+                    currentMaxAmount = parseFloat(selectedOption.dataset.maxAmount) || Infinity; // Use Infinity if not set
+                    currentMaxTenure = parseInt(selectedOption.dataset.maxTenure) || Infinity;    // Use Infinity if not set
 
                     loanAmountInput.min = currentMinAmount;
-                    loanAmountInput.max = currentMaxAmount === Infinity ? "" : currentMaxAmount;
+                    loanAmountInput.max = currentMaxAmount === Infinity ? "" : currentMaxAmount; // HTML max attribute doesn't like Infinity
                     tenureInput.max = currentMaxTenure === Infinity ? "" : currentMaxTenure;
 
                     validateLoanAmount();
@@ -311,15 +317,15 @@
                     if(loanAmountValidationDiv) loanAmountValidationDiv.textContent = "";
                     if(tenureValidationDiv) tenureValidationDiv.textContent = "";
                 }
-                calculateLoanDetails();
+                calculateLoanDetails(); // Call combined calculation function
             }
 
             function validateLoanAmount() {
-                if (!loanAmountInput || !loanAmountValidationDiv) return;
+                if (!loanAmountInput || !loanAmountValidationDiv) return; // Guard clauses
                 const amount = parseFloat(loanAmountInput.value);
                 loanAmountValidationDiv.textContent = "";
 
-                if (isNaN(amount) || amount <= 0 && loanAmountInput.value !== "") {
+                if (isNaN(amount) || amount <= 0 && loanAmountInput.value !== "") { // Show error only if something is typed
                     loanAmountValidationDiv.textContent = "Loan amount must be a positive number.";
                 } else if (currentMinAmount > 0 && amount < currentMinAmount) {
                     loanAmountValidationDiv.textContent = `Min. amount is ${formatCurrency(currentMinAmount)}.`;
@@ -329,7 +335,7 @@
             }
 
             function validateTenure() {
-                if (!tenureInput || !tenureValidationDiv) return;
+                if (!tenureInput || !tenureValidationDiv) return; // Guard clauses
                 const tenure = parseInt(tenureInput.value);
                 tenureValidationDiv.textContent = "";
 
@@ -340,23 +346,26 @@
                 }
             }
 
-            function calculateLoanDetails() {
-                if (!loanAmountInput || !interestRateInput || !tenureInput || !totalAmountInput || !monthlyEmiInput) return;
+            function calculateLoanDetails() { // Renamed from calculateTotalAmount
+                if (!loanAmountInput || !interestRateInput || !tenureInput || !totalAmountInput || !monthlyEmiInput) return; // Guard
                 const principal = parseFloat(loanAmountInput.value) || 0;
-                const annualRate = parseFloat(interestRateInput.value) || 0;
+                const annualRate = parseFloat(interestRateInput.value) || 0; // Annual rate from input
                 const tenureMonths = parseInt(tenureInput.value) || 0;
 
                 let totalRepayment = 0;
                 let monthlyEmi = 0;
 
                 if (principal > 0 && annualRate >= 0 && tenureMonths > 0) {
-                    const monthlyRate = (annualRate / 100) / 12;
+                    // It's crucial to use the correct EMI formula for monthly payments.
+                    // Simple interest is generally for short-term or specific product types.
+                    // For standard loans, EMI (Equated Monthly Installment) is calculated.
+
+                    const monthlyRate = (annualRate / 100) / 12; // Monthly interest rate
 
                     if (monthlyRate > 0) {
-                        // Standard EMI Formula: P * r * (1+r)^n / ((1+r)^n - 1)
                         monthlyEmi = principal * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths) / (Math.pow(1 + monthlyRate, tenureMonths) - 1);
                         totalRepayment = monthlyEmi * tenureMonths;
-                    } else {
+                    } else { // If rate is 0
                         monthlyEmi = principal / tenureMonths;
                         totalRepayment = principal;
                     }
@@ -366,32 +375,35 @@
                 totalAmountInput.value = totalRepayment > 0 ? formatCurrency(totalRepayment) : "";
             }
 
+            // Only add listeners if the elements exist (i.e., if the form is shown)
             if (loanProductNameSelect) {
                 loanProductNameSelect.addEventListener("change", updateLoanProductLimits);
             }
             if (loanAmountInput) {
                 loanAmountInput.addEventListener("input", function() {
                     validateLoanAmount();
-                    calculateLoanDetails();
+                    calculateLoanDetails(); // Call combined calculation function
                 });
             }
             if (tenureInput) {
                 tenureInput.addEventListener("input", function() {
                     validateTenure();
-                    calculateLoanDetails();
+                    calculateLoanDetails(); // Call combined calculation function
                 });
             }
 
+            // Initial call if form is present
             if (showLoanForm) {
-                updateLoanProductLimits();
+                updateLoanProductLimits(); // This will also trigger dependant validations and calculations
             }
 
             if (loanApplicationForm) {
                 loanApplicationForm.addEventListener("submit", function(event) {
-                    updateLoanProductLimits();
+                    updateLoanProductLimits(); // Ensure latest limits are applied for validation
                     validateLoanAmount();
                     validateTenure();
 
+                    // Check custom validation messages
                     let clientSideValid = true;
                     if (loanAmountValidationDiv && loanAmountValidationDiv.textContent !== "") {
                         clientSideValid = false;
@@ -399,15 +411,17 @@
                     if (tenureValidationDiv && tenureValidationDiv.textContent !== "") {
                         clientSideValid = false;
                     }
+                    // Check native browser validity for required fields etc.
                     if (!loanApplicationForm.checkValidity()) {
                         clientSideValid = false;
                     }
 
 
                     if (!clientSideValid) {
-                        // Stop the form from submitting to the server if client-side validation fails.
                         event.preventDefault();
                         alert("Please correct the highlighted errors and ensure all required fields are filled before submitting.");
+                        // Optionally, trigger Bootstrap's native validation display if you're using it:
+                        // loanApplicationForm.classList.add('was-validated');
                     }
                 });
             }

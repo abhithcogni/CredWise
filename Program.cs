@@ -22,8 +22,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.IsEssential = true;
     });
 
-builder.Services.AddControllersWithViews();
-
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
