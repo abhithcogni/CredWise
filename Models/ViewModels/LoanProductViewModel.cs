@@ -8,6 +8,7 @@ namespace CredWise_Trail.Models.ViewModels
         [Required(ErrorMessage = "Product Name is required.")]
         [StringLength(50, ErrorMessage = "Product Name cannot exceed 50 characters.")]
         [Display(Name = "Product Name")]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Name can only contain letters and spaces.")]
         public string ProductName { get; set; }
 
         [Required(ErrorMessage = "Interest Rate is required.")]
