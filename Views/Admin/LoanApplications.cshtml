@@ -171,7 +171,7 @@
                 const filteredApps = allApplications.filter(app => {
                     const loanNumber = (app.loanNumber || '').toLowerCase();
                     const customerName = (app.customerName || '').toLowerCase();
-                    const productName = (app.productName || '').toLowerCase();
+                    const productName = (app. || '').toLowerCase();
                     return loanNumber.includes(query) || customerName.includes(query) || productName.includes(query);
                 });
 

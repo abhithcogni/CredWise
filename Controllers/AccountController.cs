@@ -20,7 +20,6 @@ namespace CredWise_Trail.Controllers
         private readonly LoanUpdateOrchestratorService _loanUpdateService; 
         private readonly ILogger<AccountController> _logger;             
 
-        // Constructor updated to inject the new services
         public AccountController(
             BankLoanManagementDbContext context,
             LoanUpdateOrchestratorService loanUpdateService,
@@ -191,7 +190,6 @@ namespace CredWise_Trail.Controllers
             await HttpContext.SignOutAsync(
                 Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
 
-            // Redirect to a public page after logout.
             return RedirectToAction("Landing", "Account");
         }
     }

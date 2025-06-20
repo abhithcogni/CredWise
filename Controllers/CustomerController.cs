@@ -149,116 +149,83 @@ namespace CredWise_Trail.Controllers
         [HttpGet]
 
         public async Task<IActionResult> LoanApplication()
-
         {
-
             if (!User.Identity.IsAuthenticated || !User.IsInRole("Customer"))
-
             {
-
                 return RedirectToAction("Login", "Account");
-
             }
 
-            var customerIdClaim = User.FindFirstValue("CustomerId"); // Or ClaimTypes.NameIdentifier if that's what you use
-
+            var customerIdClaim = User.FindFirstValue("CustomerId"); // Using your existing claim type
             if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
-
             {
-
                 TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
-
-                return RedirectToAction("Logout", "Account"); // Or a more appropriate error view/redirect
-
+                return RedirectToAction("Logout", "Account");
             }
 
             // Fetch the most recent KYC record for the customer
-
             var latestKyc = await _context.KycApprovals
-
-                                        .Where(k => k.CustomerId == customerId)
-
-                                        .OrderByDescending(k => k.SubmissionDate)
-
-                                        .FirstOrDefaultAsync();
+                                          .Where(k => k.CustomerId == customerId)
+                                          .OrderByDescending(k => k.SubmissionDate)
+                                          .FirstOrDefaultAsync();
 
             ViewData["ShowLoanForm"] = false; // Default: do not show the loan form
 
             if (latestKyc != null)
-
             {
-
                 ViewData["KycStatus"] = latestKyc.Status;
-
                 switch (latestKyc.Status)
-
                 {
-
                     case "Approved":
-
                         ViewData["ShowLoanForm"] = true;
-
-                        // Only load loan products if KYC is approved
-
                         var loanProducts = await _context.LoanProducts.ToListAsync();
+                        ViewBag.LoanProducts = loanProducts;
 
-                        ViewBag.LoanProducts = loanProducts; // This is used by your view
+                        // *** NEW LOGIC STARTS HERE ***
+                        // Find loan products the customer already has an active or pending application for.
+                        // This code is robust and handles duplicate LoanProductIds gracefully
+                        var existingLoans = await _context.LoanApplications
+                            .Where(la => la.CustomerId == customerId && la.LoanProductId.HasValue &&
+                                            (la.ApprovalStatus == "Pending" || la.LoanStatus == "Active" || la.LoanStatus == "Overdue"))
+                            .GroupBy(la => la.LoanProductId.Value) // 1. Group by the key that was causing duplicates
+                            .Select(g => g.OrderByDescending(la => la.ApplicationDate).First()) // 2. From each group, select only the most recent application
+                            .ToDictionaryAsync(
+                                la => la.LoanProductId.Value, // Now this key is guaranteed to be unique
+                                la => la.ApprovalStatus == "Pending" ? "Pending" : "Active"
+                            ); // Simplified status for the alert
+
+                        // Pass this dictionary to the view.
+                        ViewData["RestrictedLoanProducts"] = existingLoans;
+                        // *** NEW LOGIC ENDS HERE ***
 
                         break;
-
                     case "Pending":
-
                         TempData["WarningMessage"] = "Your KYC verification is currently pending. It must be approved before you can apply for a loan.";
-
-                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
-
-                        ViewData["KycPageLinkText"] = "Check KYC Status / Upload Documents";
-
-                        break;
-
-                    case "Rejected":
-
-                        TempData["ErrorMessage"] = "Your KYC verification was rejected. Please re-submit your KYC documents and get approval before applying for a loan.";
-
-                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
-
-                        ViewData["KycPageLinkText"] = "Re-apply for KYC";
-
-                        break;
-
-                    default: // Handles any other status
-
-                        TempData["InfoMessage"] = $"Your KYC status is '{latestKyc.Status}'. Please ensure it is approved to apply for a loan.";
-
                         ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer");
-
-                        ViewData["KycPageLinkText"] = "Review KYC Status";
-
+                        ViewData["KycPageLinkText"] = "Check KYC Status / Upload Documents";
                         break;
-
+                    case "Rejected":
+                        TempData["ErrorMessage"] = "Your KYC verification was rejected. Please re-submit your KYC documents and get approval before applying for a loan.";
+                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer");
+                        ViewData["KycPageLinkText"] = "Re-apply for KYC";
+                        break;
+                    default:
+                        TempData["InfoMessage"] = $"Your KYC status is '{latestKyc.Status}'. Please ensure it is approved to apply for a loan.";
+                        ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer");
+                        ViewData["KycPageLinkText"] = "Review KYC Status";
+                        break;
                 }
-
             }
-
-            else // No KYC record found for the customer
-
+            else
             {
-
                 ViewData["KycStatus"] = "Not Submitted";
-
                 TempData["InfoMessage"] = "You need to complete and get your KYC verified before applying for a loan.";
-
-                ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer"); // Link to your KYC page
-
+                ViewData["KycPageLink"] = Url.Action("KYCUpload", "Customer");
                 ViewData["KycPageLinkText"] = "Complete KYC Verification";
-
             }
 
-            // The view will now use ViewData["ShowLoanForm"] to decide what to display
-
-            return View(); // If ShowLoanForm is true, it will expect ViewBag.LoanProducts
-
+            return View();
         }
+
 
 
         [HttpPost]
@@ -506,8 +473,6 @@ namespace CredWise_Trail.Controllers
                             (!string.IsNullOrEmpty(la.LoanStatus) &&
                              la.LoanStatus.Equals(activeStatusString, StringComparison.OrdinalIgnoreCase)) ||
                             (!string.IsNullOrEmpty(la.LoanStatus) &&
-                             la.LoanStatus.Equals(closedStatusString, StringComparison.OrdinalIgnoreCase)) ||
-                            (!string.IsNullOrEmpty(la.LoanStatus) && 
                              la.LoanStatus.Equals(overdueStatusString, StringComparison.OrdinalIgnoreCase))
                         )
                         .Sum(la => la.LoanAmount);
@@ -620,108 +585,211 @@ namespace CredWise_Trail.Controllers
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> KYCUpload(KycUploadViewModel model)
+
         {
+
             var customerIdClaim = User.FindFirst("CustomerId");
+
             if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+
             {
+
                 TempData["ErrorMessage"] = "Could not identify customer. Please log in again.";
+
                 return RedirectToAction("Logout", "Account");
+
             }
 
-            var existingApprovedKyc = await _context.KycApprovals
-                                            .AnyAsync(k => k.CustomerId == customerId && k.Status == "Approved");
-            if (existingApprovedKyc)
+            var existingKyc = await _context.KycApprovals
+
+                                            .FirstOrDefaultAsync(k => k.CustomerId == customerId);
+
+            if (existingKyc != null && existingKyc.Status == "Approved")
+
             {
-                TempData["InfoMessage"] = "Your KYC is already approved. You cannot submit new documents.";
-                return RedirectToAction("CustomerDashboard");
-            }
 
+                TempData["InfoMessage"] = "Your KYC is already approved. You cannot submit new documents.";
+
+                return RedirectToAction("CustomerDashboard");
+
+            }
 
             if (ModelState.IsValid)
+
             {
+
                 string contentRootPath = Directory.GetCurrentDirectory();
+
                 string uploadFolder = Path.Combine(contentRootPath, "kyc_documents");
 
                 if (!Directory.Exists(uploadFolder))
+
                 {
+
                     Directory.CreateDirectory(uploadFolder);
+
                 }
 
-                //Since file operation can fail due to reasons like permission issues, disk space, etc., we use try-catch to handle this.
-                try
+                if (model.IdentityProofFile == null || model.IdentityProofFile.Length == 0)
+
                 {
-                    string identityFileName = null;
-                    if (model.IdentityProofFile != null && model.IdentityProofFile.Length > 0)
+
+                    ModelState.AddModelError("IdentityProofFile", "Identity proof document is required.");
+
+                    TempData["ErrorMessage"] = "Identity proof document is required.";
+
+                    return View(model);
+
+                }
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
+
+                var fileExtension = Path.GetExtension(model.IdentityProofFile.FileName).ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(fileExtension))
+
+                {
+
+                    ModelState.AddModelError("IdentityProofFile", "Invalid file type. Only JPG, PNG, PDF are allowed.");
+
+                    TempData["ErrorMessage"] = "Invalid file type submitted.";
+
+                    return View(model);
+
+                }
+
+                long maxFileSize = 5 * 1024 * 1024; // 5MB
+
+                if (model.IdentityProofFile.Length > maxFileSize)
+
+                {
+
+                    ModelState.AddModelError("IdentityProofFile", "File size exceeds the 5MB limit.");
+
+                    TempData["ErrorMessage"] = "File size exceeds the 5MB limit.";
+
+                    return View(model);
+
+                }
+
+                try
+
+                {
+
+                    string newIdentityFileName = $"{customerId}_{Guid.NewGuid()}_identity{fileExtension}";
+
+                    string newFilePath = Path.Combine(uploadFolder, newIdentityFileName);
+
+                    using (var fileStream = new FileStream(newFilePath, FileMode.Create))
+
                     {
-                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
-                        var fileExtension = Path.GetExtension(model.IdentityProofFile.FileName).ToLowerInvariant();
-                        if (!allowedExtensions.Contains(fileExtension))
-                        {
-                            ModelState.AddModelError("IdentityProofFile", "Invalid file type. Only JPG, PNG, PDF are allowed.");
-                            TempData["ErrorMessage"] = "Invalid file type submitted.";
-                            return View(model);
-                        }
 
-                        long maxFileSize = 5 * 1024 * 1024; // 5MB
-                        if (model.IdentityProofFile.Length > maxFileSize)
-                        {
-                            ModelState.AddModelError("IdentityProofFile", "File size exceeds the 5MB limit.");
-                            TempData["ErrorMessage"] = "File size exceeds the 5MB limit.";
-                            return View(model);
-                        }
+                        await model.IdentityProofFile.CopyToAsync(fileStream);
 
-                        //Guid.NewGuid() (Global unique identifier) is used to generate a unique file name to avoid conflicts with existing files and files with the same name.
-                        identityFileName = $"{customerId}_{Guid.NewGuid()}_identity{fileExtension}";
-                        string filePath = Path.Combine(uploadFolder, identityFileName);
-                        //using is used to always properly dispose of the FileStream after use, ensuring no file locks or resource leaks.
-                        //a FileStream is a C# object that represents a pipe or a channel directly to a file on your computer's disk.
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await model.IdentityProofFile.CopyToAsync(fileStream);
-                        }
                     }
+
+                    if (existingKyc != null)
+
+                    {
+
+                        if (!string.IsNullOrEmpty(existingKyc.DocumentPath))
+
+                        {
+
+                            string oldFilePath = Path.Combine(uploadFolder, existingKyc.DocumentPath);
+
+                            if (System.IO.File.Exists(oldFilePath))
+
+                            {
+
+                                System.IO.File.Delete(oldFilePath);
+
+                            }
+
+                        }
+
+                        existingKyc.SubmissionDate = DateTime.UtcNow;
+
+                        existingKyc.Status = "Pending";
+
+                        existingKyc.DocumentPath = newIdentityFileName;
+
+                        _context.KycApprovals.Update(existingKyc);
+
+                        TempData["SuccessMessage"] = "Your updated KYC documents have been submitted successfully! Your verification is pending review.";
+
+                    }
+
                     else
+
                     {
-                        ModelState.AddModelError("IdentityProofFile", "Identity proof document is required.");
-                        TempData["ErrorMessage"] = "Identity proof document is required.";
-                        return View(model);
+
+                        var newKycApproval = new KycApproval
+
+                        {
+
+                            CustomerId = customerId,
+
+                            SubmissionDate = DateTime.UtcNow,
+
+                            Status = "Pending",
+
+                            DocumentPath = newIdentityFileName,
+
+                        };
+
+                        _context.KycApprovals.Add(newKycApproval);
+
+                        TempData["SuccessMessage"] = "KYC documents uploaded successfully! Your verification is pending review.";
+
                     }
 
-                    var kycApproval = new KycApproval
-                    {
-                        CustomerId = customerId,
-                        SubmissionDate = DateTime.UtcNow,
-                        Status = "Pending",
-                        DocumentPath = identityFileName,
-                    };
-
-                    _context.KycApprovals.Add(kycApproval);
                     await _context.SaveChangesAsync();
 
-                    TempData["SuccessMessage"] = "KYC documents uploaded successfully! Your verification is pending review.";
-                    return RedirectToAction("CustomerDashboard");
+                    return RedirectToAction("KYCUpload");
+
                 }
+
                 catch (Exception ex)
+
                 {
+
                     Console.WriteLine($"Error uploading KYC documents: {ex.Message}");
+
                     TempData["ErrorMessage"] = "An error occurred during document upload. Please try again.";
+
                     ModelState.AddModelError("", "An unexpected error occurred. Please try again.");
+
                 }
+
             }
+
             else
+
             {
+
                 foreach (var state in ModelState)
+
                 {
+
                     foreach (var error in state.Value.Errors)
+
                     {
+
                         Console.WriteLine($"ModelState Error: {state.Key} - {error.ErrorMessage}");
+
                     }
+
                 }
+
                 TempData["ErrorMessage"] = "Please correct the errors below and try again.";
+
             }
 
             return View(model);
+
         }
+
 
         [HttpGet]
         public async Task<IActionResult> CustomerDetails()

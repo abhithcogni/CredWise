@@ -239,11 +239,11 @@
                             // Contextual subtitles based on loan status or form visibility.
                             if (loanStatusToDisplay == "Closed")
                             {
-                                @:This loan (@Model.LoanProduct?.ProductName - @Model.LoanNumber) is closed.
+                                @:This loan (@Model.LoanProductName - @Model.LoanNumber) is closed.
                             }
                             else if (showPaymentForm)
                             {
-                                @:Securely pay your loan amount for @Model.LoanProduct?.ProductName (@Model.LoanNumber).
+                                @:Securely pay your loan amount for @Model.LoanProductName (@Model.LoanNumber).
                             }
                             else // Model exists, form not shown, but no other specific message fits the subtitle
                             {
@@ -273,7 +273,7 @@
                                 </div>
                                 <div class="card-body p-4">
                                     <h5 class="card-title" id="loanProductName">
-                                        @Model.LoanProduct?.ProductName (@Model.LoanNumber)
+                                        @Model.LoanProductName (@Model.LoanNumber)
                                     </h5>
                                     <p class="card-text text-muted" id="loanShortDescription">
                                         Current Status: <span class="fw-bold @(loanStatusToDisplay == "Overdue" ? "text-danger" : (loanStatusToDisplay == "Closed" ? "text-success" : (loanStatusToDisplay == "Active" ? "text-info" : "text-secondary")))">@loanStatusToDisplay</span>

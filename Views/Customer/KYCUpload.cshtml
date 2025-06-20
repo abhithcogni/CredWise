@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "KYC Verification - MyBank";
-    bool showForm = (bool?)ViewData["ShowForm"] ?? true; // Default to true if not set
+    bool showForm = (bool?)ViewData["ShowForm"] ?? true;
     string currentKycStatus = ViewData["CurrentKycStatus"] as string;
 }
 
@@ -46,7 +46,7 @@
         }
 
         .alert-instructions {
-            background-color: #e7f3fe; /* Light blue for instructions */
+            background-color: #e7f3fe; 
             border-color: #d0eaff;
             color: #0c5460;
         }
@@ -88,12 +88,11 @@
                     </div>
                 }
 
-                @if (!ViewData.ModelState.IsValid && !TempData.ContainsKey("ErrorMessage")) // Show model state errors if not already covered by a general ErrorMessage
+                @if (!ViewData.ModelState.IsValid && !TempData.ContainsKey("ErrorMessage")) 
                 {
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         Please correct the errors below.
-                        @* You can also list model errors here if desired: *@
-                        @* <div asp-validation-summary="ModelOnly" class="text-danger"></div> *@
+                       
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 }
@@ -142,16 +141,7 @@
                         </button>
                     </form>
                 }
-                else if (currentKycStatus == "Approved") // If form is not shown and status is Approved
-                {
-                    // The TempData["InfoMessage"] already covers this, but you can add a specific visual here.
-                    // For example:
-                    // <div class="text-center mt-4">
-                    //    <h4><i class="fas fa-check-circle text-success me-2"></i>KYC Approved</h4>
-                    //    <p>Your KYC has been successfully verified. No further action is needed.</p>
-                    //    <a asp-controller="Customer" asp-action="CustomerDashboard" class="btn btn-outline-secondary mt-2">Go to Dashboard</a>
-                    // </div>
-                }
+                
 
 
                 <div class="mt-4 text-center">
@@ -190,8 +180,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    @* jQuery and Unobtrusive validation scripts are good for client-side validation, keep them if you use data annotations for validation on your ViewModel *@
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.6.0.min.js"></script> @* Ensure jQuery is loaded before unobtrusive validation *@
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.6.0.min.js"></script>
     <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.3/jquery.validate.min.js"></script>
     <script src="https://ajax.aspnetcdn.com/ajax/jquery.validation.unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
 
@@ -205,10 +194,9 @@
                     const declarationCheckbox = document.getElementById('declaration');
                     let allClientValid = true;
 
-                    // File validation
                     if (identityFileInput && identityFileInput.files.length > 0) {
                         const identityFile = identityFileInput.files[0];
-                        const maxSize = 5 * 1024 * 1024; // 5MB
+                        const maxSize = 5 * 1024 * 1024;
                         const allowedIdentityTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
 
                         if (!allowedIdentityTypes.includes(identityFile.type)) {
@@ -219,25 +207,18 @@
                             alert('Identity Proof: File size exceeds 5MB.');
                             allClientValid = false;
                         }
-                    } else if (identityFileInput) { // File input exists but no file selected
-                        // Server-side validation will catch this as required if attribute is present.
-                        // You can add an alert here if you want immediate client feedback for missing file.
-                        // alert('Please select an Identity Proof file to upload.');
-                        // allClientValid = false;
-                    }
+                    } 
 
 
-                    // Declaration check
                     if (declarationCheckbox && !declarationCheckbox.checked) {
                         alert('You must accept the declaration to proceed.');
                         allClientValid = false;
                     }
 
                     if (!allClientValid) {
-                        event.preventDefault(); // Stop form submission if client-side validation fails
+                        event.preventDefault(); 
                         return;
                     }
-                    // If all client-side checks pass, the form will submit normally.
                 });
             }
 
@@ -246,9 +227,7 @@
                 if (fileInput) {
                     fileInput.addEventListener('change', function () {
                         const fileName = this.files[0] ? this.files[0].name : "No file chosen";
-                        // You could update a label next to the input to show the file name
-                        // For example, create a <span id="fileNameDisplay"></span> and update its textContent.
-                        console.log(`Selected file for ${inputId}: ${fileName}`);
+                        
                     });
                 }
             }

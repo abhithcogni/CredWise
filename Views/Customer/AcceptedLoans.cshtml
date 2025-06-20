@@ -138,7 +138,7 @@
                                     <tr>
                                         <td>@item.ApplicationId</td>
                                         <td>@item.ApplicationDate.ToString("MMM dd, yyyy")</td>
-                                        <td>@(item.LoanProduct?.ProductName ?? "N/A")</td>
+                                        <td>@(item.LoanProductName ?? "N/A")</td>
                                         <td>@item.LoanAmount.ToString("C")</td>
                                         <td>@item.InterestRate%</td> @* Assuming InterestRate is a property in your model *@
                                         <td>
